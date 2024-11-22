@@ -1,0 +1,54 @@
+
+/* Import tech font */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap');
+
+/* Tech font class */
+.tech-font {
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(120deg, #00ff9d, #00b8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* Gradient button */
+.gradient-btn {
+  background: linear-gradient(120deg, #00ff9d, #00b8ff);
+  border: none;
+  color: white;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.gradient-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, #00b8ff, #00ff9d);
+  z-index: -1;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.gradient-btn:hover:before {
+  opacity: 1;
+}
+
+.gradient-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
+}
+
+.smaller-font {
+    font-size: 0.8em; /* Adjust the size as needed */
+}

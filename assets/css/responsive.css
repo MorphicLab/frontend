@@ -18,7 +18,7 @@
 	.widget-btns .btn{margin-bottom:20px;display: block;}
 	.widget-btns .btn.btn-lg, .btn.btn-group-lg{height: 46px;line-height:46px;}
 	.first-ico-box .feature-box{float:none;}
-	.app-btns .btn + .btn {margin-left: 0px; margin-top:10px;}
+	.tos-btns .btn + .btn {margin-left: 0px; margin-top:10px;}
 	.feature-box-right{width:100%;}
 	ul.cart-list{left: -280px !important;border-top: 0 !important;}
 	ul.cart-list > li.total > .btn {line-height: 30px;}
@@ -118,7 +118,7 @@
 	.right-col-rv{margin-top:50px;}
 	.hero-text-sm h3{font-size:14px!important;}
 	.hero-text-sm h5{font-size:12px!important;}
-	.app-btns .btn + .btn {margin-left: 10px;margin-top: 0px;}
+	.tos-btns .btn + .btn {margin-left: 10px;margin-top: 0px;}
 	.attr-nav > ul > li > a.btn{display:none;}
     .schedule-wrap .nav-tabs li a { width: 118px;height: 50px;line-height: 50px;margin-bottom: 10px;padding: 0;}
     .schedule-tab ul { padding-left: 0;}

@@ -1,7 +1,7 @@
 	/* ===================================================================
 	
 	Author       	: Incognito Themes
-	Template Name	: Exact - Multipurpose Responsive Onepage Template
+	Template Name	: Morphic - Trustlessness as a service
 	
 	* ================================================================= */
 	

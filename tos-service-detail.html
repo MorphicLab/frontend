@@ -4,12 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>Exact - Multipurpose Responsive Onepage Template</title>
+<title>Morphic - Trustlessness as a service</title>
 <link rel="shortcut icon" href="assets/images/favicon.ico">
 <link rel="stylesheet" href="assets/css/master.css">
 <link rel="stylesheet" href="assets/css/responsive.css">
+<link rel="stylesheet" href="styles/tos.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Roboto+Mono&display=swap" rel="stylesheet">
 </head>
-<body id="page-top" data-spy="scroll" data-target=".navbar">
+<body id="page-top" data-spy="scroll" data-target=".navbar" class="fade-in">
 
 <!--=== Loader Start ======-->
 <div id="loader-overlay">
@@ -23,7 +25,7 @@
 <div id="wrapper"> 
   
   <!--=== Header Start ===-->
-  <nav class="navbar-scrollspy navbar navbar-default navbar-fixed white bootsnav on no-full">
+  <nav class="navbar-scrollspy navbar navbar-default navbar-fixed white bootsnav on no-full navbar-transparent">
     <div class="container-fluid"> 
       <!--=== Start Atribute Navigation ===-->
       <div class="attr-nav">
@@ -143,23 +145,25 @@
         <div class="col-md-8">
           <!-- 导航路径 -->
           <div class="breadcrumb">
-            <a href="tos-service.html">TOS services</a> > App name 1
+            <a href="tos-service.html">Services</a> > Morphic-AI
           </div>
           
           <!-- 应用基本信息 -->
-          <div class="app-header mt-20">
+          <div class="tos-header mt-20">
             <div style="display: flex; align-items: center;">
-              <img src="assets/images/app-icon.png" class="app-icon" alt="logo">
-              <h3 class="app-name" style="margin-left: 10px;">App name 1</h3>
+              <h3 class="tos-title" style="margin-left: 10px;">
+                <i class="ion-cube mr-10"></i>
+                Morphic-AI
+              </h3>
             </div>
           </div>
 
           <!-- 数据总览 -->
-          <div class="app-stats mt-30" style="border: 1px solid #e0e0e0; border-radius: 4px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div class="tos-stats mt-30">
             <div class="row">
               <div class="col-sm-4">
                 <div class="stat-box">
-                  <h4>Num of Nodes</h4>
+                  <h4>Num of Operators</h4>
                   <div class="stat-value">2</div>
                 </div>
               </div>
@@ -177,28 +181,35 @@
               </div>
             </div>
           </div>
+
           <!-- 节点列表 -->
-          <div class="node-list mt-40" style="border: 1px solid #e0e0e0; border-radius: 4px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div class="node-list mt-40">
             <div class="search-box">
-              <input type="text" class="form-control" placeholder="搜索节点...">
+              <input type="text" class="form-control search-input" placeholder="Search operators...">
             </div>
             
             <div class="table-responsive mt-20">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>Node name</th>
-                    <th>Num of Apps</th>
+                    <th>Operator name</th>
+                    <th>Restaked</th>
+                    <th>Stakers</th>
+                    <th>TOS serving</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr onclick="window.location='tos-node-detail.html'" style="cursor: pointer;">
+                  <tr onclick="window.location='tos-operator-detail.html'" style="cursor: pointer;">
                     <td><img src="assets/images/node-logo.png" alt="logo" style="width: 30px;">Node1</td>
                     <td>3</td>
+                    <td>100</td>
+                    <td>1</td>
                   </tr>
-                  <tr onclick="window.location='tos-node-detail.html'" style="cursor: pointer;">
+                  <tr onclick="window.location='tos-operator-detail.html'" style="cursor: pointer;">
                     <td><img src="assets/images/node-logo.png" alt="logo" style="width: 30px;">node2</td>
                     <td>5</td>
+                    <td>100</td>
+                    <td>1</td>
                   </tr>
                 </tbody>
               </table>
@@ -208,12 +219,12 @@
 
         <!-- 右侧介绍区域 -->
         <div class="col-md-4">
-          <div class="app-intro">
+          <div class="tos-intro">
             <h4>Introduction</h4>
-            <p class="mt-20" style="word-wrap: break-word;">IntroductionIntroductionIntroductionIntroductionIntroductionIntroduction...</p>
+            <p class="mt-20" style="word-wrap: break-word;">A decentralized AI service platform powered by trustless computation...</p>
             
-            <div class="app-screenshot mt-30">
-              <img src="assets/images/app-screenshot.png" alt="screenshot" class="img-responsive">
+            <div class="tos-screenshot mt-30">
+              <img src="assets/images/tos-screenshot.png" alt="screenshot" class="img-responsive">
             </div>
           </div>
         </div>
