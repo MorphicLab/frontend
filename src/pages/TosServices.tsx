@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Star, Users, Coins, ThumbsUp, ExternalLink } from 'lucide-react';
+import PageBackground from '../components/PageBackground';
 
 // Mock data for demonstration
 const tosData = [
@@ -61,19 +62,43 @@ const TosServices = () => {
   };
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="relative pt-20 min-h-screen">
+      <PageBackground />
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-4xl font-bold text-white mb-2">
-            TOS (Trustless off-chain services)
+            Registered TOSs (Trustless off-chain services)
           </h1>
           <p className="text-gray-400 mb-8">
             Discover and explore decentralized services powered by trustless computation
           </p>
+
+          {/* Basic Stats */}
+          <div className="grid grid-cols-3 gap-6 my-16">
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <div className="text-3xl font-bold text-blue-500 mb-2">
+                {tosData.length}
+              </div>
+              <div className="text-gray-400">Total Services</div>
+            </div>
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <div className="text-3xl font-bold text-blue-500 mb-2">
+                230 ETH
+              </div>
+              <div className="text-gray-400">Total Restaked</div>
+            </div>
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <div className="text-3xl font-bold text-blue-500 mb-2">
+                1.8K
+              </div>
+              <div className="text-gray-400">Total Stakers</div>
+            </div>
+          </div>
 
           {/* Search Bar */}
           <div className="relative mb-6">
