@@ -30,7 +30,7 @@ const Product = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-6">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-morphic-primary to-morphic-accent bg-clip-text text-transparent mb-6">
             Morphic AI
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -47,7 +47,7 @@ const Product = () => {
               transition={{ delay: index * 0.2 }}
               className="bg-gray-800 rounded-lg p-8 hover:bg-gray-750 transition-colors text-center"
             >
-              <feature.icon className="h-12 w-12 text-blue-500 mx-auto mb-6" />
+              <feature.icon className="h-12 w-12 text-cyan-300 mx-auto mb-6" />
               <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
               <p className="text-gray-300">{feature.description}</p>
             </motion.div>
@@ -60,7 +60,7 @@ const Product = () => {
           transition={{ delay: 0.6 }}
           className="mt-16 text-center"
         >
-          <button className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors">
+          <button className="px-8 py-3 rounded-full bg-cyan-400 hover:bg-cyan-500 text-white font-semibold transition-colors">
             Get Started with Morphic AI
           </button>
         </motion.div>

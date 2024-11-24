@@ -5,6 +5,16 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        // 基于 RGB(70, 220, 225) 的配色方案
+        morphic: {
+          primary: 'rgb(70, 220, 225)',      // 主色调：亮青色
+          secondary: 'rgb(100, 230, 235)',   // 次要色：浅青色
+          accent: 'rgb(45, 195, 200)',       // 强调色：深青色
+          light: 'rgb(180, 240, 245)',       // 浅色变体
+          dark: 'rgb(35, 170, 175)',         // 深色变体
+        },
+      },
       animation: {
         blob: "blob 7s infinite",
       },

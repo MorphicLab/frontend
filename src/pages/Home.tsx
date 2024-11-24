@@ -32,15 +32,15 @@ const Home = () => {
           }}
           className="inline-block mb-6"
         >
-          <Sparkles className="h-16 w-16 text-blue-500" />
+          <Sparkles className="h-16 w-16 text-cyan-400" />
         </motion.div>
         
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-          Welcome to Morphic
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-morphic-primary to-morphic-accent bg-clip-text text-transparent">
+          Trustlessness as a Service
         </h1>
         
         <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto mb-8">
-          Transform your digital experience with next-generation AI technology
+            Get your service Web3-ready by deploying on Morphic
         </p>
         
         <motion.div 
@@ -49,7 +49,7 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <button className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors">
+          <button className="px-8 py-3 rounded-full bg-cyan-400 hover:bg-cyan-500 text-white font-semibold transition-colors">
             Get Started
           </button>
           <button className="px-8 py-3 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-semibold transition-colors">

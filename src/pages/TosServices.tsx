@@ -81,19 +81,19 @@ const TosServices = () => {
           {/* Basic Stats */}
           <div className="grid grid-cols-3 gap-6 my-16">
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="text-3xl font-bold text-blue-500 mb-2">
+              <div className="text-3xl font-bold text-morphic-primary mb-2">
                 {tosData.length}
               </div>
               <div className="text-gray-400">Total Services</div>
             </div>
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="text-3xl font-bold text-blue-500 mb-2">
+              <div className="text-3xl font-bold text-morphic-primary mb-2">
                 230 ETH
               </div>
               <div className="text-gray-400">Total Restaked</div>
             </div>
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="text-3xl font-bold text-blue-500 mb-2">
+              <div className="text-3xl font-bold text-morphic-primary mb-2">
                 1.8K
               </div>
               <div className="text-gray-400">Total Stakers</div>
@@ -120,8 +120,8 @@ const TosServices = () => {
                 onClick={() => toggleLabel(label)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedLabels.includes(label)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    ? 'bg-morphic-primary text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
                 }`}
               >
                 {label}
@@ -203,8 +203,8 @@ const TosServices = () => {
                   onClick={() => setCurrentPage(page)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === page
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      ? 'bg-morphic-primary text-white'
+                      : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
                   }`}
                 >
                   {page}

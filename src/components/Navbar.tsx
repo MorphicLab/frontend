@@ -13,15 +13,21 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800">
+    <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <Hexagon className="h-8 w-8 text-blue-500" />
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-              Morphic
-            </span>
-          </Link>
+          <div className="flex-shrink-0">
+            <Link to="/" className="flex items-center">
+              <img
+                className="h-8 w-auto"
+                src="/images/morphic-logo-sm.png"
+                alt="Morphic"
+              />
+              <span className="ml-2 text-xl font-bold bg-gradient-to-r from-morphic-primary to-morphic-secondary bg-clip-text text-transparent">
+                Morphic
+              </span>
+            </Link>
+          </div>
 
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-gray-300 hover:text-white transition-colors">
@@ -90,12 +96,14 @@ const Navbar = () => {
               Docs
             </Link>
 
-            <Link
-              to="/signin"
-              className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            >
-              Sign In
-            </Link>
+            <div className="flex items-center">
+              <Link
+                to="/signin"
+                className="ml-8 px-4 py-2 rounded-lg bg-gradient-to-r from-morphic-primary to-morphic-accent text-white hover:from-morphic-accent hover:to-morphic-primary transition-all duration-300"
+              >
+                Sign In
+              </Link>
+            </div>
           </div>
         </div>
       </div>

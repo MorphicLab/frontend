@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 添加自定义颜色变量 */
+:root {
+  --color-morphic-primary: rgb(70, 220, 225);
+  --color-morphic-secondary: rgb(100, 230, 235);
+  --color-morphic-accent: rgb(45, 195, 200);
+  --color-morphic-light: rgb(180, 240, 245);
+  --color-morphic-dark: rgb(35, 170, 175);
+}
+
+/* 添加全局渐变效果 */
+.gradient-morphic {
+  background: linear-gradient(
+    135deg,
+    rgb(70, 220, 225) 0%,
+    rgb(45, 195, 200) 100%
+  );
+}
+
+.gradient-morphic-light {
+  background: linear-gradient(
+    135deg,
+    rgba(70, 220, 225, 0.1) 0%,
+    rgba(45, 195, 200, 0.1) 100%
+  );
+}
