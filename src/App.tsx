@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import TosServices from './pages/TosServices';
 import TosOperators from './pages/TosOperators';
 import TosDetail from './pages/TosDetail';
-import Product from './pages/Product';
+import Product from './pages/MorphicAI';
 import Docs from './pages/Docs';
 import SignIn from './pages/SignIn';
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Book, Code, Terminal, FileText } from 'lucide-react';
+import PageBackground from '../components/PageBackground';
 
 const Docs = () => {
   const sections = [
@@ -28,6 +29,8 @@ const Docs = () => {
 
   return (
     <div className="pt-16 min-h-screen bg-gray-900">
+      <PageBackground />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -50,7 +53,7 @@ const Docs = () => {
                 transition={{ delay: index * 0.2 }}
                 className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors cursor-pointer"
               >
-                <section.icon className="h-8 w-8 text-blue-500 mb-4" />
+                <section.icon className="h-8 w-8 text-cyan-300 mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">{section.title}</h3>
                 <p className="text-gray-300">{section.description}</p>
               </motion.div>
@@ -67,7 +70,7 @@ const Docs = () => {
             <p className="text-gray-300 mb-4">
               Can't find what you're looking for? Our support team is here to help.
             </p>
-            <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+            <button className="px-6 py-2 bg-cyan-400 hover:bg-cyan-500 text-white rounded-md transition-colors">
               Contact Support
             </button>
           </motion.div>

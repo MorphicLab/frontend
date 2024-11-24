@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Zap, Lock } from 'lucide-react';
+import PageBackground from '../components/PageBackground';
 
 const Product = () => {
   const features = [
@@ -23,6 +24,8 @@ const Product = () => {
 
   return (
     <div className="pt-16 min-h-screen bg-gray-900">
+      <PageBackground />    
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -30,7 +33,7 @@ const Product = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-morphic-primary to-morphic-accent bg-clip-text text-transparent mb-6">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-morphic-primary via-morphic-accent to-morphic-light bg-clip-text text-transparent mb-6">
             Morphic AI
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">

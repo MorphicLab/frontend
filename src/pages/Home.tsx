@@ -12,6 +12,7 @@ const Home = () => {
         backgroundPosition: 'center',
       }}
     >
+
       <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm"></div>
       
       <motion.div 
