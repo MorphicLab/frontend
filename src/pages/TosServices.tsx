@@ -10,6 +10,7 @@ const tosData = [
         id: 1,
         name: 'Morphic AI',
         address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+        website: '/morphic-ai',
         introduction: 'A decentralized AI service platform powered by trustless computation...',
         publisher: {
             name: 'Morphic Labs',
@@ -156,7 +157,19 @@ const TosServices = () => {
                                                 </div>
                                             </div>
                                             <h3 className="text-xl font-semibold text-white mb-2">{tos.name}</h3>
-                                            <p className="text-gray-400 text-sm line-clamp-2">{tos.introduction}</p>
+                                            <p className="text-gray-400 text-sm line-clamp-2 mb-3">{tos.introduction}</p>
+                                            
+                                            {/* Labels */}
+                                            <div className="flex flex-wrap gap-2">
+                                                {tos.labels.map(label => (
+                                                    <span
+                                                        key={label}
+                                                        className="px-2 py-1 text-xs font-medium rounded-full bg-morphic-primary/20 text-morphic-primary"
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         {/* Card Body */}
