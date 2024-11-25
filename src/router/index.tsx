@@ -7,6 +7,7 @@ import TosDetail from '../pages/TosDetail';
 import Developer from '../pages/Developer';
 import MorphicAI from '../pages/MorphicAI';
 import Docs from '../pages/Docs';
+import AgentChat from '../pages/AgentChat';
 
 
 const router = createBrowserRouter([
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: '/docs',
         element: <Docs />
+      },
+      {
+        path: '/agent-chat/:id',
+        element: <AgentChat />
       }
     ]
   }

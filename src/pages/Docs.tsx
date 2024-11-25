@@ -36,6 +36,7 @@ const Docs = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="relative z-10"
         >
           <h1 className="text-4xl font-bold text-white mb-8">Documentation</h1>
           <div className="prose prose-invert max-w-none mb-12">
@@ -50,7 +51,10 @@ const Docs = () => {
                 key={section.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2 }}
+                transition={{ 
+                  duration: 0.5,
+                  delay: index * 0.1 
+                }}
                 className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors cursor-pointer"
               >
                 <section.icon className="h-8 w-8 text-cyan-300 mb-4" />

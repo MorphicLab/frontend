@@ -8,6 +8,7 @@ import TosDetail from './pages/TosDetail';
 import Product from './pages/MorphicAI';
 import Docs from './pages/Docs';
 import SignIn from './pages/SignIn';
+import Developer from './pages/Developer';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/product" element={<Product />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/developer" element={<Developer />} />
         </Routes>
       </div>
     </Router>

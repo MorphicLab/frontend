@@ -1,19 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { CloudCog } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const navigate = useNavigate();
+
   return (
     <div 
       className="min-h-screen relative flex items-center justify-center"
       style={{
-        backgroundImage: 'url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80")',
+        backgroundImage: 'url("/images/background.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
 
-      <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -33,7 +36,7 @@ const Home = () => {
           }}
           className="inline-block mb-6"
         >
-          <Sparkles className="h-16 w-16 text-cyan-400" />
+          <img src="/images/morphic-logo-sm.png" className="h-32 w-32" alt="Morphic" />
         </motion.div>
         
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-morphic-primary to-morphic-accent bg-clip-text text-transparent">
@@ -50,10 +53,16 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <button className="px-8 py-3 rounded-full bg-cyan-400 hover:bg-cyan-500 text-white font-semibold transition-colors">
-            Get Started
+          <button 
+            onClick={() => navigate('/tos-services')} 
+            className="px-8 py-3 rounded-full bg-cyan-400 hover:bg-cyan-500 text-white font-semibold transition-colors"
+          >
+            Explore More
           </button>
-          <button className="px-8 py-3 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-semibold transition-colors">
+          <button 
+            onClick={() => navigate('/docs')} 
+            className="px-8 py-3 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-semibold transition-colors"
+          >
             Learn More
           </button>
         </motion.div>

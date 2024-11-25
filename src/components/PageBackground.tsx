@@ -2,7 +2,7 @@ import React from 'react';
 
 const PageBackground: React.FC = () => {
   return (
-    <>
+    <div className="fixed inset-0 z-0">
       <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black -z-10" />
       
       <div className="fixed inset-0 opacity-30 -z-5">
@@ -12,7 +12,7 @@ const PageBackground: React.FC = () => {
       </div>
       
       <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] -z-10" />
-    </>
+    </div>
   );
 };
 
