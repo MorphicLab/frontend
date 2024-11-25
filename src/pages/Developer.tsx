@@ -15,9 +15,13 @@ import {
 } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
 import PageBackground from '../components/PageBackground';
+import { useLocation } from 'react-router-dom';
 
 const Developer: React.FC = () => {
-    const [activeMenu, setActiveMenu] = useState('dashboard');
+    const location = useLocation();
+    const activeTab = location.state?.activeTab || 'dashboard';
+    
+    const [activeMenu, setActiveMenu] = useState(activeTab);
     const [selectedOperatorTypes, setSelectedOperatorTypes] = useState<string[]>([]);
 
     const operatorTypes = ['TDX', 'H100', 'A100', 'CPU'];
@@ -70,6 +74,16 @@ const Developer: React.FC = () => {
                     >
                         <Bot className="h-5 w-5" />
                         <span>Agent</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveMenu('operator')}
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all w-full ${activeMenu === 'operator'
+                            ? 'bg-morphic-primary/20 text-morphic-primary'
+                            : 'text-gray-400 hover:bg-gray-700/50'
+                            }`}
+                    >
+                        <Network className="h-5 w-5" />
+                        <span>Operator</span>
                     </button>
                 </div>
 
@@ -203,6 +217,25 @@ const Developer: React.FC = () => {
                                             placeholder="Describe your agent's capabilities"
                                         ></textarea>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">
+                                            Operator Types
+                                        </label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {operatorTypes.map(type => (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => toggleOperatorType(type)}
+                                                    className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedOperatorTypes.includes(type)
+                                                        ? 'bg-morphic-primary text-white'
+                                                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                                        }`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -232,26 +265,6 @@ const Developer: React.FC = () => {
                                         <option value="50">50 operators</option>
                                         <option value="100">100 operators</option>
                                     </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                                        Operator Types
-                                    </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {operatorTypes.map(type => (
-                                            <button
-                                                key={type}
-                                                onClick={() => toggleOperatorType(type)}
-                                                className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedOperatorTypes.includes(type)
-                                                    ? 'bg-morphic-primary text-white'
-                                                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                    }`}
-                                            >
-                                                {type}
-                                            </button>
-                                        ))}
-                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -406,6 +419,93 @@ const Developer: React.FC = () => {
                         <div className="flex justify-end">
                             <button className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium">
                                 Deploy Agent
+                            </button>
+                        </div>
+                    </div>
+                );
+
+            case 'operator':
+                return (
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-white">Register Your Operator</h1>
+                        <p className="text-gray-400">Register your operator to join the network and earn rewards</p>
+
+                        <div className="bg-gray-800/50 rounded-xl p-6">
+                            <h2 className="text-xl font-semibold text-white mb-4">Operator Configuration</h2>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                                        Operator Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                        placeholder="Enter operator name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                                        Operator Types
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {operatorTypes.map(type => (
+                                            <button
+                                                key={type}
+                                                onClick={() => toggleOperatorType(type)}
+                                                className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedOperatorTypes.includes(type)
+                                                    ? 'bg-morphic-primary text-white'
+                                                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                                    }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">
+                                            IP Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                            placeholder="Enter IP address"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">
+                                            Port
+                                        </label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                            placeholder="Enter port number"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                                        Operator Icon
+                                    </label>
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-20 h-20 bg-gray-700/50 rounded-lg flex items-center justify-center border border-dashed border-gray-600">
+                                            <Upload className="h-8 w-8 text-gray-400" />
+                                        </div>
+                                        <button className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50">
+                                            Upload Icon
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <button className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium">
+                                Deploy Operator
                             </button>
                         </div>
                     </div>

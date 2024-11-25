@@ -92,6 +92,10 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
+            <Link to="/developer" className="text-gray-300 hover:text-white transition-colors">
+              Developer
+            </Link>
+
             <Link to="/docs" className="text-gray-300 hover:text-white transition-colors">
               Docs
             </Link>
