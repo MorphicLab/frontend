@@ -43,8 +43,8 @@ const Home = () => {
           Trustlessness as a Service
         </h1>
         
-        <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto mb-8">
-            Get your service Web3-ready by deploying on Morphic
+        <p className="text-xl md:text-1xl text-gray-300 max-w-2xl mx-auto mb-8">
+            Make your service trustless in days, with even lower operation cost
         </p>
         
         <motion.div 

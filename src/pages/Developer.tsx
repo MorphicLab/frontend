@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     LayoutDashboard,
     PlayCircle,
@@ -7,7 +7,6 @@ import {
     Upload,
     CircuitBoard,
     Network,
-    Lock,
     HelpCircle,
     Plus,
     Trash2,
@@ -22,81 +21,77 @@ import {
 } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
 import PageBackground from '../components/PageBackground';
-import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { TOSCard } from '../components/cards/TOSCard';
+import { OperatorCard } from '../components/cards/OperatorCard';
+import { AgentCard } from '../components/cards/AgentCard';
+import { SearchAndFilter } from '../components/common/SearchAndFilter';
+import { 
+    MOCK_TOS, 
+    MOCK_OPERATORS, 
+    MOCK_AGENTS,
+    tosLabels,
+    operatorLabels,
+    agentLabels,
+    platformLabels 
+} from '../data/mockData';
+
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
 type OperatorSubMenu = 'my-operator' | 'new-operator';
 type AgentSubMenu = 'my-agent' | 'new-agent';
 
-// 添加模拟数据
-const MOCK_TOS = [
-    {
-        id: 1,
-        name: "Example TOS",
-        logo: "/images/morphic-logo-sm.png",
-        address: "0x8b230d5820B4cF539739dF2C5dAcb4c659F2488D",
-        introduction: "A sample TOS service description",
-        publisher: {
-            name: "Morphic",
-            logo: "/images/morphic-logo-sm.png"
-        },
-        restaked: "132",
-        operators: "12",
-        stakes: "1.5",
-        likes: "256"
-    }
-];
-
-const MOCK_OPERATORS = [
-    {
-        id: 1,
-        name: "Morphic Operator",
-        logo: "/images/morphic-logo-sm.png",
-        type: ["TDX", "H100"],
-        address: "0x8b230d5820B4cF539739dF2C5dAcb4c659F2488D",
-        owner: {
-            name: "Morphic",
-            logo: "/images/morphic-logo-sm.png"
-        },
-        location: "US West",
-        restaked: "132",
-        numStakers: "1.0k",
-        numTosServing: 1,
-        reputation: "High"
-    }
-];
-
-const MOCK_AGENTS = [
-    {
-        id: 1,
-        name: "ChatBot Agent",
-        logo: "/images/morphic-logo-sm.png",
-        type: ["Chat"],
-        introduction: "An intelligent chatbot powered by advanced AI models",
-        users: "2.5k",
-        rating: 4.8
-    }
-];
 
 const Developer: React.FC = () => {
     const location = useLocation();
     const activeTab = location.state?.activeTab || 'dashboard';
-    
+
     const [activeMenu, setActiveMenu] = useState(activeTab);
     const [selectedPlatformTypes, setSelectedPlatformTypes] = useState<string[]>([]);
     const [tosSubMenu, setTosSubMenu] = useState<TOSSubMenu>('my-tos');
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
 
-    const platformTypes = ['TDX', 'H100', 'A100', 'CPU'];
-    const togglePlatformType = (type: string) => {
-        if (selectedPlatformTypes.includes(type)) {
-            setSelectedPlatformTypes(selectedPlatformTypes.filter(t => t !== type));
+    const togglePlatformType = (labels: string) => {
+        if (selectedPlatformTypes.includes(labels)) {
+            setSelectedPlatformTypes(selectedPlatformTypes.filter(t => t !== labels));
         } else {
-            setSelectedPlatformTypes([...selectedPlatformTypes, type]);
+            setSelectedPlatformTypes([...selectedPlatformTypes, labels]);
         }
+    };
+
+    const [search, setSearch] = useState('');
+    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
+
+    const filteredTOS = useMemo(() => {
+        return MOCK_TOS.filter(tos => {
+            const matchesSearch = search === '' ||
+                tos.name.toLowerCase().includes(search.toLowerCase()) ||
+                tos.introduction.toLowerCase().includes(search.toLowerCase());
+
+            const matchesLabels = selectedLabels.length === 0 ||
+                selectedLabels.every(label => tos.labels.includes(label));
+
+            return matchesSearch && matchesLabels;
+        });
+    }, [search, selectedLabels]);
+
+    const currentTOS = filteredTOS.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const toggleLabel = (label: string) => {
+        setSelectedLabels(prev =>
+            prev.includes(label)
+                ? prev.filter(l => l !== label)
+                : [...prev, label]
+        );
+        setCurrentPage(1);
     };
 
     // 渲染侧边栏
@@ -251,11 +246,10 @@ const Developer: React.FC = () => {
                         <div className="flex space-x-4 border-b border-gray-700">
                             <button
                                 onClick={() => setTosSubMenu('my-tos')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    tosSubMenu === 'my-tos'
-                                        ? 'text-morphic-primary'
-                                        : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${tosSubMenu === 'my-tos'
+                                    ? 'text-morphic-primary'
+                                    : 'text-gray-400 hover:text-gray-300'
+                                    }`}
                             >
                                 My TOS
                                 {tosSubMenu === 'my-tos' && (
@@ -264,11 +258,10 @@ const Developer: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setTosSubMenu('new-tos')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    tosSubMenu === 'new-tos'
-                                        ? 'text-morphic-primary'
-                                        : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${tosSubMenu === 'new-tos'
+                                    ? 'text-morphic-primary'
+                                    : 'text-gray-400 hover:text-gray-300'
+                                    }`}
                             >
                                 New TOS
                                 {tosSubMenu === 'new-tos' && (
@@ -279,91 +272,21 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {tosSubMenu === 'my-tos' ? (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                {/* 搜索框 */}
-                                <div className="relative mb-6">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search TOSs"
-                                        className="w-full pl-12 pr-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                    />
-                                </div>
-
-                                {/* 标签过滤 */}
-                                <div className="flex flex-wrap gap-2 mb-8">
-                                    {['TEE', 'GPU', 'CPU'].map(label => (
-                                        <button
-                                            key={label}
-                                            className="px-4 py-2 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all"
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* TOS 卡片网格 */}
+                            <>
+                                <SearchAndFilter
+                                    search={search}
+                                    onSearchChange={setSearch}
+                                    labels={tosLabels}
+                                    selectedLabels={selectedLabels}
+                                    onLabelToggle={toggleLabel}
+                                    searchPlaceholder="Search TOSs"
+                                />
                                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                                    {MOCK_TOS.map((tos) => (
-                                        <motion.div
-                                            key={tos.id}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="bg-gray-800 rounded-xl overflow-hidden hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
-                                        >
-                                            <div className="p-6 border-b border-gray-700">
-                                                <div className="flex items-start justify-between mb-4">
-                                                    <img
-                                                        src={tos.logo}
-                                                        alt={tos.name}
-                                                        className="w-12 h-12 rounded-lg"
-                                                    />
-                                                    <div className="flex items-center text-gray-400 text-sm">
-                                                        {tos.address.slice(0, 6)}...{tos.address.slice(-4)}
-                                                        <ExternalLink className="h-4 w-4 ml-1" />
-                                                    </div>
-                                                </div>
-                                                <h3 className="text-xl font-semibold text-white mb-2">{tos.name}</h3>
-                                                <p className="text-gray-400 text-sm line-clamp-2">{tos.introduction}</p>
-                                            </div>
-
-                                            <div className="p-6">
-                                                <div className="flex items-center mb-4">
-                                                    <img
-                                                        src={tos.publisher.logo}
-                                                        alt={tos.publisher.name}
-                                                        className="w-6 h-6 rounded-full mr-2"
-                                                    />
-                                                    <span className="text-gray-300 text-sm">{tos.publisher.name}</span>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="flex items-center text-gray-400">
-                                                        <Coins className="h-4 w-4 mr-2" />
-                                                        <span className="text-sm">{tos.restaked} ETH</span>
-                                                    </div>
-                                                    <div className="flex items-center text-gray-400">
-                                                        <Users className="h-4 w-4 mr-2" />
-                                                        <span className="text-sm">{tos.operators} Operators</span>
-                                                    </div>
-                                                    <div className="flex items-center text-gray-400">
-                                                        <Star className="h-4 w-4 mr-2" />
-                                                        <span className="text-sm">{tos.stakes}k Stakes</span>
-                                                    </div>
-                                                    <div className="flex items-center text-gray-400">
-                                                        <ThumbsUp className="h-4 w-4 mr-2" />
-                                                        <span className="text-sm">{tos.likes} Likes</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </motion.div>
+                                    {currentTOS.map((tos, index) => (
+                                        <TOSCard key={tos.id} tos={tos} index={index} />
                                     ))}
                                 </div>
-                            </motion.div>
+                            </>
                         ) : (
                             // 现有的 New TOS 表单内容
                             <div className="space-y-6">
@@ -419,16 +342,16 @@ const Developer: React.FC = () => {
                                                     Platform Types
                                                 </label>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {platformTypes.map(type => (
+                                                    {platformLabels.map(labels => (
                                                         <button
-                                                            key={type}
-                                                            onClick={() => togglePlatformType(type)}
-                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlatformTypes.includes(type)
+                                                            key={labels}
+                                                            onClick={() => togglePlatformType(labels)}
+                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlatformTypes.includes(labels)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                                 }`}
                                                         >
-                                                            {type}
+                                                            {labels}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -512,7 +435,7 @@ const Developer: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </div >
                 );
 
             case 'operator':
@@ -525,11 +448,10 @@ const Developer: React.FC = () => {
                         <div className="flex space-x-4 border-b border-gray-700">
                             <button
                                 onClick={() => setOperatorSubMenu('my-operator')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    operatorSubMenu === 'my-operator'
-                                        ? 'text-morphic-primary'
-                                        : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${operatorSubMenu === 'my-operator'
+                                    ? 'text-morphic-primary'
+                                    : 'text-gray-400 hover:text-gray-300'
+                                    }`}
                             >
                                 My Operator
                                 {operatorSubMenu === 'my-operator' && (
@@ -538,11 +460,10 @@ const Developer: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setOperatorSubMenu('new-operator')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    operatorSubMenu === 'new-operator'
-                                        ? 'text-morphic-primary'
-                                        : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${operatorSubMenu === 'new-operator'
+                                    ? 'text-morphic-primary'
+                                    : 'text-gray-400 hover:text-gray-300'
+                                    }`}
                             >
                                 New Operator
                                 {operatorSubMenu === 'new-operator' && (
@@ -553,131 +474,21 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {operatorSubMenu === 'my-operator' ? (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                {/* 搜索框 */}
-                                <div className="relative mb-6">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-morphic-light/50" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search operators"
-                                        className="w-full pl-12 pr-4 py-3 bg-gray-800/50 rounded-xl border border-morphic-primary/20 text-white placeholder-morphic-light/50 focus:outline-none focus:ring-2 focus:ring-morphic-primary focus:border-transparent transition-all"
-                                    />
-                                </div>
-
-                                {/* 标签过滤 */}
-                                <div className="flex flex-wrap gap-2 mb-8">
-                                    {['SGX', 'TDX', 'SEV', 'H100', 'Plain'].map(label => (
-                                        <button
-                                            key={label}
-                                            className="px-4 py-2 rounded-full text-sm font-medium bg-gray-800/50 text-morphic-light hover:bg-morphic-primary/20 transition-all"
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Operator 卡片列表 */}
-                                <div className="space-y-4 mb-8">
+                            <>
+                                <SearchAndFilter
+                                    search={search}
+                                    onSearchChange={setSearch}
+                                    labels={operatorLabels}
+                                    selectedLabels={selectedLabels}
+                                    onLabelToggle={toggleLabel}
+                                    searchPlaceholder="Search operators"
+                                />
+                                <div className="space-y-4">
                                     {MOCK_OPERATORS.map(operator => (
-                                        <motion.div
-                                            key={operator.id}
-                                            className="bg-gray-800/50 rounded-xl border border-morphic-primary/20 overflow-hidden hover:border-morphic-primary/40 transition-all duration-300"
-                                        >
-                                            <div className="p-5 border-b border-gray-700">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center space-x-4">
-                                                        <img
-                                                            src={operator.logo}
-                                                            alt={operator.name}
-                                                            className="w-12 h-12 rounded-lg"
-                                                        />
-                                                        <div>
-                                                            <h3 className="text-lg font-semibold text-white">
-                                                                {operator.name}
-                                                            </h3>
-                                                            <div className="flex items-center mt-2 space-x-2">
-                                                                {operator.type.map(t => (
-                                                                    <span key={t} className="px-2 py-1 bg-morphic-primary/20 text-morphic-light text-xs rounded-full flex items-center">
-                                                                        <Cpu className="h-3 w-3 mr-1" />
-                                                                        {t}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center space-x-4">
-                                                        <span className="text-gray-400 text-sm font-mono">
-                                                            {operator.address.slice(0, 6)}...{operator.address.slice(-4)}
-                                                        </span>
-                                                        <button className="px-4 py-2 bg-morphic-primary hover:bg-morphic-accent text-white text-sm rounded-lg transition-colors">
-                                                            Stake
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="p-5">
-                                                <div className="grid grid-cols-6 gap-6">
-                                                    <div className="flex items-center text-gray-400">
-                                                        <img
-                                                            src={operator.owner.logo}
-                                                            alt={operator.owner.name}
-                                                            className="w-6 h-6 rounded-full mr-2"
-                                                        />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs text-gray-500">Owner</span>
-                                                            <span className="text-sm">{operator.owner.name}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center text-gray-400">
-                                                        <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs text-gray-500">Location</span>
-                                                            <span className="text-sm">{operator.location}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center text-gray-400">
-                                                        <Coins className="h-4 w-4 mr-2 text-gray-500" />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs text-gray-500">Restaked</span>
-                                                            <span className="text-sm">{operator.restaked} ETH</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center text-gray-400">
-                                                        <Users className="h-4 w-4 mr-2 text-gray-500" />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs text-gray-500">Stakers</span>
-                                                            <span className="text-sm">{operator.numStakers}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center text-gray-400">
-                                                        <Star className="h-4 w-4 mr-2 text-gray-500" />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs text-gray-500">TOS Serving</span>
-                                                            <span className="text-sm">{operator.numTosServing}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center text-gray-400">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs text-gray-500">Reputation</span>
-                                                            <span className="text-sm">{operator.reputation}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </motion.div>
+                                        <OperatorCard key={operator.id} operator={operator} />
                                     ))}
                                 </div>
-                            </motion.div>
+                            </>
                         ) : (
                             // 现有的 New Operator 表单内容
                             <div className="space-y-6">
@@ -703,16 +514,16 @@ const Developer: React.FC = () => {
                                                 Platform Types
                                             </label>
                                             <div className="flex flex-wrap gap-2">
-                                                {platformTypes.map(type => (
+                                                {platformLabels.map(labels => (
                                                     <button
-                                                        key={type}
-                                                        onClick={() => togglePlatformType(type)}
-                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlatformTypes.includes(type)
+                                                        key={labels}
+                                                        onClick={() => togglePlatformType(labels)}
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlatformTypes.includes(labels)
                                                             ? 'bg-morphic-primary text-white'
                                                             : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                             }`}
                                                     >
-                                                        {type}
+                                                        {labels}
                                                     </button>
                                                 ))}
                                             </div>
@@ -734,7 +545,7 @@ const Developer: React.FC = () => {
                                                     Port
                                                 </label>
                                                 <input
-                                                    type="number"
+                                                    labels="number"
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     placeholder="Enter port number"
                                                 />
@@ -777,11 +588,10 @@ const Developer: React.FC = () => {
                         <div className="flex space-x-4 border-b border-gray-700">
                             <button
                                 onClick={() => setAgentSubMenu('my-agent')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    agentSubMenu === 'my-agent'
-                                        ? 'text-morphic-primary'
-                                        : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${agentSubMenu === 'my-agent'
+                                    ? 'text-morphic-primary'
+                                    : 'text-gray-400 hover:text-gray-300'
+                                    }`}
                             >
                                 My Agent
                                 {agentSubMenu === 'my-agent' && (
@@ -790,11 +600,10 @@ const Developer: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setAgentSubMenu('new-agent')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    agentSubMenu === 'new-agent'
-                                        ? 'text-morphic-primary'
-                                        : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${agentSubMenu === 'new-agent'
+                                    ? 'text-morphic-primary'
+                                    : 'text-gray-400 hover:text-gray-300'
+                                    }`}
                             >
                                 New Agent
                                 {agentSubMenu === 'new-agent' && (
@@ -805,76 +614,21 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {agentSubMenu === 'my-agent' ? (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                {/* 搜索框 */}
-                                <div className="relative mb-6">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search agents"
-                                        className="w-full pl-12 pr-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-morphic-primary focus:border-transparent transition-all"
-                                    />
-                                </div>
-
-                                {/* 标签过滤 */}
-                                <div className="flex flex-wrap gap-2 mb-8">
-                                    {['Chat', 'Code', 'Image'].map(label => (
-                                        <button
-                                            key={label}
-                                            className="px-4 py-2 rounded-full text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all"
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Agent 卡片网格 */}
-                                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+                            <>
+                                <SearchAndFilter
+                                    search={search}
+                                    onSearchChange={setSearch}
+                                    labels={agentLabels}
+                                    selectedLabels={selectedLabels}
+                                    onLabelToggle={toggleLabel}
+                                    searchPlaceholder="Search agents"
+                                />
+                                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
                                     {MOCK_AGENTS.map(agent => (
-                                        <motion.div
-                                            key={agent.id}
-                                            className="bg-gray-800/50 rounded-xl border border-morphic-primary/20 overflow-hidden hover:border-morphic-primary/40 transition-all duration-300 cursor-pointer"
-                                        >
-                                            <div className="p-6 text-center border-b border-gray-700">
-                                                <img
-                                                    src={agent.logo}
-                                                    alt={agent.name}
-                                                    className="w-20 h-20 mx-auto mb-4 rounded-xl"
-                                                />
-                                                <h3 className="text-lg font-semibold text-white mb-2">
-                                                    {agent.name}
-                                                </h3>
-                                                <div className="flex justify-center gap-2 mb-3">
-                                                    {agent.type.map(t => (
-                                                        <span key={t} className="px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center">
-                                                            <Cpu className="h-3 w-3 mr-1" />
-                                                            {t}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <p className="text-gray-400 text-sm line-clamp-2">
-                                                    {agent.introduction}
-                                                </p>
-                                            </div>
-
-                                            <div className="p-4 flex justify-between items-center">
-                                                <div className="flex items-center text-gray-400">
-                                                    <Users className="h-4 w-4 mr-2" />
-                                                    <span className="text-sm">{agent.users}</span>
-                                                </div>
-                                                <div className="flex items-center text-gray-400">
-                                                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                                    <span className="text-sm">{agent.rating}</span>
-                                                </div>
-                                            </div>
-                                        </motion.div>
+                                        <AgentCard key={agent.id} agent={agent} />
                                     ))}
                                 </div>
-                            </motion.div>
+                            </>
                         ) : (
                             // 现有的 New Agent 表单内容
                             <div className="space-y-6">

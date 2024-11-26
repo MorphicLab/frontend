@@ -11,59 +11,9 @@ import {
 } from 'lucide-react';
 import PageBackground from '../components/PageBackground';
 import { useNavigate } from 'react-router-dom';
-
-// 扩展 MOCK_AGENTS 的类型定义
-interface Agent {
-  id: number;
-  name: string;
-  logo: string;
-  type: string[];
-  introduction: string;
-  users: string;
-  rating: number;
-  status?: 'online' | 'offline';
-  capabilities?: string[];
-  modelType?: string;
-}
-
-const MOCK_AGENTS: Agent[] = [
-  {
-    id: 1,
-    name: "ChatBot Agent",
-    logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
-    type: ["Chat"],
-    introduction: "An intelligent chatbot powered by advanced AI models",
-    users: "2.5k",
-    rating: 4.8,
-    status: 'online',
-    capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
-    modelType: 'GPT-4'
-  },
-  {
-    id: 2,
-    name: "Code Assistant",
-    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMfEd4u69k1UATtjUV2PU9mTFKtMP4ITTLYw&s",
-    type: ["Code"],
-    introduction: "AI-powered coding assistant for developers",
-    users: "1.8k",
-    rating: 4.6,
-    status: 'offline',
-    capabilities: ['Code Generation', 'Code Review', 'Debugging'],
-    modelType: 'GPT-3'
-  },
-  {
-    id: 4,
-    name: "Image Generator",
-    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7rhk82CINydd8t9ASEi1twWHCUXVddaOSPw&s",
-    type: ["Image"],
-    introduction: "Advanced AI image generation and editing",
-    users: "3.1k",
-    rating: 4.9,
-    status: 'online',
-    capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
-    modelType: 'Stable Diffusion'
-  }
-];
+import { MOCK_AGENTS, agentLabels } from '../data/mockData';
+import { SearchAndFilter } from '../components/common/SearchAndFilter';
+import { AgentCard } from '../components/cards/AgentCard';
 
 const Product = () => {
     const navigate = useNavigate();
@@ -89,9 +39,9 @@ const Product = () => {
     const [search, setSearch] = useState('');
     const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
 
-    // 从现有 Agent 的 type 中提取唯一的标签
+    // 从现有 Agent 的 labels 中提取唯一的标签
     const labels = useMemo(() => {
-        const allTypes = MOCK_AGENTS.flatMap(agent => agent.type);
+        const allTypes = MOCK_AGENTS.flatMap(agent => agent.labels);
         return Array.from(new Set(allTypes)).sort();
     }, []);
 
@@ -103,7 +53,7 @@ const Product = () => {
                 agent.introduction.toLowerCase().includes(search.toLowerCase());
 
             const matchesLabels = selectedLabels.length === 0 ||
-                selectedLabels.some(label => agent.type.includes(label));
+                selectedLabels.some(label => agent.labels.includes(label));
 
             return matchesSearch && matchesLabels;
         });
@@ -174,16 +124,14 @@ const Product = () => {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="relative mb-6">
-                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search agents"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-morphic-primary focus:border-transparent transition-all"
-                        />
-                    </div>
+                    <SearchAndFilter
+                        search={search}
+                        onSearchChange={setSearch}
+                        labels={agentLabels}
+                        selectedLabels={selectedLabels}
+                        onLabelToggle={toggleLabel}
+                        searchPlaceholder="Search agents"
+                    />
 
                     {/* Labels */}
                     <div className="flex flex-wrap gap-2 mb-8">
@@ -205,46 +153,11 @@ const Product = () => {
                     <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
                         <AnimatePresence mode="wait">
                             {filteredAgents.map(agent => (
-                                <motion.div
-                                    key={agent.id}
+                                <AgentCard 
+                                    key={agent.id} 
+                                    agent={agent} 
                                     onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
-                                    className="bg-gray-800/50 rounded-xl border border-morphic-primary/20 overflow-hidden hover:border-morphic-primary/40 transition-all duration-300 cursor-pointer"
-                                >
-                                    {/* Card Header */}
-                                    <div className="p-6 text-center border-b border-gray-700">
-                                        <img
-                                            src={agent.logo}
-                                            alt={agent.name}
-                                            className="w-20 h-20 mx-auto mb-4 rounded-xl"
-                                        />
-                                        <h3 className="text-lg font-semibold text-white mb-2">
-                                            {agent.name}
-                                        </h3>
-                                        <div className="flex justify-center gap-2 mb-3">
-                                            {agent.type.map(t => (
-                                                <span key={t} className="px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center">
-                                                    <Cpu className="h-3 w-3 mr-1" />
-                                                    {t}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <p className="text-gray-400 text-sm line-clamp-2">
-                                            {agent.introduction}
-                                        </p>
-                                    </div>
-
-                                    {/* Card Body */}
-                                    <div className="p-4 flex justify-between items-center">
-                                        <div className="flex items-center text-gray-400">
-                                            <Users className="h-4 w-4 mr-2" />
-                                            <span className="text-sm">{agent.users}</span>
-                                        </div>
-                                        <div className="flex items-center text-gray-400">
-                                            <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                            <span className="text-sm">{agent.rating}</span>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                                />
                             ))}
                         </AnimatePresence>
                     </div>
