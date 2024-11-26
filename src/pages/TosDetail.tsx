@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ChevronRight, Search, ExternalLink, Cpu } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, Search, ExternalLink, Cpu, Star, Users, Coins, X, Shield } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -14,6 +14,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
+import { MOCK_TOS, MOCK_OPERATORS, TOS } from '../data/mockData';
 
 ChartJS.register(
     CategoryScale,
@@ -26,38 +27,7 @@ ChartJS.register(
     Filler
 );
 
-// Mock data
-const tosData = {
-    name: 'Morphic AI',
-    logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
-    address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-    website: '/morphic-ai',
-    blockchain: 'Ethereum',
-    blockHeight: 21252158,
-    restaked: '$20M',
-    operators: 15,
-    stakers: '1.2k',
-    likes: 142,
-};
-
-const stakingTokens = [
-    { symbol: 'ETH', amount: '962', value: '$2.1M' },
-    { symbol: 'Morphic', amount: '50,000', value: '$750K' },
-    { symbol: 'BTC', amount: '12', value: '$720K' },
-    { symbol: 'BNB', amount: '2,500', value: '$680K' },
-];
-
-const operators = [
-    {
-        name: 'Alpha Node',
-        type: 'TEE',
-        restaked: '$20M',
-        stakers: 100,
-        tosServing: 1,
-    },
-    // Add more operators...
-];
-
+// 图表配置
 const chartOptions = {
     responsive: true,
     plugins: {
@@ -88,6 +58,7 @@ const chartOptions = {
     },
 };
 
+// 生成图表数据
 const generateChartData = (label: string) => ({
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
@@ -102,12 +73,31 @@ const generateChartData = (label: string) => ({
     ],
 });
 
+// 更新 TOS 接口
+interface ExtendedTOS extends TOS {
+    blockchain?: string;
+    blockHeight?: string;
+}
+
 const TosDetail = () => {
+    const { id } = useParams();
     const [operatorSearch, setOperatorSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedOperators, setSelectedOperators] = useState<number[]>([]);
 
-    const filteredOperators = operators.filter(op =>
+    // 获取 TOS 数据并添加额外字段
+    const tos = MOCK_TOS.find(t => t.id === Number(id)) as ExtendedTOS;
+    if (tos) {
+        tos.blockchain = 'Ethereum';
+        tos.blockHeight = '18,245,123';
+    }
+
+    // 获取用户的 operators
+    const myOperators = MOCK_OPERATORS.slice(0, 3);
+
+    const filteredOperators = MOCK_OPERATORS.filter(op =>
         op.name.toLowerCase().includes(operatorSearch.toLowerCase())
     );
 
@@ -116,6 +106,22 @@ const TosDetail = () => {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    const toggleOperator = (operatorId: number) => {
+        setSelectedOperators(prev =>
+            prev.includes(operatorId)
+                ? prev.filter(id => id !== operatorId)
+                : [...prev, operatorId]
+        );
+    };
+
+    const handleRegister = () => {
+        console.log('Registering with operators:', selectedOperators);
+        setIsModalOpen(false);
+        // TODO: 处理注册逻辑
+    };
+
+    if (!tos) return <div>TOS not found</div>;
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -126,7 +132,7 @@ const TosDetail = () => {
                         TOS Services
                     </Link>
                     <ChevronRight className="h-4 w-4 mx-2" />
-                    <span className="text-white">{tosData.name}</span>
+                    <span className="text-white">{tos.name}</span>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -138,21 +144,30 @@ const TosDetail = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="bg-gray-800 rounded-xl p-6"
                         >
-                            <div className="flex items-center mb-6">
-                                <img
-                                    src={tosData.logo}
-                                    alt={tosData.name}
-                                    className="w-16 h-16 rounded-xl mr-4"
-                                />
-                                <div>
-                                    <Link to={tosData.website} className="text-3xl font-bold text-white">
-                                        <h1 className="text-3xl font-bold text-white">{tosData.name}</h1>
-                                    </Link>
-                                    <div className="flex items-center text-gray-400 mt-2">
-                                        <span className="text-sm">
-                                            {tosData.address.slice(0, 6)}...{tosData.address.slice(-4)}
-                                        </span>
-                                        <ExternalLink className="h-4 w-4 ml-1" />
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center space-x-4">
+                                    <img
+                                        src={tos.logo}
+                                        alt={tos.name}
+                                        className="w-16 h-16 rounded-lg"
+                                    />
+                                    <div>
+                                        <div className="flex items-center space-x-4">
+                                            <h1 className="text-3xl font-bold text-white">
+                                                {tos.name}
+                                            </h1>
+                                            <button 
+                                                className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
+                                                text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
+                                            >
+                                                <Shield className="h-4 w-4" />
+                                                <span>Verify</span>
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center text-gray-400 mt-2">
+                                            <span className="font-mono">{tos.address.slice(0, 6)}...{tos.address.slice(-4)}</span>
+                                            <ExternalLink className="h-4 w-4 ml-2" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -161,25 +176,25 @@ const TosDetail = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Blockchain</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tosData.blockchain}
+                                        {tos.blockchain}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Block Height</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tosData.blockHeight}
+                                        {tos.blockHeight}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Restaked</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tosData.restaked}
+                                        {tos.restaked}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Stakes</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tosData.stakers}
+                                        {tos.stakers}
                                     </div>
                                 </div>
                             </div>
@@ -250,7 +265,7 @@ const TosDetail = () => {
                                                     <span className="text-white font-medium">
                                                         {operator.name}
                                                     </span>
-                                                    {operator.type === 'TEE' && (
+                                                    {operator.labels.includes('TEE') && (
                                                         <span className="ml-2 px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center">
                                                             <Cpu className="h-3 w-3 mr-1" />
                                                             TEE
@@ -303,6 +318,16 @@ const TosDetail = () => {
                                 </div>
                             )}
                         </motion.div>
+
+                        {/* 添加 Serve 按钮到左侧最下方 */}
+                        <div className="flex justify-center mt-8">
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="px-8 py-3 bg-morphic-primary text-white rounded-lg hover:bg-morphic-accent transition-colors"
+                            >
+                                Serve this TOS
+                            </button>
+                        </div>
                     </div>
 
                     {/* Right Column - Charts */}
@@ -347,6 +372,94 @@ const TosDetail = () => {
                     </div>
                 </div>
             </div>
+
+            {/* 选择 Operators 的模态框 */}
+            <AnimatePresence>
+                {isModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                        onClick={() => setIsModalOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-gray-800 rounded-xl p-6 w-full max-w-2xl mx-4"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-semibold text-white">Select Operators</h2>
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="text-gray-400 hover:text-white"
+                                >
+                                    <X className="h-6 w-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4 mb-6">
+                                {myOperators.map(operator => (
+                                    <div
+                                        key={operator.id}
+                                        onClick={() => toggleOperator(operator.id)}
+                                        className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                                            selectedOperators.includes(operator.id)
+                                                ? 'bg-morphic-primary/20 border-2 border-morphic-primary'
+                                                : 'bg-gray-700/50 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-4">
+                                                <img
+                                                    src={operator.logo}
+                                                    alt={operator.name}
+                                                    className="w-10 h-10 rounded-lg"
+                                                />
+                                                <div>
+                                                    <h3 className="text-white font-medium">{operator.name}</h3>
+                                                    <div className="flex items-center space-x-2 mt-1">
+                                                        {operator.labels.map(label => (
+                                                            <span
+                                                                key={label}
+                                                                className="px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                            >
+                                                                <Cpu className="h-3 w-3 mr-1" />
+                                                                {label}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-gray-400 text-sm">
+                                                {operator.restaked} ETH staked
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleRegister}
+                                    disabled={selectedOperators.length === 0}
+                                    className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Register ({selectedOperators.length} selected)
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
