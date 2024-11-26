@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Cpu, Users, Coins, Star, MapPin } from 'lucide-react';
 import PageBackground from '../components/PageBackground';
+import { useNavigate } from 'react-router-dom';
 
 // 模拟数据
 const MOCK_OPERATORS = [
@@ -43,6 +44,7 @@ const MOCK_OPERATORS = [
 ];
 
 const TosOperators: React.FC = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -152,7 +154,7 @@ const TosOperators: React.FC = () => {
                         {operator.address.slice(0, 6)}...{operator.address.slice(-4)}
                       </span>
                       <button className="px-4 py-2 bg-morphic-primary hover:bg-morphic-accent text-white text-sm rounded-lg transition-colors">
-                        Attest
+                        Stake
                       </button>
                     </div>
                   </div>
@@ -231,6 +233,20 @@ const TosOperators: React.FC = () => {
               </button>
             ))}
           </div>
+        </motion.div>
+
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mt-16 text-center"
+        >
+            <button
+                onClick={() => navigate('/developer', { state: { activeTab: 'operator' } })}
+                className="px-8 py-3 rounded-full bg-cyan-400 hover:bg-cyan-500 text-white font-semibold transition-colors"
+            >
+                Deliver Your Operator with Morphic
+            </button>
         </motion.div>
       </div>
     </div>
