@@ -1,3 +1,6 @@
+// 定义状态类型
+export type TOSStatus = 'active' | 'waiting' | 'stopped' | 'failed';
+
 // 定义类型
 export interface TOS {
     id: number;
@@ -13,8 +16,9 @@ export interface TOS {
     labels: string[];
     restaked: number | string;
     operators: number | string;
-    stakes: number | string;
+    stakers: number | string;
     likes: number | string;
+    status: TOSStatus;
 }
 
 export interface Operator {
@@ -49,15 +53,32 @@ export interface Agent {
 }
 
 // 标签定义
-export const tosLabels = ['DeAI', 'Compute', 'Storage', 'Network', 'Oracle'];
+export const tosLabels = ['DeAI', 'DeFi', 'Compute', 'Storage', 'Oracle'];
 export const operatorLabels = ['SGX', 'TDX', 'SEV', 'H100', 'Plain'];
 export const agentLabels = ['Chat', 'Code', 'Image', 'Audio', 'Video'];
-export const platformLabels = ['TDX', 'H100', 'A100', 'CPU'];
 
 // Mock 数据
 export const MOCK_TOS: TOS[] = [
     {
         id: 1,
+        name: 'Morphic KMS',
+        logo: '/images/kms-logo.ico',
+        address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
+        website: '/morphic-kms',
+        introduction: 'A decentralized key management service powered by trustless computation...',
+        publisher: {
+            name: 'Morphic Labs',
+            logo: '/images/morphic-logo-sm.png'
+        },
+        labels: ['Compute'],
+        restaked: 962,
+        operators: 32,
+        stakers: 1023,
+        likes: 512,
+        status: 'active'
+    },
+    {
+        id: 2,
         name: 'Morphic AI',
         logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
         address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
@@ -68,10 +89,11 @@ export const MOCK_TOS: TOS[] = [
             logo: '/images/morphic-logo-sm.png'
         },
         labels: ['DeAI', 'Compute'],
-        restaked: 962,
+        restaked: 62,
         operators: 2,
-        stakes: 1000,
+        stakers: 89,
         likes: 142,
+        status: 'waiting'
     },
     // ... 可以添加更多 TOS 数据
 ];
@@ -130,7 +152,7 @@ export const MOCK_AGENTS: Agent[] = [
       {
         id: 2,
         name: "Code Assistant",
-        logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMfEd4u69k1UATtjUV2PU9mTFKtMP4ITTLYw&s",
+        logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s",
         labels: ["Code"],
         introduction: "AI-powered coding assistant for developers",
         users: "1.8k",

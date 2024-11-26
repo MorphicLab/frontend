@@ -36,7 +36,7 @@ const tosData = {
     blockHeight: 21252158,
     restaked: '$20M',
     operators: 15,
-    stakes: '1.2k',
+    stakers: '1.2k',
     likes: 142,
 };
 
@@ -179,37 +179,39 @@ const TosDetail = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Stakes</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tosData.stakes}
+                                        {tosData.stakers}
                                     </div>
                                 </div>
                             </div>
                         </motion.div>
 
-                        {/* Staking Tokens */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-gray-800 rounded-xl p-6"
-                        >
+                        {/* Stake 区域 */}
+                        <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Stake</h2>
-                            <div className="space-y-4">
-                                {stakingTokens.map((token) => (
-                                    <div
-                                        key={token.symbol}
-                                        className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg"
-                                    >
-                                        <div className="flex items-center">
-                                            <div className="ml-3">
-                                                <div className="text-white font-medium">{token.symbol}</div>
-                                                <div className="text-gray-400 text-sm">{token.amount}</div>
-                                            </div>
+                            <div className="space-y-3">
+                                {/* ETH */}
+                                <div className="bg-gray-700/50 rounded-lg px-4 py-3 hover:bg-gray-700 transition-colors">
+                                    <div className="flex items-center">
+                                        <span className="text-gray-400 text-sm w-16">ETH</span>
+                                        <div className="flex-1 flex justify-end items-center space-x-8">
+                                            <span className="text-white text-sm">15.5 ETH</span>
+                                            <span className="text-gray-400 text-sm">$23,250</span>
                                         </div>
-                                        <div className="text-white font-medium">{token.value}</div>
                                     </div>
-                                ))}
+                                </div>
+
+                                {/* USDT */}
+                                <div className="bg-gray-700/50 rounded-lg px-4 py-3 hover:bg-gray-700 transition-colors">
+                                    <div className="flex items-center">
+                                        <span className="text-gray-400 text-sm w-16">USDT</span>
+                                        <div className="flex-1 flex justify-end items-center space-x-8">
+                                            <span className="text-white text-sm">2,170 USDT</span>
+                                            <span className="text-gray-400 text-sm">$2,170</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Operators */}
                         <motion.div

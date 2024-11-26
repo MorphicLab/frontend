@@ -26,7 +26,6 @@ import {
     tosLabels,
     operatorLabels,
     agentLabels,
-    platformLabels 
 } from '../data/mockData';
 
 
@@ -373,7 +372,17 @@ const Developer: React.FC = () => {
                                             </select>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    vCPU Requirement
+                                                </label>
+                                                <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="4">4</option>
+                                                </select>
+                                            </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Memory Requirement
@@ -461,6 +470,9 @@ const Developer: React.FC = () => {
                         {/* 标签页内容 */}
                         {operatorSubMenu === 'my-operator' ? (
                             <>
+                                <h1 className="text-3xl font-bold text-white">My Operators</h1>
+                                <p className="text-gray-400">Manage your registered operators</p>
+                                
                                 <SearchAndFilter
                                     search={operatorSearch}
                                     onSearchChange={setOperatorSearch}
@@ -469,7 +481,9 @@ const Developer: React.FC = () => {
                                     onLabelToggle={toggleOperatorLabel}
                                     searchPlaceholder="Search operators"
                                 />
-                                <div className="space-y-4">
+
+                                {/* 修改卡片容器的布局 */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {currentOperators.map(operator => (
                                         <OperatorCard key={operator.id} operator={operator} />
                                     ))}
