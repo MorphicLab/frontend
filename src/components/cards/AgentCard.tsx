@@ -5,10 +5,12 @@ import { Agent } from '../../data/mockData';
 
 interface AgentCardProps {
     agent: Agent;
+    onClick?: () => void;
 }
 
-export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => (
+export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => (
     <motion.div
+        onClick={onClick}
         className="bg-gray-800/50 rounded-xl border border-morphic-primary/20 overflow-hidden hover:border-morphic-primary/40 transition-all duration-300 cursor-pointer"
     >
         <div className="p-6 text-center border-b border-gray-700">

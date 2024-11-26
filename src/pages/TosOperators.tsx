@@ -3,22 +3,23 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import PageBackground from '../components/PageBackground';
 import { MOCK_OPERATORS, operatorLabels } from '../data/mockData';
-import { SearchAndFilter } from '../components/common/SearchAndFilter';
+import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { OperatorCard } from '../components/cards/OperatorCard';
 
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
-    const [search, setSearch] = useState('');
-    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
-    const toggleLabel = (label: string) => {
-        setSelectedLabels(prev =>
-            prev.includes(label)
-                ? prev.filter(l => l !== label)
-                : [...prev, label]
-        );
-    };
+    const {
+        search,
+        setSearch,
+        selectedLabels,
+        toggleLabel,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        paginatedItems: currentOperators
+    } = useSearchAndFilter(MOCK_OPERATORS);
 
     return (
         <div className="relative pt-20 min-h-screen">
@@ -62,11 +63,11 @@ const TosOperators: React.FC = () => {
                         labels={operatorLabels}
                         selectedLabels={selectedLabels}
                         onLabelToggle={toggleLabel}
-                        searchPlaceholder="Search operators"
+                        searchPlaceholder="Search Operators"
                     />
 
                     <div className="space-y-4">
-                        {MOCK_OPERATORS.map(operator => (
+                        {currentOperators.map(operator => (
                             <OperatorCard key={operator.id} operator={operator} />
                         ))}
                     </div>

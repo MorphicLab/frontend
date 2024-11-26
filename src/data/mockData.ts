@@ -80,7 +80,7 @@ export const MOCK_OPERATORS: Operator[] = [
     {
         id: 1,
         name: "Morphic Operator",
-        logo: "/images/morphic-logo-sm.png",
+        logo: "images/morphic-logo-sm.png",
         labels: ["TDX", "H100"],
         address: "0x8b230d5820B4cF539739dF2C5dAcb4c659F2488D",
         owner: {

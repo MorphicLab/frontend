@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 
 interface SearchAndFilterProps {
@@ -46,4 +46,54 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             ))}
         </div>
     </>
-); 
+);
+
+export const useSearchAndFilter = <T extends { name: string; introduction?: string; labels: string[] }>(
+    items: T[],
+    itemsPerPage: number = 6
+) => {
+    const [search, setSearch] = useState('');
+    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const filteredItems = useMemo(() => {
+        return items.filter(item => {
+            const matchesSearch = !search || 
+                item.name.toLowerCase().includes(search.toLowerCase()) ||
+                (item.introduction && item.introduction.toLowerCase().includes(search.toLowerCase()));
+
+            const matchesLabels = selectedLabels.length === 0 ||
+                selectedLabels.every(label => item.labels.includes(label));
+
+            return matchesSearch && matchesLabels;
+        });
+    }, [items, search, selectedLabels]);
+
+    const paginatedItems = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredItems.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredItems, currentPage, itemsPerPage]);
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+    const toggleLabel = (label: string) => {
+        setSelectedLabels(prev =>
+            prev.includes(label)
+                ? prev.filter(l => l !== label)
+                : [...prev, label]
+        );
+        setCurrentPage(1);
+    };
+
+    return {
+        search,
+        setSearch,
+        selectedLabels,
+        toggleLabel,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        filteredItems,
+        paginatedItems
+    };
+}; 

@@ -1,10 +1,5 @@
-import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search,
-    Users,
-    Star,
-    Cpu,
     CircuitBoard,
     Network,
     Lock
@@ -12,7 +7,7 @@ import {
 import PageBackground from '../components/PageBackground';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_AGENTS, agentLabels } from '../data/mockData';
-import { SearchAndFilter } from '../components/common/SearchAndFilter';
+import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { AgentCard } from '../components/cards/AgentCard';
 
 const Product = () => {
@@ -36,36 +31,13 @@ const Product = () => {
         }
     ];
 
-    const [search, setSearch] = useState('');
-    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-
-    // 从现有 Agent 的 labels 中提取唯一的标签
-    const labels = useMemo(() => {
-        const allTypes = MOCK_AGENTS.flatMap(agent => agent.labels);
-        return Array.from(new Set(allTypes)).sort();
-    }, []);
-
-    // 过滤 Agents
-    const filteredAgents = useMemo(() => {
-        return MOCK_AGENTS.filter(agent => {
-            const matchesSearch = !search ||
-                agent.name.toLowerCase().includes(search.toLowerCase()) ||
-                agent.introduction.toLowerCase().includes(search.toLowerCase());
-
-            const matchesLabels = selectedLabels.length === 0 ||
-                selectedLabels.some(label => agent.labels.includes(label));
-
-            return matchesSearch && matchesLabels;
-        });
-    }, [search, selectedLabels]);
-
-    const toggleLabel = (label: string) => {
-        setSelectedLabels(prev =>
-            prev.includes(label)
-                ? prev.filter(l => l !== label)
-                : [...prev, label]
-        );
-    };
+    const {
+        search,
+        setSearch,
+        selectedLabels,
+        toggleLabel,
+        filteredItems: filteredAgents
+    } = useSearchAndFilter(MOCK_AGENTS);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -132,22 +104,6 @@ const Product = () => {
                         onLabelToggle={toggleLabel}
                         searchPlaceholder="Search agents"
                     />
-
-                    {/* Labels */}
-                    <div className="flex flex-wrap gap-2 mb-8">
-                        {labels.map(label => (
-                            <button
-                                key={label}
-                                onClick={() => toggleLabel(label)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedLabels.includes(label)
-                                    ? 'bg-morphic-primary text-white'
-                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                    }`}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
 
                     {/* Agents Grid */}
                     <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">

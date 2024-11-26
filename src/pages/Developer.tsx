@@ -11,22 +11,14 @@ import {
     Plus,
     Trash2,
     Coins,
-    Cpu,
-    ExternalLink,
-    Star,
-    Users,
-    MapPin,
-    ThumbsUp,
-    Search
 } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
 import PageBackground from '../components/PageBackground';
-import { Link, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TOSCard } from '../components/cards/TOSCard';
 import { OperatorCard } from '../components/cards/OperatorCard';
 import { AgentCard } from '../components/cards/AgentCard';
-import { SearchAndFilter } from '../components/common/SearchAndFilter';
+import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { 
     MOCK_TOS, 
     MOCK_OPERATORS, 
@@ -47,52 +39,46 @@ type AgentSubMenu = 'my-agent' | 'new-agent';
 const Developer: React.FC = () => {
     const location = useLocation();
     const activeTab = location.state?.activeTab || 'dashboard';
-
+    const navigate = useNavigate();
     const [activeMenu, setActiveMenu] = useState(activeTab);
-    const [selectedPlatformTypes, setSelectedPlatformTypes] = useState<string[]>([]);
     const [tosSubMenu, setTosSubMenu] = useState<TOSSubMenu>('my-tos');
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
 
-    const togglePlatformType = (labels: string) => {
-        if (selectedPlatformTypes.includes(labels)) {
-            setSelectedPlatformTypes(selectedPlatformTypes.filter(t => t !== labels));
-        } else {
-            setSelectedPlatformTypes([...selectedPlatformTypes, labels]);
-        }
-    };
 
-    const [search, setSearch] = useState('');
-    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const {
+        search: tosSearch,
+        setSearch: setTosSearch,
+        selectedLabels: tosSelectedLabels,
+        toggleLabel: toggleTosLabel,
+        currentPage: tosCurrentPage,
+        setCurrentPage: setTosCurrentPage,
+        totalPages: tosTotalPages,
+        paginatedItems: currentTOS
+    } = useSearchAndFilter(MOCK_TOS);
 
-    const filteredTOS = useMemo(() => {
-        return MOCK_TOS.filter(tos => {
-            const matchesSearch = search === '' ||
-                tos.name.toLowerCase().includes(search.toLowerCase()) ||
-                tos.introduction.toLowerCase().includes(search.toLowerCase());
+    const {
+        search: operatorSearch,
+        setSearch: setOperatorSearch,
+        selectedLabels: operatorSelectedLabels,
+        toggleLabel: toggleOperatorLabel,
+        currentPage: operatorCurrentPage,
+        setCurrentPage: setOperatorCurrentPage,
+        totalPages: operatorTotalPages,
+        paginatedItems: currentOperators
+    } = useSearchAndFilter(MOCK_OPERATORS);
 
-            const matchesLabels = selectedLabels.length === 0 ||
-                selectedLabels.every(label => tos.labels.includes(label));
+    const {
+        search: agentSearch,
+        setSearch: setAgentSearch,
+        selectedLabels: agentSelectedLabels,
+        toggleLabel: toggleAgentLabel,
+        currentPage: agentCurrentPage,
+        setCurrentPage: setAgentCurrentPage,
+        totalPages: agentTotalPages,
+        paginatedItems: currentAgents
+    } = useSearchAndFilter(MOCK_AGENTS);
 
-            return matchesSearch && matchesLabels;
-        });
-    }, [search, selectedLabels]);
-
-    const currentTOS = filteredTOS.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const toggleLabel = (label: string) => {
-        setSelectedLabels(prev =>
-            prev.includes(label)
-                ? prev.filter(l => l !== label)
-                : [...prev, label]
-        );
-        setCurrentPage(1);
-    };
 
     // 渲染侧边栏
     const renderSidebar = () => (
@@ -274,11 +260,11 @@ const Developer: React.FC = () => {
                         {tosSubMenu === 'my-tos' ? (
                             <>
                                 <SearchAndFilter
-                                    search={search}
-                                    onSearchChange={setSearch}
+                                    search={tosSearch}
+                                    onSearchChange={setTosSearch}
                                     labels={tosLabels}
-                                    selectedLabels={selectedLabels}
-                                    onLabelToggle={toggleLabel}
+                                    selectedLabels={tosSelectedLabels}
+                                    onLabelToggle={toggleTosLabel}
                                     searchPlaceholder="Search TOSs"
                                 />
                                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -342,11 +328,11 @@ const Developer: React.FC = () => {
                                                     Platform Types
                                                 </label>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {platformLabels.map(labels => (
+                                                    {operatorLabels.map(labels => (
                                                         <button
                                                             key={labels}
-                                                            onClick={() => togglePlatformType(labels)}
-                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlatformTypes.includes(labels)
+                                                            onClick={() => toggleOperatorLabel(labels)}
+                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${operatorSelectedLabels.includes(labels)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                                 }`}
@@ -476,15 +462,15 @@ const Developer: React.FC = () => {
                         {operatorSubMenu === 'my-operator' ? (
                             <>
                                 <SearchAndFilter
-                                    search={search}
-                                    onSearchChange={setSearch}
+                                    search={operatorSearch}
+                                    onSearchChange={setOperatorSearch}
                                     labels={operatorLabels}
-                                    selectedLabels={selectedLabels}
-                                    onLabelToggle={toggleLabel}
+                                    selectedLabels={operatorSelectedLabels}
+                                    onLabelToggle={toggleOperatorLabel}
                                     searchPlaceholder="Search operators"
                                 />
                                 <div className="space-y-4">
-                                    {MOCK_OPERATORS.map(operator => (
+                                    {currentOperators.map(operator => (
                                         <OperatorCard key={operator.id} operator={operator} />
                                     ))}
                                 </div>
@@ -514,11 +500,11 @@ const Developer: React.FC = () => {
                                                 Platform Types
                                             </label>
                                             <div className="flex flex-wrap gap-2">
-                                                {platformLabels.map(labels => (
+                                                {operatorLabels.map(labels => (
                                                     <button
                                                         key={labels}
-                                                        onClick={() => togglePlatformType(labels)}
-                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlatformTypes.includes(labels)
+                                                        onClick={() => toggleOperatorLabel(labels)}
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${operatorSelectedLabels.includes(labels)
                                                             ? 'bg-morphic-primary text-white'
                                                             : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                             }`}
@@ -545,7 +531,7 @@ const Developer: React.FC = () => {
                                                     Port
                                                 </label>
                                                 <input
-                                                    labels="number"
+                                                    type="number"
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     placeholder="Enter port number"
                                                 />
@@ -616,16 +602,20 @@ const Developer: React.FC = () => {
                         {agentSubMenu === 'my-agent' ? (
                             <>
                                 <SearchAndFilter
-                                    search={search}
-                                    onSearchChange={setSearch}
+                                    search={agentSearch}
+                                    onSearchChange={setAgentSearch}
                                     labels={agentLabels}
-                                    selectedLabels={selectedLabels}
-                                    onLabelToggle={toggleLabel}
+                                    selectedLabels={agentSelectedLabels}
+                                    onLabelToggle={toggleAgentLabel}
                                     searchPlaceholder="Search agents"
                                 />
                                 <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {MOCK_AGENTS.map(agent => (
-                                        <AgentCard key={agent.id} agent={agent} />
+                                    {currentAgents.map(agent => (
+                                        <AgentCard 
+                                            key={agent.id} 
+                                            agent={agent}
+                                            onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
+                                        />
                                     ))}
                                 </div>
                             </>

@@ -1,46 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Users, Coins, ThumbsUp, ExternalLink } from 'lucide-react';
 import PageBackground from '../components/PageBackground';
 import { MOCK_TOS, tosLabels } from '../data/mockData';
-import { SearchAndFilter } from '../components/common/SearchAndFilter';
+import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { TOSCard } from '../components/cards/TOSCard';
 
 const TosServices = () => {
     const navigate = useNavigate();
-    const [search, setSearch] = useState('');
-    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
 
-    const filteredTOS = useMemo(() => {
-        return MOCK_TOS.filter(tos => {
-            const matchesSearch = search === '' ||
-                tos.name.toLowerCase().includes(search.toLowerCase()) ||
-                tos.introduction.toLowerCase().includes(search.toLowerCase());
-
-            const matchesLabels = selectedLabels.length === 0 ||
-                selectedLabels.every(label => tos.labels.includes(label));
-
-            return matchesSearch && matchesLabels;
-        });
-    }, [search, selectedLabels]);
-
-    const totalPages = Math.ceil(filteredTOS.length / itemsPerPage);
-    const currentTOS = filteredTOS.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const toggleLabel = (label: string) => {
-        setSelectedLabels(prev =>
-            prev.includes(label)
-                ? prev.filter(l => l !== label)
-                : [...prev, label]
-        );
-        setCurrentPage(1);
-    };
+    const {
+        search,
+        setSearch,
+        selectedLabels,
+        toggleLabel,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        paginatedItems: currentTOS
+    } = useSearchAndFilter(MOCK_TOS);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -96,9 +75,7 @@ const TosServices = () => {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                         <AnimatePresence mode="wait">
                             {currentTOS.map((tos, index) => (
-                                <Link to={`/tos-services/${tos.id}`} key={tos.id}>
-                                    <TOSCard tos={tos} index={index} />
-                                </Link>
+                                <TOSCard tos={tos} index={index} />
                             ))}
                         </AnimatePresence>
                     </div>
