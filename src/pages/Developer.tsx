@@ -20,9 +20,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { TOSCard } from '../components/cards/TOSCard';
 import { AgentCard } from '../components/cards/AgentCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
-import { 
-    MOCK_TOS, 
-    MOCK_OPERATORS, 
+import {
+    MOCK_TOS,
+    MOCK_OPERATORS,
     MOCK_AGENTS,
     tosLabels,
     operatorLabels,
@@ -30,10 +30,11 @@ import {
 } from '../data/mockData';
 import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
+import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 
 // TOS注册合约ABI
 const TOS_REGISTRY_ABI = [
-  "function create_vm(address creater, string calldata name, uint128 vcpus, uint128 vmemory, uint128 disk, bytes memory docker_compose) public"
+    "function create_vm(address creater, string calldata name, uint128 vcpus, uint128 vmemory, uint128 disk, bytes memory docker_compose) public"
 ];
 
 // TOS注册合约地址
@@ -46,15 +47,15 @@ type AgentSubMenu = 'my-agent' | 'new-agent';
 
 // 添加TOS表单状态接口
 interface TOSFormState {
-  name: string;
-  version: string;
-  description: string;
-  platformTypes: string[];
-  minOperators: number;
-  vcpu: number;
-  memory: number;
-  storage: number;
-  daoAddress: string;
+    name: string;
+    version: string;
+    description: string;
+    platformTypes: string[];
+    minOperators: number;
+    vcpu: number;
+    memory: number;
+    storage: number;
+    daoAddress: string;
 }
 
 // 在文件顶部添加类型声明
@@ -77,15 +78,15 @@ const Developer: React.FC = () => {
 
     // 添加TOS表单状态
     const [tosFormState, setTosFormState] = useState<TOSFormState>({
-      name: '',
-      version: '',
-      description: '',
-      platformTypes: [],
-      minOperators: 10,
-      vcpu: 1,
-      memory: 2,
-      storage: 20,
-      daoAddress: ''
+        name: '',
+        version: '',
+        description: '',
+        platformTypes: [],
+        minOperators: 10,
+        vcpu: 1,
+        memory: 2,
+        storage: 20,
+        daoAddress: ''
     });
 
     // 添加部署相关的状态
@@ -106,58 +107,58 @@ const Developer: React.FC = () => {
 
     // handle TOS register
     const handleTOSRegister = async () => {
-      try {
-        // @ts-expect-error window.ethereum 类型未定义
-        if (!window.ethereum) {
-          alert('Please connect to MetaMask');
-          return;
+        try {
+            // @ts-expect-error window.ethereum 类型未定义
+            if (!window.ethereum) {
+                alert('Please connect to MetaMask');
+                return;
+            }
+
+            // 请求用户连接MetaMask
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+            // 创建provider和signer
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+
+            // 创建合约实例
+            const tosRegistry = new ethers.Contract(
+                TOS_REGISTRY_ADDRESS,
+                TOS_REGISTRY_ABI,
+                signer
+            );
+
+            // 发送交易
+            const tx = await tosRegistry.registerTOS(
+                tosFormState.name,
+                tosFormState.version,
+                tosFormState.description,
+                tosFormState.platformTypes,
+                tosFormState.minOperators,
+                tosFormState.vcpu,
+                tosFormState.memory,
+                tosFormState.storage,
+                tosFormState.daoAddress || ethers.ZeroAddress
+            );
+
+            // 等待交易确认
+            await tx.wait();
+
+            alert('TOS registered successfully');
+            setTosSubMenu('my-tos');
+
+        } catch (error) {
+            console.error('Failed to register TOS:', error);
+            alert('Failed to register TOS: ' + error);
         }
-
-        // 请求用户连接MetaMask
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        
-        // 创建provider和signer
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        
-        // 创建合约实例
-        const tosRegistry = new ethers.Contract(
-          TOS_REGISTRY_ADDRESS,
-          TOS_REGISTRY_ABI,
-          signer
-        );
-
-        // 发送交易
-        const tx = await tosRegistry.registerTOS(
-          tosFormState.name,
-          tosFormState.version,
-          tosFormState.description,
-          tosFormState.platformTypes,
-          tosFormState.minOperators,
-          tosFormState.vcpu,
-          tosFormState.memory,
-          tosFormState.storage,
-          tosFormState.daoAddress || ethers.ZeroAddress
-        );
-
-        // 等待交易确认
-        await tx.wait();
-
-        alert('TOS registered successfully');
-        setTosSubMenu('my-tos');
-
-      } catch (error) {
-        console.error('Failed to register TOS:', error);
-        alert('Failed to register TOS: ' + error);
-      }
     };
 
     // 处理表单输入变化
     const handleInputChange = (field: keyof TOSFormState, value: string | number | string[]) => {
-      setTosFormState(prev => ({
-        ...prev,
-        [field]: value
-      }));
+        setTosFormState(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const {
@@ -385,14 +386,14 @@ const Developer: React.FC = () => {
                                     <h2 className="text-xl font-semibold text-white mb-4">Service Specification</h2>
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-4">
-                                            <input 
+                                            <input
                                                 type="file"
                                                 accept=".yaml,.yml"
                                                 ref={tosFileInputRef}
                                                 onChange={(e) => handleFileUpload(e, setTosFile)}
                                                 className="hidden"
                                             />
-                                            <button 
+                                            <button
                                                 onClick={() => tosFileInputRef.current?.click()}
                                                 className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center"
                                             >
@@ -456,11 +457,10 @@ const Developer: React.FC = () => {
                                                                     : [...tosFormState.platformTypes, label];
                                                                 handleInputChange('platformTypes', newTypes);
                                                             }}
-                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                                                tosFormState.platformTypes.includes(label)
-                                                                    ? 'bg-morphic-primary text-white'
-                                                                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                            }`}
+                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${tosFormState.platformTypes.includes(label)
+                                                                ? 'bg-morphic-primary text-white'
+                                                                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                                                }`}
                                                         >
                                                             {label}
                                                         </button>
@@ -490,7 +490,7 @@ const Developer: React.FC = () => {
                                                 content="Minimum number of TOS nodes required"
                                                 place="right"
                                             />
-                                            <select 
+                                            <select
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                 value={tosFormState.minOperators}
                                                 onChange={(e) => handleInputChange('minOperators', parseInt(e.target.value))}
@@ -507,7 +507,7 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     vCPU Requirement
                                                 </label>
-                                                <select 
+                                                <select
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     value={tosFormState.vcpu}
                                                     onChange={(e) => handleInputChange('vcpu', parseInt(e.target.value))}
@@ -522,7 +522,7 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Memory Requirement
                                                 </label>
-                                                <select 
+                                                <select
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     value={tosFormState.memory}
                                                     onChange={(e) => handleInputChange('memory', parseInt(e.target.value))}
@@ -537,7 +537,7 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Storage Requirement
                                                 </label>
-                                                <select 
+                                                <select
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     value={tosFormState.storage}
                                                     onChange={(e) => handleInputChange('storage', parseInt(e.target.value))}
@@ -570,7 +570,7 @@ const Developer: React.FC = () => {
                                 </div>
 
                                 <div className="flex justify-end">
-                                    <button 
+                                    <button
                                         onClick={handleTOSRegister}
                                         className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium"
                                     >
@@ -754,14 +754,14 @@ const Developer: React.FC = () => {
                                     <h2 className="text-xl font-semibold text-white mb-4">Agent Specification</h2>
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-4">
-                                            <input 
+                                            <input
                                                 type="file"
                                                 accept=".yaml,.yml"
                                                 ref={tosFileInputRef}
                                                 onChange={(e) => handleFileUpload(e, setTosFile)}
                                                 className="hidden"
                                             />
-                                            <button 
+                                            <button
                                                 onClick={() => tosFileInputRef.current?.click()}
                                                 className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center"
                                             >
@@ -965,11 +965,10 @@ const Developer: React.FC = () => {
                         <div
                             key={operator.id}
                             onClick={() => setSelectedOperator(operator.id)}
-                            className={`px-4 py-3 rounded-lg cursor-pointer transition-colors ${
-                                selectedOperator === operator.id
-                                    ? 'bg-morphic-primary/20 border border-morphic-primary'
-                                    : 'bg-gray-700/50 hover:bg-gray-700'
-                            }`}
+                            className={`px-4 py-3 rounded-lg cursor-pointer transition-colors ${selectedOperator === operator.id
+                                ? 'bg-morphic-primary/20 border border-morphic-primary'
+                                : 'bg-gray-700/50 hover:bg-gray-700'
+                                }`}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-4">
@@ -1015,27 +1014,51 @@ const Developer: React.FC = () => {
         </div>
     );
 
+    // TODO: Get the TOSs served by this operator
+    const getServingTOSs = () => {
+        return MOCK_TOS;
+    };
+
+    // 修改 My Operator 标签页的渲染函数
     const renderMyOperator = () => (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">My Operators</h1>
             <p className="text-gray-400">Manage your registered operators</p>
-            
-            <SearchAndFilter
-                search={operatorSearch}
-                onSearchChange={setOperatorSearch}
-                labels={operatorLabels}
-                selectedLabels={operatorSelectedLabels}
-                onLabelToggle={toggleOperatorLabel}
-                searchPlaceholder="Search operators"
-            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
-                {currentOperators.map(operator => (
-                    <ThinOperatorCard 
-                        key={operator.id} 
-                        operator={operator}
-                    />
-                ))}
+            {/* Serving TOSs Area */}
+            <div className="bg-gray-800/50 rounded-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">My registered operators</h2>
+                <SearchAndFilter
+                    search={operatorSearch}
+                    onSearchChange={setOperatorSearch}
+                    labels={operatorLabels}
+                    selectedLabels={operatorSelectedLabels}
+                    onLabelToggle={toggleOperatorLabel}
+                    searchPlaceholder="Search operators"
+                />
+
+                <div className="space-y-2 grid grid-cols-1 lg:grid-cols-1">
+                    <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
+                        {currentOperators.map(operator => (
+                            <div key={operator.id} className="space-y-4 grid grid-cols-1 lg:grid-cols-1">
+                                <ThinOperatorCard
+                                    operator={operator}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+
+            {/* Serving TOSs Area */}
+            <div className="bg-gray-800/50 rounded-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Serving TOSs</h2>
+                <div className="space-y-2 grid grid-cols-1 lg:grid-cols-1">
+                    {getServingTOSs().map(tos => (
+                        <ThinTOSCard key={tos.id} tos={tos} />
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -1044,7 +1067,7 @@ const Developer: React.FC = () => {
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">My TOS</h1>
             <p className="text-gray-400">Manage your registered trustless off-chain services</p>
-            
+
             <SearchAndFilter
                 search={tosSearch}
                 onSearchChange={setTosSearch}
@@ -1070,7 +1093,7 @@ const Developer: React.FC = () => {
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">My Agents</h1>
             <p className="text-gray-400">Manage your registered AI agents</p>
-            
+
             <SearchAndFilter
                 search={agentSearch}
                 onSearchChange={setAgentSearch}
@@ -1082,8 +1105,8 @@ const Developer: React.FC = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentAgents.map(agent => (
-                    <AgentCard 
-                        key={agent.id} 
+                    <AgentCard
+                        key={agent.id}
                         agent={agent}
                         onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
                     />
