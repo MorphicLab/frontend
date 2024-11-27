@@ -6,6 +6,7 @@ import { Hexagon, ChevronDown } from 'lucide-react';
 const Navbar = () => {
   const [tosMenuOpen, setTosMenuOpen] = useState(false);
   const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const [account, setAccount] = useState('');
 
   const menuVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -16,6 +17,19 @@ const Navbar = () => {
     { name: 'Morphic AI', href: '/morphic-ai' },
     { name: 'Morphic KMS', href: '/morphic-kms' }
   ];
+  const connectWallet = async () => {
+    if (typeof window !== 'undefined' && typeof (window as any).ethereum !== 'undefined') {
+      try {
+        // 请求用户授权连接钱包
+        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+        setAccount(accounts[0]);
+      } catch (error) {
+        console.error('user reject');
+      }
+    } else {
+      alert('please install metamask');
+    }
+  };
 
   return (
     <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-md">
@@ -109,12 +123,12 @@ const Navbar = () => {
             </Link>
 
             <div className="flex items-center">
-              <Link
-                to="/signin"
+              <button
+                onClick={connectWallet}
                 className="ml-8 px-4 py-2 rounded-lg bg-gradient-to-r from-morphic-primary to-morphic-accent text-white hover:from-morphic-accent hover:to-morphic-primary transition-all duration-300"
               >
-                Sign In
-              </Link>
+                {account ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Connect Wallet'}
+              </button>
             </div>
           </div>
         </div>

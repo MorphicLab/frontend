@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
     LayoutDashboard,
     PlayCircle,
@@ -27,13 +27,33 @@ import {
     operatorLabels,
     agentLabels,
 } from '../data/mockData';
+import { ethers } from 'ethers';
 
+// TOS注册合约ABI
+const TOS_REGISTRY_ABI = [
+  "function create_vm(address creater, string calldata name, uint128 vcpus, uint128 vmemory, uint128 disk, bytes memory docker_compose) public"
+];
+
+// TOS注册合约地址
+const TOS_REGISTRY_ADDRESS = "0x..."; // 替换为实际合约地址
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
 type OperatorSubMenu = 'my-operator' | 'new-operator';
 type AgentSubMenu = 'my-agent' | 'new-agent';
 
+// 添加TOS表单状态接口
+interface TOSFormState {
+  name: string;
+  version: string;
+  description: string;
+  platformTypes: string[];
+  minOperators: number;
+  vcpu: number;
+  memory: number;
+  storage: number;
+  daoAddress: string;
+}
 
 const Developer: React.FC = () => {
     const location = useLocation();
@@ -44,6 +64,75 @@ const Developer: React.FC = () => {
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
 
+    // 添加TOS表单状态
+    const [tosFormState, setTosFormState] = useState<TOSFormState>({
+      name: '',
+      version: '',
+      description: '',
+      platformTypes: [],
+      minOperators: 10,
+      vcpu: 1,
+      memory: 2,
+      storage: 20,
+      daoAddress: ''
+    });
+
+    // 添加文件上传相关状态
+    const [tosFile, setTosFile] = useState<File | null>(null);
+    const [agentFile, setAgentFile] = useState<File | null>(null);
+    const tosFileInputRef = useRef<HTMLInputElement>(null);
+    const agentFileInputRef = useRef<HTMLInputElement>(null);
+
+    // 处理TOS注册
+    const handleTOSRegister = async () => {
+      try {
+        // @ts-ignore
+        if (!window.ethereum) {
+          alert('Please connect to MetaMask');
+          return;
+        }
+        // 请求用户连接MetaMask
+        await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+        
+        // 创建provider和signer
+        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+        const signer = provider.getSigner();
+        
+        // 创建合约实例
+        const tosRegistry = new ethers.Contract(TOS_REGISTRY_ADDRESS, TOS_REGISTRY_ABI, signer);
+
+        // 发送交易
+        const tx = await tosRegistry.registerTOS(
+          tosFormState.name,
+          tosFormState.version,
+          tosFormState.description,
+          tosFormState.platformTypes,
+          tosFormState.minOperators,
+          tosFormState.vcpu,
+          tosFormState.memory,
+          tosFormState.storage,
+          tosFormState.daoAddress || ethers.constants.AddressZero
+        );
+
+        // 等待交易确认
+        await tx.wait();
+
+        alert('TOS registered successfully');
+        setTosSubMenu('my-tos');
+
+      } catch (error) {
+        console.error('Failed to register TOS:', error);
+        alert('Failed to register TOS: ' + error);
+      }
+    };
+
+    // 处理表单输入变化
+    const handleInputChange = (field: keyof TOSFormState, value: any) => {
+      setTosFormState(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    };
 
     const {
         search: tosSearch,
@@ -78,6 +167,17 @@ const Developer: React.FC = () => {
         paginatedItems: currentAgents
     } = useSearchAndFilter(MOCK_AGENTS);
 
+    // 处理文件上传
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
+                setFile(file);
+            } else {
+                alert('Please upload YAML format file');
+            }
+        }
+    };
 
     // 渲染侧边栏
     const renderSidebar = () => (
@@ -273,7 +373,7 @@ const Developer: React.FC = () => {
                                 </div>
                             </>
                         ) : (
-                            // 现有的 New TOS 表单内容
+                            // 新TOS表单
                             <div className="space-y-6">
                                 <h1 className="text-3xl font-bold text-white">Deliver Your TOS</h1>
                                 <p className="text-gray-400">Register your service on-chain to publish it, making it alive and trustless</p>
@@ -282,15 +382,26 @@ const Developer: React.FC = () => {
                                     <h2 className="text-xl font-semibold text-white mb-4">Service Specification</h2>
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-4">
-                                            <button className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center">
+                                            <input 
+                                                type="file"
+                                                accept=".yaml,.yml"
+                                                ref={tosFileInputRef}
+                                                onChange={(e) => handleFileUpload(e, setTosFile)}
+                                                className="hidden"
+                                            />
+                                            <button 
+                                                onClick={() => tosFileInputRef.current?.click()}
+                                                className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center"
+                                            >
                                                 <Upload className="h-4 w-4 mr-2" />
                                                 Upload docker-compose.yaml
                                             </button>
-                                            <span className="text-gray-400">No file selected</span>
+                                            <span className="text-gray-400">
+                                                {tosFile ? tosFile.name : 'No file selected'}
+                                            </span>
                                         </div>
                                         <div className="border-t border-gray-700 my-6"></div>
                                         <div className="space-y-6">
-                                            {/* <h3 className="text-lg font-medium text-white mb-4">Configuration</h3> */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -300,6 +411,8 @@ const Developer: React.FC = () => {
                                                         type="text"
                                                         className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                         placeholder="Enter service name"
+                                                        value={tosFormState.name}
+                                                        onChange={(e) => handleInputChange('name', e.target.value)}
                                                     />
                                                 </div>
                                                 <div>
@@ -310,6 +423,8 @@ const Developer: React.FC = () => {
                                                         type="text"
                                                         className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                         placeholder="1.0.0"
+                                                        value={tosFormState.version}
+                                                        onChange={(e) => handleInputChange('version', e.target.value)}
                                                     />
                                                 </div>
                                             </div>
@@ -319,7 +434,9 @@ const Developer: React.FC = () => {
                                                 </label>
                                                 <textarea
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white h-32"
-                                                    placeholder="Describe your agent's capabilities"
+                                                    placeholder="Describe your service capabilities"
+                                                    value={tosFormState.description}
+                                                    onChange={(e) => handleInputChange('description', e.target.value)}
                                                 ></textarea>
                                             </div>
                                             <div>
@@ -327,16 +444,22 @@ const Developer: React.FC = () => {
                                                     Platform Types
                                                 </label>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {operatorLabels.map(labels => (
+                                                    {operatorLabels.map(label => (
                                                         <button
-                                                            key={labels}
-                                                            onClick={() => toggleOperatorLabel(labels)}
-                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${operatorSelectedLabels.includes(labels)
-                                                                ? 'bg-morphic-primary text-white'
-                                                                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                                }`}
+                                                            key={label}
+                                                            onClick={() => {
+                                                                const newTypes = tosFormState.platformTypes.includes(label)
+                                                                    ? tosFormState.platformTypes.filter(t => t !== label)
+                                                                    : [...tosFormState.platformTypes, label];
+                                                                handleInputChange('platformTypes', newTypes);
+                                                            }}
+                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                                                                tosFormState.platformTypes.includes(label)
+                                                                    ? 'bg-morphic-primary text-white'
+                                                                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                                            }`}
                                                         >
-                                                            {labels}
+                                                            {label}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -364,7 +487,11 @@ const Developer: React.FC = () => {
                                                 content="Minimum number of TOS nodes required"
                                                 place="right"
                                             />
-                                            <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                                            <select 
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                value={tosFormState.minOperators}
+                                                onChange={(e) => handleInputChange('minOperators', parseInt(e.target.value))}
+                                            >
                                                 <option value="10">10 operators</option>
                                                 <option value="30">30 operators</option>
                                                 <option value="50">50 operators</option>
@@ -377,31 +504,45 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     vCPU Requirement
                                                 </label>
-                                                <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                                                <select 
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={tosFormState.vcpu}
+                                                    onChange={(e) => handleInputChange('vcpu', parseInt(e.target.value))}
+                                                >
                                                     <option value="1">1</option>
                                                     <option value="2">2</option>
                                                     <option value="4">4</option>
+                                                    <option value="8">8</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Memory Requirement
                                                 </label>
-                                                <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                                                <select 
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={tosFormState.memory}
+                                                    onChange={(e) => handleInputChange('memory', parseInt(e.target.value))}
+                                                >
                                                     <option value="2">2G</option>
                                                     <option value="4">4G</option>
+                                                    <option value="8">8G</option>
                                                     <option value="16">16G</option>
-                                                    <option value="32">32G</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Storage Requirement
                                                 </label>
-                                                <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                                                <select 
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={tosFormState.storage}
+                                                    onChange={(e) => handleInputChange('storage', parseInt(e.target.value))}
+                                                >
                                                     <option value="20">20G</option>
                                                     <option value="50">50G</option>
                                                     <option value="100">100G</option>
+                                                    <option value="200">200G</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -419,18 +560,23 @@ const Developer: React.FC = () => {
                                             type="text"
                                             className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                             placeholder="0x..."
+                                            value={tosFormState.daoAddress}
+                                            onChange={(e) => handleInputChange('daoAddress', e.target.value)}
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex justify-end">
-                                    <button className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium">
+                                    <button 
+                                        onClick={handleTOSRegister}
+                                        className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium"
+                                    >
                                         Register Service
                                     </button>
                                 </div>
                             </div>
                         )}
-                    </div >
+                    </div>
                 );
 
             case 'operator':
@@ -642,11 +788,23 @@ const Developer: React.FC = () => {
                                     <h2 className="text-xl font-semibold text-white mb-4">Agent Specification</h2>
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-4">
-                                            <button className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center">
+                                            <input 
+                                                type="file"
+                                                accept=".yaml,.yml"
+                                                ref={tosFileInputRef}
+                                                onChange={(e) => handleFileUpload(e, setTosFile)}
+                                                className="hidden"
+                                            />
+                                            <button 
+                                                onClick={() => tosFileInputRef.current?.click()}
+                                                className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center"
+                                            >
                                                 <Upload className="h-4 w-4 mr-2" />
                                                 Upload docker-compose.yaml
                                             </button>
-                                            <span className="text-gray-400">No file selected</span>
+                                            <span className="text-gray-400">
+                                                {tosFile ? tosFile.name : 'No file selected'}
+                                            </span>
                                         </div>
                                         <div className="border-t border-gray-700 my-6"></div>
                                         <div className="space-y-6">
