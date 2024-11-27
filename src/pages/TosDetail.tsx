@@ -15,6 +15,7 @@ import {
     Filler
 } from 'chart.js';
 import { MOCK_TOS, MOCK_OPERATORS, TOS } from '../data/mockData';
+import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 
 ChartJS.register(
     CategoryScale,
@@ -121,6 +122,9 @@ const TosDetail = () => {
         // TODO: 处理注册逻辑
     };
 
+    // TODO: Obtain the operators of this TOS
+    const tosOperators = MOCK_OPERATORS
+
     if (!tos) return <div>TOS not found</div>;
 
     return (
@@ -156,7 +160,7 @@ const TosDetail = () => {
                                             <h1 className="text-3xl font-bold text-white">
                                                 {tos.name}
                                             </h1>
-                                            <button 
+                                            <button
                                                 className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
                                                 text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
                                             >
@@ -236,87 +240,13 @@ const TosDetail = () => {
                             className="bg-gray-800 rounded-xl p-6"
                         >
                             <h2 className="text-xl font-semibold text-white mb-4">Operators</h2>
-
-                            {/* Search */}
-                            <div className="relative mb-6">
-                                <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search operators..."
-                                    value={operatorSearch}
-                                    onChange={(e) => setOperatorSearch(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            {/* Operators List */}
-                            <div className="space-y-4">
-                                {currentOperators.map((operator, index) => (
-                                    <motion.div
-                                        key={operator.name}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg"
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <div>
-                                                <div className="flex items-center">
-                                                    <span className="text-white font-medium">
-                                                        {operator.name}
-                                                    </span>
-                                                    {operator.labels.includes('TEE') && (
-                                                        <span className="ml-2 px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center">
-                                                            <Cpu className="h-3 w-3 mr-1" />
-                                                            TEE
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-6 text-sm">
-                                            <div className="text-gray-400">
-                                                <span className="text-white font-medium">
-                                                    {operator.restaked}
-                                                </span>{' '}
-                                                restaked
-                                            </div>
-                                            <div className="text-gray-400">
-                                                <span className="text-white font-medium">
-                                                    {operator.stakers}
-                                                </span>{' '}
-                                                stakers
-                                            </div>
-                                            <div className="text-gray-400">
-                                                <span className="text-white font-medium">
-                                                    {operator.tosServing}
-                                                </span>{' '}
-                                                TOS
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-
-                            {/* Pagination */}
-                            {totalPages > 1 && (
-                                <div className="flex justify-center mt-6 gap-2">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                                        (page) => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentPage(page)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === page
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                                    }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        )
-                                    )}
+                            <div className="space-y-2">
+                                <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
+                                    {tosOperators.map(operator => (
+                                        <ThinOperatorCard key={operator.id} operator={operator} />
+                                    ))}
                                 </div>
-                            )}
+                            </div>
                         </motion.div>
 
                         {/* 添加 Serve 按钮到左侧最下方 */}
@@ -405,11 +335,10 @@ const TosDetail = () => {
                                     <div
                                         key={operator.id}
                                         onClick={() => toggleOperator(operator.id)}
-                                        className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                                            selectedOperators.includes(operator.id)
+                                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedOperators.includes(operator.id)
                                                 ? 'bg-morphic-primary/20 border-2 border-morphic-primary'
                                                 : 'bg-gray-700/50 hover:bg-gray-700'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-4">

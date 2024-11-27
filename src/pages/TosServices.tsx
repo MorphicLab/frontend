@@ -8,7 +8,6 @@ import { TOSCard } from '../components/cards/TOSCard';
 
 const TosServices = () => {
     const navigate = useNavigate();
-    const itemsPerPage = 6;
 
     const {
         search,

@@ -30,6 +30,7 @@ import {
     agentLabels,
 } from '../data/mockData';
 import { ethers } from 'ethers';
+import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 
 // TOS注册合约ABI
 const TOS_REGISTRY_ABI = [
@@ -1029,12 +1030,11 @@ const Developer: React.FC = () => {
                 searchPlaceholder="Search operators"
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
                 {currentOperators.map(operator => (
-                    <OperatorCard 
+                    <ThinOperatorCard 
                         key={operator.id} 
                         operator={operator}
-                        showStakeButton={false}
                     />
                 ))}
             </div>

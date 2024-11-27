@@ -8,7 +8,6 @@ import { OperatorCard } from '../components/cards/OperatorCard';
 
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
-    const itemsPerPage = 6;
 
     const {
         search,
@@ -66,7 +65,7 @@ const TosOperators: React.FC = () => {
                         searchPlaceholder="Search Operators"
                     />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {currentOperators.map(operator => (
                             <OperatorCard key={operator.id} operator={operator} />
                         ))}

@@ -9,6 +9,7 @@ import MorphicAI from '../pages/MorphicAI';
 import Docs from '../pages/Docs';
 import AgentChat from '../pages/AgentChat';
 import MorphicKMS from '../pages/MorphicKMS';
+import OperatorDetail from '../pages/OperatorDetail';
 
 
 const router = createBrowserRouter([
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: '/morphic-kms',
         element: <MorphicKMS />
+      },
+      {
+        path: '/operator/:id',
+        element: <OperatorDetail />
       }
     ]
   }
