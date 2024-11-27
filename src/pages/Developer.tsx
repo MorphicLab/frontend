@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
     LayoutDashboard,
     PlayCircle,
@@ -11,6 +11,8 @@ import {
     Plus,
     Trash2,
     Coins,
+    X,
+    Cpu,
 } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
 import PageBackground from '../components/PageBackground';
@@ -55,6 +57,15 @@ interface TOSFormState {
   daoAddress: string;
 }
 
+// 在文件顶部添加类型声明
+declare global {
+    interface Window {
+        ethereum?: {
+            request: (args: { method: string }) => Promise<string[]>;
+        };
+    }
+}
+
 const Developer: React.FC = () => {
     const location = useLocation();
     const activeTab = location.state?.activeTab || 'dashboard';
@@ -77,29 +88,44 @@ const Developer: React.FC = () => {
       daoAddress: ''
     });
 
-    // 添加文件上传相关状态
+    // 添加部署相关的状态
+    const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
+    const [selectedOperator, setSelectedOperator] = useState<number | null>(null);
+
+    const morphicAITOS = MOCK_TOS.find(tos => tos.name === 'Morphic AI');
+    const availableOperators = useMemo(() => {
+        // TODO: Filter the operators of Morphic AI TOS
+        return MOCK_OPERATORS;
+    }, []);
+
+    // 移除未使用的状态
     const [tosFile, setTosFile] = useState<File | null>(null);
     const [agentFile, setAgentFile] = useState<File | null>(null);
     const tosFileInputRef = useRef<HTMLInputElement>(null);
     const agentFileInputRef = useRef<HTMLInputElement>(null);
 
-    // 处理TOS注册
+    // handle TOS register
     const handleTOSRegister = async () => {
       try {
-        // @ts-ignore
+        // @ts-expect-error window.ethereum 类型未定义
         if (!window.ethereum) {
           alert('Please connect to MetaMask');
           return;
         }
+
         // 请求用户连接MetaMask
-        await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
         
         // 创建provider和signer
-        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
-        const signer = provider.getSigner();
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
         
         // 创建合约实例
-        const tosRegistry = new ethers.Contract(TOS_REGISTRY_ADDRESS, TOS_REGISTRY_ABI, signer);
+        const tosRegistry = new ethers.Contract(
+          TOS_REGISTRY_ADDRESS,
+          TOS_REGISTRY_ABI,
+          signer
+        );
 
         // 发送交易
         const tx = await tosRegistry.registerTOS(
@@ -111,7 +137,7 @@ const Developer: React.FC = () => {
           tosFormState.vcpu,
           tosFormState.memory,
           tosFormState.storage,
-          tosFormState.daoAddress || ethers.constants.AddressZero
+          tosFormState.daoAddress || ethers.ZeroAddress
         );
 
         // 等待交易确认
@@ -127,7 +153,7 @@ const Developer: React.FC = () => {
     };
 
     // 处理表单输入变化
-    const handleInputChange = (field: keyof TOSFormState, value: any) => {
+    const handleInputChange = (field: keyof TOSFormState, value: string | number | string[]) => {
       setTosFormState(prev => ({
         ...prev,
         [field]: value
@@ -139,10 +165,7 @@ const Developer: React.FC = () => {
         setSearch: setTosSearch,
         selectedLabels: tosSelectedLabels,
         toggleLabel: toggleTosLabel,
-        currentPage: tosCurrentPage,
-        setCurrentPage: setTosCurrentPage,
-        totalPages: tosTotalPages,
-        paginatedItems: currentTOS
+        filteredItems: currentTOS
     } = useSearchAndFilter(MOCK_TOS);
 
     const {
@@ -150,10 +173,7 @@ const Developer: React.FC = () => {
         setSearch: setOperatorSearch,
         selectedLabels: operatorSelectedLabels,
         toggleLabel: toggleOperatorLabel,
-        currentPage: operatorCurrentPage,
-        setCurrentPage: setOperatorCurrentPage,
-        totalPages: operatorTotalPages,
-        paginatedItems: currentOperators
+        filteredItems: currentOperators
     } = useSearchAndFilter(MOCK_OPERATORS);
 
     const {
@@ -161,10 +181,7 @@ const Developer: React.FC = () => {
         setSearch: setAgentSearch,
         selectedLabels: agentSelectedLabels,
         toggleLabel: toggleAgentLabel,
-        currentPage: agentCurrentPage,
-        setCurrentPage: setAgentCurrentPage,
-        totalPages: agentTotalPages,
-        paginatedItems: currentAgents
+        filteredItems: currentAgents
     } = useSearchAndFilter(MOCK_AGENTS);
 
     // 处理文件上传
@@ -357,21 +374,7 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {tosSubMenu === 'my-tos' ? (
-                            <>
-                                <SearchAndFilter
-                                    search={tosSearch}
-                                    onSearchChange={setTosSearch}
-                                    labels={tosLabels}
-                                    selectedLabels={tosSelectedLabels}
-                                    onLabelToggle={toggleTosLabel}
-                                    searchPlaceholder="Search TOSs"
-                                />
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                                    {currentTOS.map((tos, index) => (
-                                        <TOSCard key={tos.id} tos={tos} index={index} />
-                                    ))}
-                                </div>
-                            </>
+                            renderMyTOS()
                         ) : (
                             // 新TOS表单
                             <div className="space-y-6">
@@ -615,26 +618,7 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {operatorSubMenu === 'my-operator' ? (
-                            <>
-                                <h1 className="text-3xl font-bold text-white">My Operators</h1>
-                                <p className="text-gray-400">Manage your registered operators</p>
-                                
-                                <SearchAndFilter
-                                    search={operatorSearch}
-                                    onSearchChange={setOperatorSearch}
-                                    labels={operatorLabels}
-                                    selectedLabels={operatorSelectedLabels}
-                                    onLabelToggle={toggleOperatorLabel}
-                                    searchPlaceholder="Search operators"
-                                />
-
-                                {/* 修改卡片容器的布局 */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {currentOperators.map(operator => (
-                                        <OperatorCard key={operator.id} operator={operator} />
-                                    ))}
-                                </div>
-                            </>
+                            renderMyOperator()
                         ) : (
                             // 现有的 New Operator 表单内容
                             <div className="space-y-6">
@@ -716,7 +700,7 @@ const Developer: React.FC = () => {
 
                                 <div className="flex justify-end">
                                     <button className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium">
-                                        Deploy Operator
+                                        Register Operator
                                     </button>
                                 </div>
                             </div>
@@ -760,28 +744,10 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {agentSubMenu === 'my-agent' ? (
-                            <>
-                                <SearchAndFilter
-                                    search={agentSearch}
-                                    onSearchChange={setAgentSearch}
-                                    labels={agentLabels}
-                                    selectedLabels={agentSelectedLabels}
-                                    onLabelToggle={toggleAgentLabel}
-                                    searchPlaceholder="Search agents"
-                                />
-                                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {currentAgents.map(agent => (
-                                        <AgentCard 
-                                            key={agent.id} 
-                                            agent={agent}
-                                            onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
-                                        />
-                                    ))}
-                                </div>
-                            </>
+                            renderMyAgent()
                         ) : (
-                            // 现有的 New Agent 表单内容
-                            <div className="space-y-6">
+                            // Agent Delivery Form
+                            <div className="space-y-8">
                                 <h1 className="text-3xl font-bold text-white">Deliver Your Agent</h1>
                                 <p className="text-gray-400">Register your agent on-chain to make it alive and trustless</p>
                                 <div className="bg-gray-800/50 rounded-xl p-6">
@@ -891,11 +857,18 @@ const Developer: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {/* Deploy button */}
                                 <div className="flex justify-end">
-                                    <button className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium">
+                                    <button
+                                        onClick={() => setIsDeployModalOpen(true)}
+                                        className="px-8 py-3 bg-morphic-primary text-white rounded-lg font-medium hover:bg-morphic-accent transition-colors"
+                                    >
                                         Deploy Agent
                                     </button>
                                 </div>
+
+                                {/* Deploy Modal */}
+                                {isDeployModalOpen && renderDeployModal()}
                             </div>
                         )}
                     </div>
@@ -954,6 +927,167 @@ const Developer: React.FC = () => {
                 return null;
         }
     };
+
+    // 处理部署
+    const handleDeploy = async () => {
+        if (!selectedOperator) {
+            alert('Please select an operator');
+            return;
+        }
+        // TODO: 实现实际的部署逻辑
+        console.log('Deploying agent to operator:', selectedOperator);
+        setIsDeployModalOpen(false);
+        setSelectedOperator(null);
+    };
+
+    // 渲染部署模态框
+    const renderDeployModal = () => (
+        <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setIsDeployModalOpen(false)}
+        >
+            <div
+                className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-semibold text-white">Select Operator</h2>
+                    <button
+                        onClick={() => setIsDeployModalOpen(false)}
+                        className="text-gray-400 hover:text-white"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                    {availableOperators.map(operator => (
+                        <div
+                            key={operator.id}
+                            onClick={() => setSelectedOperator(operator.id)}
+                            className={`px-4 py-3 rounded-lg cursor-pointer transition-colors ${
+                                selectedOperator === operator.id
+                                    ? 'bg-morphic-primary/20 border border-morphic-primary'
+                                    : 'bg-gray-700/50 hover:bg-gray-700'
+                            }`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <img
+                                        src={operator.logo}
+                                        alt={operator.name}
+                                        className="w-8 h-8 rounded-lg"
+                                    />
+                                    <span className="text-white font-medium">{operator.name}</span>
+                                    <div className="flex items-center space-x-2">
+                                        {operator.labels.map(label => (
+                                            <span
+                                                key={label}
+                                                className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                            >
+                                                <Cpu className="h-3 w-3 mr-1" />
+                                                {label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-end space-x-4">
+                    <button
+                        onClick={() => setIsDeployModalOpen(false)}
+                        className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleDeploy}
+                        disabled={!selectedOperator}
+                        className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Deploy
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderMyOperator = () => (
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-white">My Operators</h1>
+            <p className="text-gray-400">Manage your registered operators</p>
+            
+            <SearchAndFilter
+                search={operatorSearch}
+                onSearchChange={setOperatorSearch}
+                labels={operatorLabels}
+                selectedLabels={operatorSelectedLabels}
+                onLabelToggle={toggleOperatorLabel}
+                searchPlaceholder="Search operators"
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {currentOperators.map(operator => (
+                    <OperatorCard 
+                        key={operator.id} 
+                        operator={operator}
+                        showStakeButton={false}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderMyTOS = () => (
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-white">My TOS</h1>
+            <p className="text-gray-400">Manage your registered trustless off-chain services</p>
+            
+            <SearchAndFilter
+                search={tosSearch}
+                onSearchChange={setTosSearch}
+                labels={tosLabels}
+                selectedLabels={tosSelectedLabels}
+                onLabelToggle={toggleTosLabel}
+                searchPlaceholder="Search TOSs"
+            />
+
+            <div className="grid md:grid-cols-2 gap-6">
+                {currentTOS.map((tos, index) => (
+                    <TOSCard key={tos.id} tos={tos} index={index} />
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderMyAgent = () => (
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-white">My Agents</h1>
+            <p className="text-gray-400">Manage your registered AI agents</p>
+            
+            <SearchAndFilter
+                search={agentSearch}
+                onSearchChange={setAgentSearch}
+                labels={agentLabels}
+                selectedLabels={agentSelectedLabels}
+                onLabelToggle={toggleAgentLabel}
+                searchPlaceholder="Search agents"
+            />
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentAgents.map(agent => (
+                    <AgentCard 
+                        key={agent.id} 
+                        agent={agent}
+                        onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gray-900">

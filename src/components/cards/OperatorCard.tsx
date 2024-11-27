@@ -5,9 +5,13 @@ import { Operator } from '../../data/mockData';
 
 interface OperatorCardProps {
     operator: Operator;
+    showStakeButton?: boolean;
 }
 
-export const OperatorCard: React.FC<OperatorCardProps> = ({ operator }) => (
+export const OperatorCard: React.FC<OperatorCardProps> = ({ 
+    operator, 
+    showStakeButton = true
+}) => (
     <motion.div
         className="bg-gray-800/50 rounded-xl border border-morphic-primary/20 overflow-hidden hover:border-morphic-primary/40 transition-all duration-300"
     >
@@ -33,9 +37,16 @@ export const OperatorCard: React.FC<OperatorCardProps> = ({ operator }) => (
                         </div>
                     </div>
                 </div>
-                <button className="px-4 py-2 bg-morphic-primary hover:bg-morphic-accent text-white text-sm rounded-lg transition-colors">
-                    Stake
-                </button>
+                <div className="flex items-center space-x-4">
+                    <span className="text-gray-400 text-sm font-mono">
+                        {operator.address.slice(0, 6)}...{operator.address.slice(-4)}
+                    </span>
+                    {showStakeButton && (
+                        <button className="px-4 py-2 bg-morphic-primary hover:bg-morphic-accent text-white text-sm rounded-lg transition-colors">
+                            Stake
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
 
