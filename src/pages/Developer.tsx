@@ -18,7 +18,6 @@ import { Tooltip } from 'react-tooltip';
 import PageBackground from '../components/PageBackground';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TOSCard } from '../components/cards/TOSCard';
-import { OperatorCard } from '../components/cards/OperatorCard';
 import { AgentCard } from '../components/cards/AgentCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { 
@@ -1030,7 +1029,7 @@ const Developer: React.FC = () => {
                 searchPlaceholder="Search operators"
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
                 {currentOperators.map(operator => (
                     <ThinOperatorCard 
                         key={operator.id} 
@@ -1055,10 +1054,14 @@ const Developer: React.FC = () => {
                 searchPlaceholder="Search TOSs"
             />
 
-            <div className="grid md:grid-cols-2 gap-6">
-                {currentTOS.map((tos, index) => (
-                    <TOSCard key={tos.id} tos={tos} index={index} />
-                ))}
+            <div className="max-w-[900px] mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {currentTOS.map((tos, index) => (
+                        <div className="max-w-[420px]">
+                            <TOSCard key={tos.id} tos={tos} index={index} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

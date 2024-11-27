@@ -40,19 +40,19 @@ const TosServices = () => {
 
                     {/* Basic Stats */}
                     <div className="grid grid-cols-3 gap-6 my-16">
-                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div className="bg-gray-800 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
                                 {MOCK_TOS.length}
                             </div>
                             <div className="text-gray-400">Total Services</div>
                         </div>
-                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div className="bg-gray-800 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
                                 230 ETH
                             </div>
                             <div className="text-gray-400">Total Restaked</div>
                         </div>
-                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div className="bg-gray-800 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
                                 1.8K
                             </div>

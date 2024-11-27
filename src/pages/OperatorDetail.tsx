@@ -10,8 +10,9 @@ import {
     Shield,
     ExternalLink 
 } from 'lucide-react';
-import { MOCK_OPERATORS } from '../data/mockData';
+import { MOCK_OPERATORS, MOCK_TOS } from '../data/mockData';
 import PageBackground from '../components/PageBackground';
+import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 
 const OperatorDetail: React.FC = () => {
     const { id } = useParams();
@@ -19,15 +20,18 @@ const OperatorDetail: React.FC = () => {
 
     if (!operator) return <div>Operator not found</div>;
 
+    // TODO: Get the TOSs served by this operator
+    const servingTOSs = MOCK_TOS;
+
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
             <PageBackground />
             
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* 左侧内容区域 */}
+                    {/* Left Content Area */}
                     <div className="lg:col-span-2 space-y-8">
-                        {/* 基本信息 */}
+                        {/* Basic Information */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <img
@@ -56,7 +60,7 @@ const OperatorDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* 标签和介绍 */}
+                        {/* Labels and Introduction */}
                         <div className="space-y-4">
                             <div className="flex flex-wrap gap-2">
                                 {operator.labels.map(label => (
@@ -74,7 +78,7 @@ const OperatorDetail: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* 详细信息 */}
+                        {/* Detailed Information */}
                         <div className="grid grid-cols-2 gap-6">
                             <div className="bg-gray-800 rounded-xl p-6">
                                 <h2 className="text-xl font-semibold text-white mb-4">Location</h2>
@@ -92,7 +96,7 @@ const OperatorDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* 性能指标 */}
+                        {/* Performance Metrics */}
                         <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Performance</h2>
                             <div className="grid grid-cols-3 gap-6">
@@ -110,11 +114,21 @@ const OperatorDetail: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Serving TOSs Area */}
+                        <div className="bg-gray-800 rounded-xl p-6">
+                            <h2 className="text-xl font-semibold text-white mb-4">Serving TOSs</h2>
+                            <div className="space-y-2 grid grid-cols-1 lg:grid-cols-1">
+                                {servingTOSs.map(tos => (
+                                    <ThinTOSCard key={tos.id} tos={tos} />
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* 右侧内容区域 */}
+                    {/* Right Content Area */}
                     <div className="space-y-8">
-                        {/* Stake 信息 */}
+                        {/* Stake Information */}
                         <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Stake</h2>
                             <div className="flex justify-between items-center text-gray-300 mb-4">
@@ -131,7 +145,7 @@ const OperatorDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Owner 信息 */}
+                        {/* Owner Information */}
                         <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Owner</h2>
                             <div className="flex items-center space-x-3">

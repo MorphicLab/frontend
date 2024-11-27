@@ -30,9 +30,16 @@ const TosOperators: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h1 className="text-4xl font-bold text-morphic-light mb-2">
+                    {/* <h1 className="text-4xl font-bold text-morphic-light mb-2">
+                        Registered Operators
+                    </h1> */}
+
+                    <h1 className="text-4xl font-bold text-white mb-2">
                         Registered Operators
                     </h1>
+                    <p className="text-gray-400 mb-8">
+                        Discover and explore registered operators that provide computing resources for all TOSs
+                    </p>
 
                     <div className="grid grid-cols-3 gap-6 my-16">
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">

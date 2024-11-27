@@ -204,7 +204,7 @@ const TosDetail = () => {
                             </div>
                         </motion.div>
 
-                        {/* Stake 区域 */}
+                        {/* Stake Area */}
                         <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Stake</h2>
                             <div className="space-y-3">
@@ -249,7 +249,7 @@ const TosDetail = () => {
                             </div>
                         </motion.div>
 
-                        {/* 添加 Serve 按钮到左侧最下方 */}
+                        {/* Serve Button at the bottom left */}
                         <div className="flex justify-center mt-8">
                             <button
                                 onClick={() => setIsModalOpen(true)}
@@ -303,7 +303,7 @@ const TosDetail = () => {
                 </div>
             </div>
 
-            {/* 选择 Operators 的模态框 */}
+            {/* Select Operators Modal */}
             <AnimatePresence>
                 {isModalOpen && (
                     <motion.div
@@ -336,8 +336,8 @@ const TosDetail = () => {
                                         key={operator.id}
                                         onClick={() => toggleOperator(operator.id)}
                                         className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedOperators.includes(operator.id)
-                                                ? 'bg-morphic-primary/20 border-2 border-morphic-primary'
-                                                : 'bg-gray-700/50 hover:bg-gray-700'
+                                            ? 'bg-morphic-primary/20 border-2 border-morphic-primary'
+                                            : 'bg-gray-700/50 hover:bg-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
@@ -347,20 +347,18 @@ const TosDetail = () => {
                                                     alt={operator.name}
                                                     className="w-10 h-10 rounded-lg"
                                                 />
-                                                <div>
-                                                    <h3 className="text-white font-medium">{operator.name}</h3>
-                                                    <div className="flex items-center space-x-2 mt-1">
-                                                        {operator.labels.map(label => (
-                                                            <span
-                                                                key={label}
-                                                                className="px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
-                                                            >
-                                                                <Cpu className="h-3 w-3 mr-1" />
-                                                                {label}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                                                <h3 className="text-white font-medium">{operator.name}</h3>
+                                            </div>
+                                            <div className="flex space-x-2 mt-1">
+                                                {operator.labels.map(label => (
+                                                    <span
+                                                        key={label}
+                                                        className="px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                    >
+                                                        <Cpu className="h-3 w-3 mr-1" />
+                                                        {label}
+                                                    </span>
+                                                ))}
                                             </div>
                                             <div className="text-gray-400 text-sm">
                                                 {operator.restaked} ETH staked

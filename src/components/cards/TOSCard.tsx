@@ -27,7 +27,7 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gray-800 rounded-xl overflow-hidden hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                className="bg-gray-800 rounded-xl border border-morphic-primary/20 overflow-hidden hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
             >
                 <div className="p-6 border-b border-gray-700">
                     <div className="flex items-start justify-between mb-4">
