@@ -38,7 +38,7 @@ const TOS_REGISTRY_ABI = [
 ];
 
 // TOS注册合约地址
-const TOS_REGISTRY_ADDRESS = "0x..."; // 替换为实际合约地址
+const TOS_REGISTRY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // 替换为实际合约地址
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
@@ -63,6 +63,8 @@ declare global {
     interface Window {
         ethereum?: {
             request: (args: { method: string }) => Promise<string[]>;
+            on: (event: string, callback: (accounts: string[]) => void) => void;
+            removeListener: (event: string, callback: (accounts: string[]) => void) => void;
         };
     }
 }
@@ -75,6 +77,13 @@ const Developer: React.FC = () => {
     const [tosSubMenu, setTosSubMenu] = useState<TOSSubMenu>('my-tos');
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
+
+    // Add form validation state
+    const [formErrors, setFormErrors] = useState({
+        name: false,
+        description: false,
+        dockerCompose: false
+    });
 
     // Add TOS form state
     const [tosFormState, setTosFormState] = useState<TOSFormState>({
@@ -107,8 +116,21 @@ const Developer: React.FC = () => {
 
     // handle TOS register
     const handleTOSRegister = async () => {
+        // 验证表单
+        const errors = {
+            name: !tosFormState.name.trim(),
+            description: !tosFormState.description.trim(),
+            dockerCompose: !tosFile
+        };
+        
+        setFormErrors(errors);
+
+        // 如果有错误，不继续执行
+        if (errors.name || errors.description || errors.dockerCompose) {
+            return;
+        }
+
         try {
-            // @ts-expect-error window.ethereum 类型未定义
             if (!window.ethereum) {
                 alert('Please connect to MetaMask');
                 return;
@@ -116,9 +138,8 @@ const Developer: React.FC = () => {
 
             // 请求用户连接MetaMask
             await window.ethereum.request({ method: 'eth_requestAccounts' });
-
             // 创建provider和signer
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = await provider.getSigner();
 
             // 创建合约实例
@@ -128,17 +149,19 @@ const Developer: React.FC = () => {
                 signer
             );
 
+             // 准备 docker-compose 数据
+            const dockerComposeData = tosFile ? await tosFile.arrayBuffer() : new ArrayBuffer(0);
+            const dockerComposeBytes = new Uint8Array(dockerComposeData);
+
             // 发送交易
-            const tx = await tosRegistry.registerTOS(
-                tosFormState.name,
-                tosFormState.version,
-                tosFormState.description,
-                tosFormState.platformTypes,
-                tosFormState.minOperators,
-                tosFormState.vcpu,
-                tosFormState.memory,
-                tosFormState.storage,
-                tosFormState.daoAddress || ethers.ZeroAddress
+            console.log(dockerComposeBytes);
+            const tx = await tosRegistry.create_vm(
+                signer.getAddress(),                    // creater
+                tosFormState.name,         // name
+                tosFormState.vcpu,         // vcpus
+                tosFormState.memory,       // vmemory
+                tosFormState.storage,      // disk
+                dockerComposeBytes         // docker_compose
             );
 
             // 等待交易确认
@@ -149,7 +172,7 @@ const Developer: React.FC = () => {
 
         } catch (error) {
             console.error('Failed to register TOS:', error);
-            alert('Failed to register TOS: ' + error);
+            alert('Failed to register TOS');
         }
     };
 
@@ -159,6 +182,14 @@ const Developer: React.FC = () => {
             ...prev,
             [field]: value
         }));
+        
+        // 清除对应字段的错误状态
+        if (field === 'name' || field === 'description') {
+            setFormErrors(prev => ({
+                ...prev,
+                [field]: false
+            }));
+        }
     };
 
     const {
@@ -191,6 +222,11 @@ const Developer: React.FC = () => {
         if (file) {
             if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
                 setFile(file);
+                // 清除docker-compose错误状态
+                setFormErrors(prev => ({
+                    ...prev,
+                    dockerCompose: false
+                }));
             } else {
                 alert('Please upload YAML format file');
             }
@@ -400,10 +436,13 @@ const Developer: React.FC = () => {
                                                 <Upload className="h-4 w-4 mr-2" />
                                                 Upload docker-compose.yaml
                                             </button>
-                                            <span className="text-gray-400">
+                                            <span className={`${formErrors.dockerCompose ? 'text-red-500' : 'text-gray-400'}`}>
                                                 {tosFile ? tosFile.name : 'No file selected'}
                                             </span>
                                         </div>
+                                        {formErrors.dockerCompose && (
+                                            <p className="text-red-500 text-sm">Please upload docker-compose file</p>
+                                        )}
                                         <div className="border-t border-gray-700 my-6"></div>
                                         <div className="space-y-6">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -413,11 +452,16 @@ const Developer: React.FC = () => {
                                                     </label>
                                                     <input
                                                         type="text"
-                                                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                        className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
+                                                            formErrors.name ? 'border-red-500' : 'border-gray-600'
+                                                        }`}
                                                         placeholder="Enter service name"
                                                         value={tosFormState.name}
                                                         onChange={(e) => handleInputChange('name', e.target.value)}
                                                     />
+                                                    {formErrors.name && (
+                                                        <p className="mt-1 text-sm text-red-500">Service name is required</p>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -437,11 +481,16 @@ const Developer: React.FC = () => {
                                                     Description
                                                 </label>
                                                 <textarea
-                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white h-32"
+                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white h-32 ${
+                                                        formErrors.description ? 'border-red-500' : 'border-gray-600'
+                                                    }`}
                                                     placeholder="Describe your service capabilities"
                                                     value={tosFormState.description}
                                                     onChange={(e) => handleInputChange('description', e.target.value)}
                                                 ></textarea>
+                                                {formErrors.description && (
+                                                    <p className="mt-1 text-sm text-red-500">Description is required</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
