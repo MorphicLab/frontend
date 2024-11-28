@@ -50,6 +50,7 @@ export interface Agent {
     status?: 'online' | 'offline';
     capabilities?: string[];
     modelType?: string;
+    numOperators?: number;
 }
 
 // 标签定义
@@ -147,6 +148,7 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.8,
         status: 'online',
         capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
+        numOperators: 2,
         modelType: 'GPT-4'
       },
       {
@@ -159,7 +161,8 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.6,
         status: 'offline',
         capabilities: ['Code Generation', 'Code Review', 'Debugging'],
-        modelType: 'GPT-3'
+        modelType: 'GPT-3',
+        numOperators: 2,
       },
       {
         id: 3,
@@ -171,7 +174,8 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.9,
         status: 'online',
         capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
-        modelType: 'Stable Diffusion'
+        modelType: 'Stable Diffusion',
+        numOperators: 2,
       }
     // ... 可以添加更多 Agent 数据
 ]; 

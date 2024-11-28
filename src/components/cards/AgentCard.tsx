@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Cpu, Users, Star } from 'lucide-react';
+import { Cpu, Users, Star, Network } from 'lucide-react';
 import { Agent } from '../../data/mockData';
 
 interface AgentCardProps {
@@ -39,6 +39,10 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => (
             <div className="flex items-center text-gray-400">
                 <Users className="h-4 w-4 mr-2" />
                 <span className="text-sm">{agent.users}</span>
+            </div>
+            <div className="flex items-center text-gray-400">
+                <Network className="h-4 w-4 mr-2" />
+                <span className="text-sm">{agent.numOperators}</span>
             </div>
             <div className="flex items-center text-gray-400">
                 <Star className="h-4 w-4 mr-2 text-yellow-500" />

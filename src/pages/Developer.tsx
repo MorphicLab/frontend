@@ -76,7 +76,7 @@ const Developer: React.FC = () => {
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
 
-    // 添加TOS表单状态
+    // Add TOS form state
     const [tosFormState, setTosFormState] = useState<TOSFormState>({
         name: '',
         version: '',
@@ -89,7 +89,7 @@ const Developer: React.FC = () => {
         daoAddress: ''
     });
 
-    // 添加部署相关的状态
+    // Add deploy related state
     const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
     const [selectedOperator, setSelectedOperator] = useState<number | null>(null);
 
@@ -99,7 +99,7 @@ const Developer: React.FC = () => {
         return MOCK_OPERATORS;
     }, []);
 
-    // 移除未使用的状态
+
     const [tosFile, setTosFile] = useState<File | null>(null);
     const [agentFile, setAgentFile] = useState<File | null>(null);
     const tosFileInputRef = useRef<HTMLInputElement>(null);

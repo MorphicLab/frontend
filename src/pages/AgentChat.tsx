@@ -12,7 +12,8 @@ import {
   Cpu,
   Shield,
   CheckCircle,
-  Info
+  Info,
+  Network
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'antd';
@@ -44,6 +45,7 @@ interface Agent {
   status?: 'online' | 'offline';
   capabilities?: string[];
   modelType?: string;
+  numOperators?: number;
 }
 
 const AgentChat = () => {
@@ -131,6 +133,10 @@ const AgentChat = () => {
                 <div className="flex items-center">
                   <Users className="h-4 w-4 mr-2" />
                   <span>{agent.users} users</span>
+                </div>
+                <div className="flex items-center">
+                  <Network className="h-4 w-4 mr-2" />
+                  <span>{agent.numOperators} operators</span>
                 </div>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 mr-2 text-yellow-400" />
