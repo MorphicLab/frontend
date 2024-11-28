@@ -50,10 +50,11 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
 
 export const useSearchAndFilter = <T extends { name: string; introduction?: string; labels: string[] }>(
     items: T[],
-    itemsPerPage: number = 6
+    itemsPerPage: number = 6,
+    defaultLabels: string[] = []
 ) => {
     const [search, setSearch] = useState('');
-    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+    const [selectedLabels, setSelectedLabels] = useState<string[]>(defaultLabels);
     const [currentPage, setCurrentPage] = useState(1);
 
     const filteredItems = useMemo(() => {
@@ -94,6 +95,7 @@ export const useSearchAndFilter = <T extends { name: string; introduction?: stri
         setCurrentPage,
         totalPages,
         filteredItems,
-        paginatedItems
+        paginatedItems,
+        totalItems: filteredItems.length
     };
 }; 

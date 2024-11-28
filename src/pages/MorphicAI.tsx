@@ -37,7 +37,7 @@ const Product = () => {
         selectedLabels,
         toggleLabel,
         filteredItems: filteredAgents
-    } = useSearchAndFilter(MOCK_AGENTS);
+    } = useSearchAndFilter(MOCK_AGENTS, undefined, ['Chat']);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">

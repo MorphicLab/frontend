@@ -80,6 +80,9 @@ interface ExtendedTOS extends TOS {
     blockHeight?: string;
 }
 
+// 添加常量定义
+const ETHERSCAN_BASE_URL = 'https://etherscan.io/tx/';  // use Ethereaum mainnet for now
+
 const TosDetail = () => {
     const { id } = useParams();
     const [operatorSearch, setOperatorSearch] = useState('');
@@ -122,6 +125,13 @@ const TosDetail = () => {
         // TODO: 处理注册逻辑
     };
 
+    // 添加处理函数
+    const handleVerify = () => {
+        if (tos?.txHash) {
+            window.open(`${ETHERSCAN_BASE_URL}${tos.txHash}`, '_blank');
+        }
+    };
+
     // TODO: Obtain the operators of this TOS
     const tosOperators = MOCK_OPERATORS
 
@@ -161,6 +171,7 @@ const TosDetail = () => {
                                                 {tos.name}
                                             </h1>
                                             <button
+                                                onClick={handleVerify}
                                                 className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
                                                 text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
                                             >
@@ -203,6 +214,7 @@ const TosDetail = () => {
                                 </div>
                             </div>
                         </motion.div>
+
 
                         {/* Stake Area */}
                         <div className="bg-gray-800 rounded-xl p-6">

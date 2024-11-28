@@ -18,6 +18,7 @@ export interface TOS {
     operators: number | string;
     stakers: number | string;
     likes: number | string;
+    txHash?: string;
     status: TOSStatus;
 }
 
@@ -74,6 +75,7 @@ export const MOCK_TOS: TOS[] = [
         labels: ['Compute'],
         restaked: 962,
         operators: 32,
+        txHash: '0x4160db15ac2a8ccbc0b333df207ea997b32093b5d4c9ff35e66fe9c215f51f13',
         stakers: 1023,
         likes: 512,
         status: 'active'
@@ -92,6 +94,7 @@ export const MOCK_TOS: TOS[] = [
         labels: ['DeAI', 'Compute'],
         restaked: 62,
         operators: 2,
+        txHash: '0x4160db15ac2a8ccbc0b333df207ea997b32093b5d4c9ff35e66fe9c215f51f13',
         stakers: 89,
         likes: 142,
         status: 'waiting'
@@ -155,7 +158,7 @@ export const MOCK_AGENTS: Agent[] = [
         id: 2,
         name: "Code Assistant",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s",
-        labels: ["Code"],
+        labels: ["Chat", "Code"],
         introduction: "AI-powered coding assistant for developers",
         users: "1.8k",
         rating: 4.6,
@@ -168,7 +171,7 @@ export const MOCK_AGENTS: Agent[] = [
         id: 3,
         name: "Image Generator",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7rhk82CINydd8t9ASEi1twWHCUXVddaOSPw&s",
-        labels: ["Image"],
+        labels: ["Chat", "Image"],
         introduction: "Advanced AI image generation and editing",
         users: "3.1k",
         rating: 4.9,
