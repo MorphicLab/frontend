@@ -34,7 +34,7 @@ import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 
 // TOS注册合约ABI
 const TOS_REGISTRY_ABI = [
-    "function create_tos(address[] memory ops, string calldata name, uint8 operator_type, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, string calldata description, bytes memory docker_compose) returns (bytes16[] memory)"
+    "function create_tos(string calldata name, uint8 operator_type, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, string calldata description, bytes memory docker_compose) returns (uint128)"
 ];
 
 // TOS注册合约地址
@@ -147,9 +147,9 @@ const Developer: React.FC = () => {
     
             console.log('Connected account:', accounts[0]);
     
-            // 创建 provider 和 signer
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
+            // 使用 ethers v6 的新方式创建 provider 和 signer
+            const provider = new ethers.BrowserProvider(window.ethereum);  // 修改这里
+            const signer = await provider.getSigner();  // 修改这里
     
             // 验证合约地址
             if (!TOS_REGISTRY_ADDRESS) {
@@ -172,7 +172,7 @@ const Developer: React.FC = () => {
             try {
                 // 发送交易
                 const tx = await tosRegistry.create_tos(
-                    [accounts[0]], // 使用当前连接的账户地址
+                    // [accounts[0]], // 使用当前连接的账户地址
                     tosFormState.name,
                     tosFormState.platformType === 'TDX' ? 0 :
                     tosFormState.platformType === 'H100' ? 1 :
@@ -185,7 +185,7 @@ const Developer: React.FC = () => {
                     tosFormState.description,
                     dockerComposeBytes,
                     { 
-                        gasLimit: 3000000 // 添加 gas 限制
+                        gasLimit: 3000000
                     }
                 );
     

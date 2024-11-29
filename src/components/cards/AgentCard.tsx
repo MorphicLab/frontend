@@ -31,7 +31,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => (
                 ))}
             </div>
             <p className="text-gray-400 text-sm line-clamp-2">
-                {agent.introduction}
+                {agent.description}
             </p>
         </div>
 

@@ -158,7 +158,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                 <span className="text-lg font-bold text-white">{tos.name}</span>
                             </div>
                             <div className="p-4 space-y-3">
-                                <InfoItem icon={<Users className="h-4 w-4" />} label="Publisher" value={tos.publisher.name} />
+                                <InfoItem icon={<Users className="h-4 w-4" />} label="Creator" value={tos.creator.name} />
                                 <InfoItem icon={<Coins className="h-4 w-4" />} label="Restaked" value={`${tos.restaked} ETH`} />
                                 <InfoItem icon={<Users className="h-4 w-4" />} label="Operators" value={`${tos.operators}`} />
                                 <InfoItem icon={<Star className="h-4 w-4" />} label="Status" value={tos.status} />

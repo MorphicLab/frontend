@@ -3,24 +3,30 @@ export type TOSStatus = 'active' | 'waiting' | 'stopped' | 'failed';
 
 // 定义类型
 export interface TOS {
-    id: number;
+    id: string;
     name: string;
     logo: string;
-    address: string;
     website?: string;
-    introduction: string;
-    publisher: {
+    description?: string;
+    creator: {
+        address: string;
         name: string;
         logo: string;
     };
+    vcpus: number;
+    vmemory: number;
+    disk: number;
+    version: string;
+    code: string;
+    codeHash?: string;
     labels: string[];
+    dao: string;
     restaked: number | string;
     operators: number | string;
     stakers: number | string;
     likes: number | string;
     txHash?: string;
     status: TOSStatus;
-    codeHash?: string;
 }
 
 export interface Operator {
@@ -38,7 +44,7 @@ export interface Operator {
     numStakers: string;
     numTosServing: number;
     reputation: string;
-    introduction?: string;
+    description?: string;
     codeHash?: string;
 }
 
@@ -47,7 +53,7 @@ export interface Agent {
     name: string;
     logo: string;
     labels: string[];
-    introduction: string;
+    description: string;
     users: string;
     rating: number;
     status?: 'online' | 'offline';

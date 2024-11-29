@@ -94,7 +94,7 @@ const TosDetail = () => {
     const [showVerification, setShowVerification] = useState(false);
 
     // 获取 TOS 数据并添加额外字段
-    const tos = MOCK_TOS.find(t => t.id === Number(id)) as ExtendedTOS;
+    const tos = MOCK_TOS.find(t => t.id === id) as ExtendedTOS;
     if (tos) {
         tos.blockchain = 'Ethereum';
         tos.blockHeight = '18,245,123';
@@ -187,7 +187,7 @@ const TosDetail = () => {
                                             </button>
                                         </div>
                                         <div className="flex items-center text-gray-400 mt-2">
-                                            <span className="font-mono">{tos.address.slice(0, 6)}...{tos.address.slice(-4)}</span>
+                                            <span className="font-mono">{tos.dao.slice(0, 6)}...{tos.dao.slice(-4)}</span>
                                             <ExternalLink className="h-4 w-4 ml-2" />
                                         </div>
                                     </div>

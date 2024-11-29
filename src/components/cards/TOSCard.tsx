@@ -49,23 +49,23 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos: propTos, index = 0 }) => 
                                 {tos.status}
                             </span>
                             <span className="text-gray-400 text-sm">
-                                {tos.address.slice(0, 6)}...{tos.address.slice(-4)}
+                                {tos.dao.slice(0, 6)}...{tos.dao.slice(-4)}
                             </span>
                             <ExternalLink className="h-4 w-4 text-gray-400" />
                         </div>
                     </div>
                     <h3 className="text-xl font-semibold text-white mb-2">{tos.name}</h3>
-                    <p className="text-gray-400 text-sm line-clamp-2">{tos.introduction}</p>
+                    <p className="text-gray-400 text-sm line-clamp-2">{tos.description}</p>
                 </div>
 
                 <div className="p-6">
                     <div className="flex items-center mb-4">
                         <img
-                            src={tos.publisher.logo}
-                            alt={tos.publisher.name}
+                            src={tos.creator.logo}
+                            alt={tos.creator.name}
                             className="w-6 h-6 rounded-full mr-2"
                         />
-                        <span className="text-gray-300 text-sm">{tos.publisher.name}</span>
+                        <span className="text-gray-300 text-sm">{tos.creator.name}</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
