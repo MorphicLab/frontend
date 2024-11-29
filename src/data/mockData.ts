@@ -1,65 +1,15 @@
-// 定义状态类型
-export type TOSStatus = 'active' | 'waiting' | 'stopped' | 'failed';
+import { 
+    TOSStatus,
+    TOS,
+    Operator,
+    Agent,
+    tosLabels,
+    operatorLabels,
+    agentLabels
+} from './define';
 
-// 定义类型
-export interface TOS {
-    id: number;
-    name: string;
-    logo: string;
-    address: string;
-    website?: string;
-    introduction: string;
-    publisher: {
-        name: string;
-        logo: string;
-    };
-    labels: string[];
-    restaked: number | string;
-    operators: number | string;
-    stakers: number | string;
-    likes: number | string;
-    txHash?: string;
-    status: TOSStatus;
-    codeHash?: string;
-}
-
-export interface Operator {
-    id: number;
-    name: string;
-    logo: string;
-    labels: string[];
-    address: string;
-    owner: {
-        name: string;
-        logo: string;
-    };
-    location: string;
-    restaked: string;
-    numStakers: string;
-    numTosServing: number;
-    reputation: string;
-    introduction?: string;
-    codeHash?: string;
-}
-
-export interface Agent {
-    id: number;
-    name: string;
-    logo: string;
-    labels: string[];
-    introduction: string;
-    users: string;
-    rating: number;
-    status?: 'online' | 'offline';
-    capabilities?: string[];
-    modelType?: string;
-    numOperators?: number;
-}
-
-// 标签定义
-export const tosLabels = ['DeAI', 'DeFi', 'Compute', 'Storage', 'Oracle'];
-export const operatorLabels = ['SGX', 'TDX', 'SEV', 'H100', 'Plain'];
-export const agentLabels = ['Chat', 'Code', 'Image', 'Audio', 'Video'];
+export type { TOSStatus, TOS, Operator, Agent };
+export { tosLabels, operatorLabels, agentLabels };
 
 // Mock 数据
 export const MOCK_TOS: TOS[] = [

@@ -34,11 +34,11 @@ import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 
 // TOS注册合约ABI
 const TOS_REGISTRY_ABI = [
-    "function create_vm(address creater, string calldata name, uint128 vcpus, uint128 vmemory, uint128 disk, bytes memory docker_compose) public"
+    "function create_tos(address[] memory ops, string calldata name, uint8 operator_type, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, string calldata description, bytes memory docker_compose) returns (bytes16[] memory)"
 ];
 
 // TOS注册合约地址
-const TOS_REGISTRY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // 替换为实际合约地址
+const TOS_REGISTRY_ADDRESS = import.meta.env.VITE_VM_CONTRACT_ADDRESS;
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
@@ -50,7 +50,7 @@ interface TOSFormState {
     name: string;
     version: string;
     description: string;
-    platformTypes: string[];
+    platformType: string;
     minOperators: number;
     vcpu: number;
     memory: number;
@@ -90,7 +90,7 @@ const Developer: React.FC = () => {
         name: '',
         version: '',
         description: '',
-        platformTypes: [],
+        platformType: '',
         minOperators: 10,
         vcpu: 1,
         memory: 2,
@@ -124,60 +124,93 @@ const Developer: React.FC = () => {
         };
         
         setFormErrors(errors);
-
-        // 如果有错误，不继续执行
+    
         if (errors.name || errors.description || errors.dockerCompose) {
             return;
         }
-
+    
         try {
             if (!window.ethereum) {
-                alert('Please connect to MetaMask');
+                alert('请安装并连接 MetaMask');
                 return;
             }
-
-            // 请求用户连接MetaMask
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
-            // 创建provider和signer
+    
+            // 请求用户连接 MetaMask
+            const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+            });
+    
+            if (!accounts || accounts.length === 0) {
+                alert('未能获取钱包账户');
+                return;
+            }
+    
+            console.log('Connected account:', accounts[0]);
+    
+            // 创建 provider 和 signer
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = await provider.getSigner();
-
+            const signer = provider.getSigner();
+    
+            // 验证合约地址
+            if (!TOS_REGISTRY_ADDRESS) {
+                throw new Error('合约地址未配置');
+            }
+    
+            console.log('Creating contract instance with address:', TOS_REGISTRY_ADDRESS);
+    
             // 创建合约实例
             const tosRegistry = new ethers.Contract(
                 TOS_REGISTRY_ADDRESS,
                 TOS_REGISTRY_ABI,
                 signer
             );
-
-             // 准备 docker-compose 数据
+    
+            // 准备 docker-compose 数据
             const dockerComposeData = tosFile ? await tosFile.arrayBuffer() : new ArrayBuffer(0);
             const dockerComposeBytes = new Uint8Array(dockerComposeData);
-
-            // 发送交易
-            console.log(dockerComposeBytes);
-            const tx = await tosRegistry.create_vm(
-                signer.getAddress(),                    // creater
-                tosFormState.name,         // name
-                tosFormState.vcpu,         // vcpus
-                tosFormState.memory,       // vmemory
-                tosFormState.storage,      // disk
-                dockerComposeBytes         // docker_compose
-            );
-
-            // 等待交易确认
-            await tx.wait();
-
-            alert('TOS registered successfully');
-            setTosSubMenu('my-tos');
-
-        } catch (error) {
+    
+            try {
+                // 发送交易
+                const tx = await tosRegistry.create_tos(
+                    [accounts[0]], // 使用当前连接的账户地址
+                    tosFormState.name,
+                    tosFormState.platformType === 'TDX' ? 0 :
+                    tosFormState.platformType === 'H100' ? 1 :
+                    tosFormState.platformType === 'A100' ? 2 :
+                    tosFormState.platformType === 'CPU' ? 3 : 0,
+                    tosFormState.vcpu,
+                    tosFormState.memory,
+                    tosFormState.storage,
+                    tosFormState.version,
+                    tosFormState.description,
+                    dockerComposeBytes,
+                    { 
+                        gasLimit: 3000000 // 添加 gas 限制
+                    }
+                );
+    
+                console.log('Transaction sent:', tx.hash);
+    
+                // 等待交易确认
+                const receipt = await tx.wait();
+                console.log('Transaction confirmed:', receipt);
+    
+                alert('TOS 注册成功!');
+                setTosSubMenu('my-tos');
+    
+            } catch (txError: any) {
+                console.error('Transaction failed:', txError);
+                alert(`交易失败: ${txError.message || '未知错误'}`);
+            }
+    
+        } catch (error: any) {
             console.error('Failed to register TOS:', error);
-            alert('Failed to register TOS');
+            alert(`注册失败: ${error.message || '未知错误'}`);
         }
     };
 
     // 处理表单输入变化
-    const handleInputChange = (field: keyof TOSFormState, value: string | number | string[]) => {
+    const handleInputChange = (field: keyof TOSFormState, value: string | number) => {
         setTosFormState(prev => ({
             ...prev,
             [field]: value
@@ -494,19 +527,14 @@ const Developer: React.FC = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    Platform Types
+                                                    Platform Type
                                                 </label>
                                                 <div className="flex flex-wrap gap-2">
                                                     {operatorLabels.map(label => (
                                                         <button
                                                             key={label}
-                                                            onClick={() => {
-                                                                const newTypes = tosFormState.platformTypes.includes(label)
-                                                                    ? tosFormState.platformTypes.filter(t => t !== label)
-                                                                    : [...tosFormState.platformTypes, label];
-                                                                handleInputChange('platformTypes', newTypes);
-                                                            }}
-                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${tosFormState.platformTypes.includes(label)
+                                                            onClick={() => handleInputChange('platformType', label)}
+                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${tosFormState.platformType === label
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                                 }`}

@@ -5,9 +5,14 @@ import PageBackground from '../components/PageBackground';
 import { MOCK_TOS, tosLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { TOSCard } from '../components/cards/TOSCard';
+import { useVM } from '../request/vm';
 
 const TosServices = () => {
     const navigate = useNavigate();
+    const vm = useVM();
+    
+    // 根据环境获取TOS数据
+    const tosData = import.meta.env.VITE_API_MOCK === 'true' ? MOCK_TOS : vm.tos;
 
     const {
         search,
@@ -18,7 +23,7 @@ const TosServices = () => {
         setCurrentPage,
         totalPages,
         paginatedItems: currentTOS
-    } = useSearchAndFilter(MOCK_TOS);
+    } = useSearchAndFilter(tosData);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -42,7 +47,7 @@ const TosServices = () => {
                     <div className="grid grid-cols-3 gap-6 my-16">
                         <div className="bg-gray-800 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                {MOCK_TOS.length}
+                                {tosData.length}
                             </div>
                             <div className="text-gray-400">Total Services</div>
                         </div>

@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ExternalLink, Coins, Users, Star, ThumbsUp } from 'lucide-react';
-import { TOS, TOSStatus } from '../../data/mockData';
+import { TOS, TOSStatus, MOCK_TOS } from '../../data/mockData';
+import { useVM } from '../../request/vm';
 
 // 状态样式映射
 const statusStyles: Record<TOSStatus, { color: string; bgColor: string }> = {
@@ -17,7 +18,14 @@ interface TOSCardProps {
     index?: number;
 }
 
-export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => {
+export const TOSCard: React.FC<TOSCardProps> = ({ tos: propTos, index = 0 }) => {
+    const vm = useVM();
+    
+    // 根据环境获取TOS数据
+    const tos = import.meta.env.VITE_API_MOCK === 'true' ? 
+        MOCK_TOS.find(t => t.id === propTos.id) || propTos :
+        vm.tos.find(t => t.id === propTos.id) || propTos;
+        
     const statusStyle = statusStyles[tos.status];
 
     return (
