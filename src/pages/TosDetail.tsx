@@ -16,6 +16,7 @@ import {
 } from 'chart.js';
 import { MOCK_TOS, MOCK_OPERATORS, TOS } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
+import { VerificationFlow } from '../components/verification/VerificationFlow';
 
 ChartJS.register(
     CategoryScale,
@@ -90,6 +91,7 @@ const TosDetail = () => {
     const itemsPerPage = 10;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOperators, setSelectedOperators] = useState<number[]>([]);
+    const [showVerification, setShowVerification] = useState(false);
 
     // 获取 TOS 数据并添加额外字段
     const tos = MOCK_TOS.find(t => t.id === Number(id)) as ExtendedTOS;
@@ -135,6 +137,11 @@ const TosDetail = () => {
     // TODO: Obtain the operators of this TOS
     const tosOperators = MOCK_OPERATORS
 
+    // 获取相关的 operators
+    const relatedOperators = MOCK_OPERATORS.filter(op => 
+        op.numTosServing.toString() === tos?.operators.toString()
+    );
+
     if (!tos) return <div>TOS not found</div>;
 
     return (
@@ -171,7 +178,7 @@ const TosDetail = () => {
                                                 {tos.name}
                                             </h1>
                                             <button
-                                                onClick={handleVerify}
+                                                onClick={() => setShowVerification(true)}
                                                 className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
                                                 text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
                                             >
@@ -399,6 +406,15 @@ const TosDetail = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* 验证画布 */}
+            {showVerification && tos && (
+                <VerificationFlow
+                    tos={tos}
+                    operators={tosOperators}
+                    onClose={() => setShowVerification(false)}
+                />
+            )}
         </div>
     );
 };
