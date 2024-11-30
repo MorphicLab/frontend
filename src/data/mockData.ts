@@ -17,7 +17,7 @@ export const MOCK_TOS: TOS[] = [
         id: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
         name: 'Morphic KMS',
         logo: '/images/kms-logo.ico',
-        dao: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
+        dao: '',
         website: '/morphic-kms',
         description: 'A decentralized key management service powered by trustless computation...',
         creator: {
@@ -39,34 +39,35 @@ export const MOCK_TOS: TOS[] = [
         status: 'active',
         codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
     },
-    {
-        id: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-        name: 'Morphic AI',
-        logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
-        dao: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-        website: '/morphic-ai',
-        description: 'A decentralized AI service platform powered by trustless computation...',
-        creator: {
-            address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-            name: 'Morphic Labs',
-            logo: '/images/morphic-logo-sm.png'
-        },
-        vcpus: 1,
-        vmemory: 1,
-        disk: 1,
-        version: '1.0',
-        code: '',
-        labels: ['DeAI', 'Compute'],
-        restaked: 62,
-        operators: 2,
-        txHash: '0x4160db15ac2a8ccbc0b333df207ea997b32093b5d4c9ff35e66fe9c215f51f13',
-        stakers: 89,
-        likes: 142,
-        status: 'waiting',
-        codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-    },
     // ... 可以添加更多 TOS 数据
 ];
+
+export const MOCK_MORPHIC_AI_TOS: TOS = {
+    id: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+    name: 'Morphic AI',
+    logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
+    dao: '',
+    website: '/morphic-ai',
+    description: 'A decentralized AI service platform powered by trustless computation...',
+    creator: {
+        address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+        name: 'Morphic Labs',
+        logo: '/images/morphic-logo-sm.png'
+    },
+    vcpus: 1,
+    vmemory: 1,
+    disk: 10,
+    version: '1.0',
+    code: '',
+    labels: ['DeAI', 'Compute'],
+    restaked: 62,
+    operators: 2,
+    txHash: '0x4160db15ac2a8ccbc0b333df207ea997b32093b5d4c9ff35e66fe9c215f51f13',
+    stakers: 89,
+    likes: 142,
+    status: 'waiting',
+    codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+}
 
 export const MOCK_OPERATORS: Operator[] = [
     {

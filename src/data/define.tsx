@@ -20,7 +20,7 @@ export interface TOS {
     code: string;
     codeHash?: string;
     labels: string[];
-    dao: string;
+    dao?: string;
     restaked: number | string;
     operators: number | string;
     stakers: number | string;

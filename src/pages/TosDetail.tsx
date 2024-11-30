@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Search, ExternalLink, Cpu, Star, Users, Coins, X, Shield } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
 import { MOCK_TOS, MOCK_OPERATORS, TOS } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
+import { useVM } from '../request/vm';
 
 ChartJS.register(
     CategoryScale,
@@ -84,8 +85,9 @@ interface ExtendedTOS extends TOS {
 // 添加常量定义
 const ETHERSCAN_BASE_URL = 'https://etherscan.io/tx/';  // use Ethereaum mainnet for now
 
-const TosDetail = () => {
+const TosDetail: React.FC = () => {
     const { id } = useParams();
+    const { tos: chainTOS } = useVM();
     const [operatorSearch, setOperatorSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -93,12 +95,13 @@ const TosDetail = () => {
     const [selectedOperators, setSelectedOperators] = useState<number[]>([]);
     const [showVerification, setShowVerification] = useState(false);
 
-    // 获取 TOS 数据并添加额外字段
-    const tos = MOCK_TOS.find(t => t.id === id) as ExtendedTOS;
-    if (tos) {
-        tos.blockchain = 'Ethereum';
-        tos.blockHeight = '18,245,123';
-    }
+    // 合并 mock 和链上的 TOS 数据
+    const allTOS = useMemo(() => {
+        return [...MOCK_TOS, ...chainTOS];
+    }, [chainTOS]);
+
+    // 从所有 TOS 中查找当前 TOS
+    const tos = allTOS.find(t => t.id === Number(id));
 
     // 获取用户的 operators
     const myOperators = MOCK_OPERATORS.slice(0, 3);

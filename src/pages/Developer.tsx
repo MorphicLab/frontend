@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
     LayoutDashboard,
     PlayCircle,
@@ -27,14 +27,16 @@ import {
     tosLabels,
     operatorLabels,
     agentLabels,
+    MOCK_MORPHIC_AI_TOS,
 } from '../data/mockData';
 import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
+import { useTOSStore } from '../store/tosStore';
 
 // TOS注册合约ABI
 const TOS_REGISTRY_ABI = [
-    "function create_tos(string calldata name, uint8 operator_type, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, string calldata description, bytes memory docker_compose) returns (uint128)"
+    "function create_tos(string calldata name, string calldata logo, string calldata website, uint8 operator_type, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, string calldata description, bytes memory docker_compose) external returns(uint128)"
 ];
 
 // TOS注册合约地址
@@ -45,17 +47,24 @@ type TOSSubMenu = 'my-tos' | 'new-tos';
 type OperatorSubMenu = 'my-operator' | 'new-operator';
 type AgentSubMenu = 'my-agent' | 'new-agent';
 
-// 添加TOS表单状态接口
+// 更新 TOSFormState 接口
 interface TOSFormState {
     name: string;
     version: string;
     description: string;
     platformType: string;
-    minOperators: number;
-    vcpu: number;
-    memory: number;
-    storage: number;
-    daoAddress: string;
+    creator: {
+        address: string;
+        name: string;
+        logo: string;
+    };
+    vcpus: number;
+    vmemory: number;
+    disk: number;
+    dao: string;
+    labels: string[];
+    website?: string;
+    logo: string;
 }
 
 // 在文件顶部添加类型声明
@@ -91,11 +100,18 @@ const Developer: React.FC = () => {
         version: '',
         description: '',
         platformType: '',
-        minOperators: 10,
-        vcpu: 1,
-        memory: 2,
-        storage: 20,
-        daoAddress: ''
+        creator: {
+            address: '',
+            name: '',
+            logo: ''
+        },
+        vcpus: 1,
+        vmemory: 2,
+        disk: 20,
+        dao: '',
+        labels: [],
+        website: '',
+        logo: '/images/morphic-logo-sm.png'
     });
 
     // Add deploy related state
@@ -131,7 +147,7 @@ const Developer: React.FC = () => {
     
         try {
             if (!window.ethereum) {
-                alert('请安装并连接 MetaMask');
+                alert('Please install and connect MetaMask');
                 return;
             }
     
@@ -141,7 +157,7 @@ const Developer: React.FC = () => {
             });
     
             if (!accounts || accounts.length === 0) {
-                alert('未能获取钱包账户');
+                alert('Failed to get wallet account');
                 return;
             }
     
@@ -153,7 +169,7 @@ const Developer: React.FC = () => {
     
             // 验证合约地址
             if (!TOS_REGISTRY_ADDRESS) {
-                throw new Error('合约地址未配置');
+                throw new Error('Contract address not configured');
             }
     
             console.log('Creating contract instance with address:', TOS_REGISTRY_ADDRESS);
@@ -172,21 +188,18 @@ const Developer: React.FC = () => {
             try {
                 // 发送交易
                 const tx = await tosRegistry.create_tos(
-                    // [accounts[0]], // 使用当前连接的账户地址
                     tosFormState.name,
+                    tosFormState.logo,
+                    tosFormState.website || '',
                     tosFormState.platformType === 'TDX' ? 0 :
                     tosFormState.platformType === 'H100' ? 1 :
-                    tosFormState.platformType === 'A100' ? 2 :
-                    tosFormState.platformType === 'CPU' ? 3 : 0,
-                    tosFormState.vcpu,
-                    tosFormState.memory,
-                    tosFormState.storage,
+                    tosFormState.platformType === 'A100' ? 2 : 3,
+                    tosFormState.vcpus,
+                    tosFormState.vmemory,
+                    tosFormState.disk,
                     tosFormState.version,
                     tosFormState.description,
-                    dockerComposeBytes,
-                    { 
-                        gasLimit: 3000000
-                    }
+                    dockerComposeBytes
                 );
     
                 console.log('Transaction sent:', tx.hash);
@@ -195,9 +208,22 @@ const Developer: React.FC = () => {
                 const receipt = await tx.wait();
                 console.log('Transaction confirmed:', receipt);
     
-                alert('TOS 注册成功!');
-                setTosSubMenu('my-tos');
-    
+                // 从事件日志中获取新创建的 TOS 的 index
+                const createTOSEvent = receipt.logs.find(
+                    log => log.topics[0] === tosRegistry.interface.getEvent('CreateTOS')
+                );
+
+                if (createTOSEvent) {
+                    const parsedLog = tosRegistry.interface.parseLog(createTOSEvent);
+                    const tosIndex = Number(parsedLog.args[0]);  // 获取返回的 index
+                    
+                    // 获取并存储新创建的 TOS
+                    await useTOSStore.getState().fetchTOSById(tosIndex);
+                    
+                    alert('TOS registered successfully');
+                    setTosSubMenu('my-tos');
+                }
+
             } catch (txError: any) {
                 console.error('Transaction failed:', txError);
                 alert(`交易失败: ${txError.message || '未知错误'}`);
@@ -453,195 +479,266 @@ const Developer: React.FC = () => {
 
                                 <div className="bg-gray-800/50 rounded-xl p-6">
                                     <h2 className="text-xl font-semibold text-white mb-4">Service Specification</h2>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center space-x-4">
-                                            <input
-                                                type="file"
-                                                accept=".yaml,.yml"
-                                                ref={tosFileInputRef}
-                                                onChange={(e) => handleFileUpload(e, setTosFile)}
-                                                className="hidden"
-                                            />
-                                            <button
-                                                onClick={() => tosFileInputRef.current?.click()}
-                                                className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center"
-                                            >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                Upload docker-compose.yaml
-                                            </button>
-                                            <span className={`${formErrors.dockerCompose ? 'text-red-500' : 'text-gray-400'}`}>
-                                                {tosFile ? tosFile.name : 'No file selected'}
-                                            </span>
-                                        </div>
-                                        {formErrors.dockerCompose && (
-                                            <p className="text-red-500 text-sm">Please upload docker-compose file</p>
-                                        )}
-                                        <div className="border-t border-gray-700 my-6"></div>
-                                        <div className="space-y-6">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                        Service Name
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
-                                                            formErrors.name ? 'border-red-500' : 'border-gray-600'
-                                                        }`}
-                                                        placeholder="Enter service name"
-                                                        value={tosFormState.name}
-                                                        onChange={(e) => handleInputChange('name', e.target.value)}
-                                                    />
-                                                    {formErrors.name && (
-                                                        <p className="mt-1 text-sm text-red-500">Service name is required</p>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                        Version
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                        placeholder="1.0.0"
-                                                        value={tosFormState.version}
-                                                        onChange={(e) => handleInputChange('version', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
+                                    <div className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    Description
+                                                    Service Name *
                                                 </label>
-                                                <textarea
-                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white h-32 ${
-                                                        formErrors.description ? 'border-red-500' : 'border-gray-600'
+                                                <input
+                                                    type="text"
+                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
+                                                        formErrors.name ? 'border-red-500' : 'border-gray-600'
                                                     }`}
-                                                    placeholder="Describe your service capabilities"
-                                                    value={tosFormState.description}
-                                                    onChange={(e) => handleInputChange('description', e.target.value)}
-                                                ></textarea>
-                                                {formErrors.description && (
-                                                    <p className="mt-1 text-sm text-red-500">Description is required</p>
+                                                    placeholder="Enter service name"
+                                                    value={tosFormState.name}
+                                                    onChange={(e) => handleInputChange('name', e.target.value)}
+                                                />
+                                                {formErrors.name && (
+                                                    <p className="mt-1 text-sm text-red-500">Service name is required</p>
                                                 )}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    Platform Type
+                                                    Version *
                                                 </label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {operatorLabels.map(label => (
-                                                        <button
-                                                            key={label}
-                                                            onClick={() => handleInputChange('platformType', label)}
-                                                            className={`px-3 py-1 rounded-full text-sm transition-colors ${tosFormState.platformType === label
+                                                <input
+                                                    type="text"
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    placeholder="1.0.0"
+                                                    value={tosFormState.version}
+                                                    onChange={(e) => handleInputChange('version', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Website URL
+                                            </label>
+                                            <input
+                                                type="url"
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                placeholder="https://"
+                                                value={tosFormState.website}
+                                                onChange={(e) => handleInputChange('website', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Description *
+                                            </label>
+                                            <textarea
+                                                className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white h-32 ${
+                                                    formErrors.description ? 'border-red-500' : 'border-gray-600'
+                                                }`}
+                                                placeholder="Describe your service capabilities"
+                                                value={tosFormState.description}
+                                                onChange={(e) => handleInputChange('description', e.target.value)}
+                                            />
+                                            {formErrors.description && (
+                                                <p className="mt-1 text-sm text-red-500">Description is required</p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Labels
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {tosLabels.map(label => (
+                                                    <button
+                                                        key={label}
+                                                        onClick={() => {
+                                                            const newLabels = tosFormState.labels.includes(label)
+                                                                ? tosFormState.labels.filter(l => l !== label)
+                                                                : [...tosFormState.labels, label];
+                                                            handleInputChange('labels', newLabels);
+                                                        }}
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                                                            tosFormState.labels.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                                }`}
-                                                        >
-                                                            {label}
-                                                        </button>
-                                                    ))}
+                                                        }`}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Service Code *
+                                            </label>
+                                            <div className="flex items-center space-x-4">
+                                                <input
+                                                    type="file"
+                                                    accept=".yaml,.yml"
+                                                    ref={tosFileInputRef}
+                                                    onChange={(e) => handleFileUpload(e, setTosFile)}
+                                                    className="hidden"
+                                                />
+                                                <button
+                                                    onClick={() => tosFileInputRef.current?.click()}
+                                                    className={`px-4 py-2 rounded-lg flex items-center ${
+                                                        formErrors.dockerCompose 
+                                                            ? 'bg-red-500/20 text-red-500 border border-red-500'
+                                                            : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
+                                                    }`}
+                                                >
+                                                    <Upload className="h-4 w-4 mr-2" />
+                                                    Upload docker-compose.yaml
+                                                </button>
+                                                <span className="text-gray-400">
+                                                    {tosFile ? tosFile.name : 'No file selected'}
+                                                </span>
+                                            </div>
+                                            {formErrors.dockerCompose && (
+                                                <p className="mt-1 text-sm text-red-500">Docker compose file is required</p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Service Logo
+                                            </label>
+                                            <div className="flex items-center space-x-4">
+                                                <img
+                                                    src={tosFormState.logo}
+                                                    alt="Service Logo"
+                                                    className="w-20 h-20 rounded-lg object-cover bg-gray-700/50"
+                                                />
+                                                <div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => {
+                                                                    handleInputChange('logo', reader.result as string);
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                        className="hidden"
+                                                        id="logo-upload"
+                                                    />
+                                                    <label
+                                                        htmlFor="logo-upload"
+                                                        className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50 cursor-pointer inline-block"
+                                                    >
+                                                        Upload Logo
+                                                    </label>
+                                                    <p className="text-xs text-gray-400 mt-2">
+                                                        Recommended size: 256x256px
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Operator Specification */}
+                                {/* Resource Requirements */}
                                 <div className="bg-gray-800/50 rounded-xl p-6">
-                                    <h2 className="text-xl font-semibold text-white mb-4">Operator Specification</h2>
-                                    <div className="space-y-6">
+                                    <h2 className="text-xl font-semibold text-white mb-4">Resource Requirements</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center">
-                                                Decentralization
-                                                <div
-                                                    data-tooltip-id="decentralization-tip"
-                                                    className="ml-2 cursor-help"
-                                                >
-                                                    <HelpCircle className="h-4 w-4 text-gray-500" />
-                                                </div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                vCPUs
                                             </label>
-                                            <Tooltip
-                                                id="decentralization-tip"
-                                                content="Minimum number of TOS nodes required"
-                                                place="right"
-                                            />
                                             <select
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                value={tosFormState.minOperators}
-                                                onChange={(e) => handleInputChange('minOperators', parseInt(e.target.value))}
+                                                value={tosFormState.vcpus}
+                                                onChange={(e) => handleInputChange('vcpus', parseInt(e.target.value))}
                                             >
-                                                <option value="10">10 operators</option>
-                                                <option value="30">30 operators</option>
-                                                <option value="50">50 operators</option>
-                                                <option value="100">100 operators</option>
+                                                <option value="1">1 vCPU</option>
+                                                <option value="2">2 vCPUs</option>
+                                                <option value="4">4 vCPUs</option>
+                                                <option value="8">8 vCPUs</option>
                                             </select>
                                         </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    vCPU Requirement
-                                                </label>
-                                                <select
-                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    value={tosFormState.vcpu}
-                                                    onChange={(e) => handleInputChange('vcpu', parseInt(e.target.value))}
-                                                >
-                                                    <option value="1">1</option>
-                                                    <option value="2">2</option>
-                                                    <option value="4">4</option>
-                                                    <option value="8">8</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    Memory Requirement
-                                                </label>
-                                                <select
-                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    value={tosFormState.memory}
-                                                    onChange={(e) => handleInputChange('memory', parseInt(e.target.value))}
-                                                >
-                                                    <option value="2">2G</option>
-                                                    <option value="4">4G</option>
-                                                    <option value="8">8G</option>
-                                                    <option value="16">16G</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    Storage Requirement
-                                                </label>
-                                                <select
-                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    value={tosFormState.storage}
-                                                    onChange={(e) => handleInputChange('storage', parseInt(e.target.value))}
-                                                >
-                                                    <option value="20">20G</option>
-                                                    <option value="50">50G</option>
-                                                    <option value="100">100G</option>
-                                                    <option value="200">200G</option>
-                                                </select>
-                                            </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Memory
+                                            </label>
+                                            <select
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                value={tosFormState.vmemory}
+                                                onChange={(e) => handleInputChange('vmemory', parseInt(e.target.value))}
+                                            >
+                                                <option value="1">1 GB</option>
+                                                <option value="2">2 GB</option>
+                                                <option value="4">4 GB</option>
+                                                <option value="8">8 GB</option>
+                                                <option value="16">16 GB</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Disk
+                                            </label>
+                                            <select
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                value={tosFormState.disk}
+                                                onChange={(e) => handleInputChange('disk', parseInt(e.target.value))}
+                                            >
+                                                <option value="10">10 GB</option>
+                                                <option value="20">20 GB</option>
+                                                <option value="50">50 GB</option>
+                                                <option value="100">100 GB</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Governance Specification */}
+                                {/* Creator Information */}
                                 <div className="bg-gray-800/50 rounded-xl p-6">
-                                    <h2 className="text-xl font-semibold text-white mb-4">Governance Specification</h2>
+                                    <h2 className="text-xl font-semibold text-white mb-4">Creator Information</h2>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Creator Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                placeholder="Enter creator name"
+                                                value={tosFormState.creator.name}
+                                                onChange={(e) => handleInputChange('creator', { ...tosFormState.creator, name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Creator Address
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                placeholder="0x..."
+                                                value={tosFormState.creator.address}
+                                                onChange={(e) => handleInputChange('creator', { ...tosFormState.creator, address: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Governance */}
+                                <div className="bg-gray-800/50 rounded-xl p-6">
+                                    <h2 className="text-xl font-semibold text-white mb-4">Governance</h2>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-400 mb-2">
-                                            DAO Contract Address (Optional)
+                                            DAO Address
                                         </label>
                                         <input
                                             type="text"
                                             className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                             placeholder="0x..."
-                                            value={tosFormState.daoAddress}
-                                            onChange={(e) => handleInputChange('daoAddress', e.target.value)}
+                                            value={tosFormState.dao}
+                                            onChange={(e) => handleInputChange('dao', e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -840,7 +937,11 @@ const Developer: React.FC = () => {
                                             />
                                             <button
                                                 onClick={() => tosFileInputRef.current?.click()}
-                                                className="px-4 py-2 bg-morphic-primary/20 text-morphic-primary rounded-lg flex items-center"
+                                                className={`px-4 py-2 rounded-lg flex items-center ${
+                                                    formErrors.dockerCompose 
+                                                        ? 'bg-red-500/20 text-red-500 border border-red-500'
+                                                        : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
+                                                }`}
                                             >
                                                 <Upload className="h-4 w-4 mr-2" />
                                                 Upload docker-compose.yaml
@@ -1191,6 +1292,89 @@ const Developer: React.FC = () => {
             </div>
         </div>
     );
+
+    // 添加键盘事件处理
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // 检查是否在 New TOS 标签页
+            if (activeMenu === 'tos' && tosSubMenu === 'new-tos') {
+                // 检查是否按下 Ctrl+V
+                if (event.ctrlKey && event.key === 'v') {
+                    event.preventDefault();
+                    
+                    // 填充表单数据
+                    setTosFormState({
+                        name: MOCK_MORPHIC_AI_TOS.name,
+                        version: MOCK_MORPHIC_AI_TOS.version,
+                        description: MOCK_MORPHIC_AI_TOS.description || '',
+                        platformType: MOCK_MORPHIC_AI_TOS.labels.includes('TDX') ? 'TDX' :
+                                    MOCK_MORPHIC_AI_TOS.labels.includes('H100') ? 'H100' :
+                                    MOCK_MORPHIC_AI_TOS.labels.includes('A100') ? 'A100' :
+                                    MOCK_MORPHIC_AI_TOS.labels.includes('CPU') ? 'CPU' : '',
+                        creator: {
+                            address: MOCK_MORPHIC_AI_TOS.creator.address,
+                            name: MOCK_MORPHIC_AI_TOS.creator.name,
+                            logo: MOCK_MORPHIC_AI_TOS.creator.logo
+                        },
+                        vcpus: MOCK_MORPHIC_AI_TOS.vcpus,
+                        vmemory: MOCK_MORPHIC_AI_TOS.vmemory,
+                        disk: MOCK_MORPHIC_AI_TOS.disk,
+                        dao: MOCK_MORPHIC_AI_TOS.dao,
+                        labels: MOCK_MORPHIC_AI_TOS.labels,
+                        website: MOCK_MORPHIC_AI_TOS.website || '',
+                        logo: MOCK_MORPHIC_AI_TOS.logo
+                    });
+
+                    // 清除任何表单��误
+                    setFormErrors({
+                        name: false,
+                        description: false,
+                        dockerCompose: false
+                    });
+
+                    // 显示提示信息
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-morphic-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out';
+                    notification.textContent = 'Form data pasted from template';
+                    document.body.appendChild(notification);
+
+                    // 3秒后移除提示
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            }
+        };
+
+        // 添加事件监听器
+        window.addEventListener('keydown', handleKeyDown);
+
+        // 清理函数
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [activeMenu, tosSubMenu]); // 依赖项包含当前菜单状态
+
+    // 添加动画样式
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translateY(-20px); }
+                10% { opacity: 1; transform: translateY(0); }
+                90% { opacity: 1; transform: translateY(0); }
+                100% { opacity: 0; transform: translateY(-20px); }
+            }
+            .animate-fade-in-out {
+                animation: fadeInOut 3s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-900">
