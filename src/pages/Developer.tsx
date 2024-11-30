@@ -7,14 +7,12 @@ import {
     Upload,
     CircuitBoard,
     Network,
-    HelpCircle,
     Plus,
     Trash2,
     Coins,
     X,
     Cpu,
 } from 'lucide-react';
-import { Tooltip } from 'react-tooltip';
 import PageBackground from '../components/PageBackground';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TOSCard } from '../components/cards/TOSCard';
@@ -33,39 +31,37 @@ import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 import { useTOSStore } from '../store/tosStore';
+import { TOS } from '../data/define';
+import { VM_CONTRACT_ADDRESS, VM_ABI } from '../request/vm';
 
-// TOS注册合约ABI
-const TOS_REGISTRY_ABI = [
-    "function create_tos(string calldata name, string calldata logo, string calldata website, uint8 operator_type, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, string calldata description, bytes memory docker_compose) external returns(uint128)"
-];
-
-// TOS注册合约地址
-const TOS_REGISTRY_ADDRESS = import.meta.env.VITE_VM_CONTRACT_ADDRESS;
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
 type OperatorSubMenu = 'my-operator' | 'new-operator';
 type AgentSubMenu = 'my-agent' | 'new-agent';
 
-// 更新 TOSFormState 接口
-interface TOSFormState {
-    name: string;
-    version: string;
-    description: string;
-    platformType: string;
-    creator: {
-        address: string;
-        name: string;
-        logo: string;
-    };
-    vcpus: number;
-    vmemory: number;
-    disk: number;
-    dao: string;
-    labels: string[];
-    website?: string;
-    logo: string;
-}
+// // 更新 TOSFormState 接口
+// interface TOSFormState {
+//     id?: string;
+//     name: string;
+//     website?: string;
+//     version: string;
+//     description: string;
+//     platformType: string;
+//     creator: {
+//         address: string;
+//         name: string;
+//         logo: string;
+//     };
+//     vcpus: number;
+//     vmemory: number;
+//     disk: number;
+//     dao?: string;
+//     labels: string[];
+//     logo: string;
+//     operatorTypes: string[];
+//     operatorMinimum: number;
+// }
 
 // 在文件顶部添加类型声明
 declare global {
@@ -77,6 +73,10 @@ declare global {
         };
     }
 }
+
+// 添加默认图片路径常量
+const DEFAULT_TOS_LOGO = '/images/tos-default-logo.png';  // 使用现有的 logo
+const DEFAULT_CREATOR_LOGO = '/images/tos-creator-default-logo.png';  // 使用现有的 logo
 
 const Developer: React.FC = () => {
     const location = useLocation();
@@ -95,28 +95,37 @@ const Developer: React.FC = () => {
     });
 
     // Add TOS form state
-    const [tosFormState, setTosFormState] = useState<TOSFormState>({
+    const [tosFormState, setTosFormState] = useState<TOS>({
+        id: '',
         name: '',
-        version: '',
+        logo: DEFAULT_TOS_LOGO,
         description: '',
-        platformType: '',
+        operatorTypes: [],
         creator: {
             address: '',
             name: '',
-            logo: ''
+            logo: DEFAULT_CREATOR_LOGO  // 使用常量
         },
+        operatorMinimum: 10,
         vcpus: 1,
-        vmemory: 2,
-        disk: 20,
+        vmemory: 1,
+        disk: 10,
+        version: '',
         dao: '',
         labels: [],
         website: '',
-        logo: '/images/morphic-logo-sm.png'
+        code: '',
+        operators: [],
+        vms: [],
+        restaked: 0,
+        stakers: 0,
+        likes: 0,
+        status: 'waiting',
     });
 
     // Add deploy related state
     const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
-    const [selectedOperator, setSelectedOperator] = useState<number | null>(null);
+    const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
 
     const morphicAITOS = MOCK_TOS.find(tos => tos.name === 'Morphic AI');
     const availableOperators = useMemo(() => {
@@ -129,6 +138,7 @@ const Developer: React.FC = () => {
     const [agentFile, setAgentFile] = useState<File | null>(null);
     const tosFileInputRef = useRef<HTMLInputElement>(null);
     const agentFileInputRef = useRef<HTMLInputElement>(null);
+
 
     // handle TOS register
     const handleTOSRegister = async () => {
@@ -168,16 +178,16 @@ const Developer: React.FC = () => {
             const signer = await provider.getSigner();  // 修改这里
     
             // 验证合约地址
-            if (!TOS_REGISTRY_ADDRESS) {
+            if (!VM_CONTRACT_ADDRESS) {
                 throw new Error('Contract address not configured');
             }
     
-            console.log('Creating contract instance with address:', TOS_REGISTRY_ADDRESS);
+            console.log('Creating contract instance with address:', VM_CONTRACT_ADDRESS);
     
             // 创建合约实例
             const tosRegistry = new ethers.Contract(
-                TOS_REGISTRY_ADDRESS,
-                TOS_REGISTRY_ABI,
+                VM_CONTRACT_ADDRESS,
+                VM_ABI,
                 signer
             );
     
@@ -186,20 +196,24 @@ const Developer: React.FC = () => {
             const dockerComposeBytes = new Uint8Array(dockerComposeData);
     
             try {
+                console.log('Tos info: ', tosFormState);
                 // 发送交易
                 const tx = await tosRegistry.create_tos(
                     tosFormState.name,
                     tosFormState.logo,
                     tosFormState.website || '',
-                    tosFormState.platformType === 'TDX' ? 0 :
-                    tosFormState.platformType === 'H100' ? 1 :
-                    tosFormState.platformType === 'A100' ? 2 : 3,
+                    tosFormState.description,
+                    tosFormState.operatorTypes,
+                    tosFormState.creator.name,
+                    tosFormState.creator.logo,
+                    tosFormState.operatorMinimum,
                     tosFormState.vcpus,
                     tosFormState.vmemory,
                     tosFormState.disk,
                     tosFormState.version,
-                    tosFormState.description,
-                    dockerComposeBytes
+                    dockerComposeBytes,
+                    tosFormState.labels,
+                    tosFormState.dao || ethers.ZeroAddress
                 );
     
                 console.log('Transaction sent:', tx.hash);
@@ -208,21 +222,11 @@ const Developer: React.FC = () => {
                 const receipt = await tx.wait();
                 console.log('Transaction confirmed:', receipt);
     
-                // 从事件日志中获取新创建的 TOS 的 index
-                const createTOSEvent = receipt.logs.find(
-                    log => log.topics[0] === tosRegistry.interface.getEvent('CreateTOS')
-                );
-
-                if (createTOSEvent) {
-                    const parsedLog = tosRegistry.interface.parseLog(createTOSEvent);
-                    const tosIndex = Number(parsedLog.args[0]);  // 获取返回的 index
-                    
-                    // 获取并存储新创建的 TOS
-                    await useTOSStore.getState().fetchTOSById(tosIndex);
-                    
-                    alert('TOS registered successfully');
-                    setTosSubMenu('my-tos');
-                }
+                // Log the transaction logs
+                console.log('Transaction logs:', receipt.logs);
+    
+                alert('TOS registered successfully');
+                setTosSubMenu('my-tos');
 
             } catch (txError: any) {
                 console.error('Transaction failed:', txError);
@@ -236,11 +240,27 @@ const Developer: React.FC = () => {
     };
 
     // 处理表单输入变化
-    const handleInputChange = (field: keyof TOSFormState, value: string | number) => {
-        setTosFormState(prev => ({
-            ...prev,
-            [field]: value
-        }));
+    const handleInputChange = (field: keyof TOS, value: any) => {
+        if (field === 'creator') {
+            setTosFormState(prev => ({
+                ...prev,
+                creator: {
+                    ...prev.creator,
+                    ...value,
+                    logo: value.logo || DEFAULT_CREATOR_LOGO  // 添加默认值
+                }
+            }));
+        } else if (field === 'logo') {
+            setTosFormState(prev => ({
+                ...prev,
+                [field]: value || DEFAULT_TOS_LOGO  // 添加默认值
+            }));
+        } else {
+            setTosFormState(prev => ({
+                ...prev,
+                [field]: value
+            }));
+        }
         
         // 清除对应字段的错误状态
         if (field === 'name' || field === 'description') {
@@ -505,7 +525,7 @@ const Developer: React.FC = () => {
                                                 <input
                                                     type="text"
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    placeholder="1.0.0"
+                                                    placeholder="0.1"
                                                     value={tosFormState.version}
                                                     onChange={(e) => handleInputChange('version', e.target.value)}
                                                 />
@@ -558,6 +578,35 @@ const Developer: React.FC = () => {
                                                         }}
                                                         className={`px-3 py-1 rounded-full text-sm transition-colors ${
                                                             tosFormState.labels.includes(label)
+                                                                ? 'bg-morphic-primary text-white'
+                                                                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                                        }`}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Operator Types
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {operatorLabels.map(label => (
+                                                    <button
+                                                        key={label}
+                                                        onClick={() => {
+                                                            const newTypes = tosFormState.operatorTypes.includes(label)
+                                                                ? tosFormState.operatorTypes.filter(t => t !== label)
+                                                                : [...tosFormState.operatorTypes, label];
+                                                            setTosFormState(prev => ({
+                                                                ...prev,
+                                                                operatorTypes: newTypes
+                                                            }));
+                                                        }}
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                                                            tosFormState.operatorTypes.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                         }`}
@@ -645,52 +694,70 @@ const Developer: React.FC = () => {
                                 {/* Resource Requirements */}
                                 <div className="bg-gray-800/50 rounded-xl p-6">
                                     <h2 className="text-xl font-semibold text-white mb-4">Resource Requirements</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                vCPUs
+                                                Minimum Operators
                                             </label>
                                             <select
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                value={tosFormState.vcpus}
-                                                onChange={(e) => handleInputChange('vcpus', parseInt(e.target.value))}
+                                                value={tosFormState.operatorMinimum}
+                                                onChange={(e) => handleInputChange('operatorMinimum', parseInt(e.target.value))}
                                             >
-                                                <option value="1">1 vCPU</option>
-                                                <option value="2">2 vCPUs</option>
-                                                <option value="4">4 vCPUs</option>
-                                                <option value="8">8 vCPUs</option>
+                                                {[1, 10, 30, 50].map(num => (
+                                                    <option key={num} value={num}>{num} Operator{num > 1 ? 's' : ''}</option>
+                                                ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Memory
-                                            </label>
-                                            <select
-                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                value={tosFormState.vmemory}
-                                                onChange={(e) => handleInputChange('vmemory', parseInt(e.target.value))}
-                                            >
-                                                <option value="1">1 GB</option>
-                                                <option value="2">2 GB</option>
-                                                <option value="4">4 GB</option>
-                                                <option value="8">8 GB</option>
-                                                <option value="16">16 GB</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Disk
-                                            </label>
-                                            <select
-                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                value={tosFormState.disk}
-                                                onChange={(e) => handleInputChange('disk', parseInt(e.target.value))}
-                                            >
-                                                <option value="10">10 GB</option>
-                                                <option value="20">20 GB</option>
-                                                <option value="50">50 GB</option>
-                                                <option value="100">100 GB</option>
-                                            </select>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    vCPUs
+                                                </label>
+                                                <select
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={tosFormState.vcpus}
+                                                    onChange={(e) => handleInputChange('vcpus', parseInt(e.target.value))}
+                                                >
+                                                    <option value="1">1 vCPU</option>
+                                                    <option value="2">2 vCPUs</option>
+                                                    <option value="4">4 vCPUs</option>
+                                                    <option value="8">8 vCPUs</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    Memory
+                                                </label>
+                                                <select
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={tosFormState.vmemory}
+                                                    onChange={(e) => handleInputChange('vmemory', parseInt(e.target.value))}
+                                                >
+                                                    <option value="1">1 GB</option>
+                                                    <option value="2">2 GB</option>
+                                                    <option value="4">4 GB</option>
+                                                    <option value="8">8 GB</option>
+                                                    <option value="16">16 GB</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    Disk
+                                                </label>
+                                                <select
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={tosFormState.disk}
+                                                    onChange={(e) => handleInputChange('disk', parseInt(e.target.value))}
+                                                >
+                                                    <option value="10">10 GB</option>
+                                                    <option value="20">20 GB</option>
+                                                    <option value="50">50 GB</option>
+                                                    <option value="100">100 GB</option>
+                                                </select>
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -722,6 +789,45 @@ const Developer: React.FC = () => {
                                                 value={tosFormState.creator.address}
                                                 onChange={(e) => handleInputChange('creator', { ...tosFormState.creator, address: e.target.value })}
                                             />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Creator Logo
+                                            </label>
+                                            <div className="flex items-center space-x-4">
+                                                <img
+                                                    src={tosFormState.creator.logo}
+                                                    alt="Creator Logo"
+                                                    className="w-16 h-16 rounded-lg object-cover bg-gray-700/50"
+                                                />
+                                                <div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => {
+                                                                    handleInputChange('creator', {
+                                                                        ...tosFormState.creator,
+                                                                        logo: reader.result as string
+                                                                    });
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                        className="hidden"
+                                                        id="creator-logo-upload"
+                                                    />
+                                                    <label
+                                                        htmlFor="creator-logo-upload"
+                                                        className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50 cursor-pointer inline-block"
+                                                    >
+                                                        Upload Logo
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1258,8 +1364,8 @@ const Developer: React.FC = () => {
             <div className="max-w-[900px] mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {currentTOS.map((tos, index) => (
-                        <div className="max-w-[420px]">
-                            <TOSCard key={tos.id} tos={tos} index={index} />
+                        <div key={tos.id} className="max-w-[420px]">
+                            <TOSCard tos={tos} index={index} />
                         </div>
                     ))}
                 </div>
@@ -1296,40 +1402,36 @@ const Developer: React.FC = () => {
     // 添加键盘事件处理
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            // 检查是否在 New TOS 标签页
-            if (activeMenu === 'tos' && tosSubMenu === 'new-tos') {
-                // 检查是否按下 Ctrl+V
+            if (activeMenu === 'tos' && tosSubMenu === 'new-tos' && MOCK_MORPHIC_AI_TOS) {
                 if (event.ctrlKey && event.key === 'v') {
                     event.preventDefault();
                     
-                    // 填充表单数据
                     setTosFormState({
-                        name: MOCK_MORPHIC_AI_TOS.name,
-                        version: MOCK_MORPHIC_AI_TOS.version,
-                        description: MOCK_MORPHIC_AI_TOS.description || '',
-                        platformType: MOCK_MORPHIC_AI_TOS.labels.includes('TDX') ? 'TDX' :
-                                    MOCK_MORPHIC_AI_TOS.labels.includes('H100') ? 'H100' :
-                                    MOCK_MORPHIC_AI_TOS.labels.includes('A100') ? 'A100' :
-                                    MOCK_MORPHIC_AI_TOS.labels.includes('CPU') ? 'CPU' : '',
-                        creator: {
-                            address: MOCK_MORPHIC_AI_TOS.creator.address,
-                            name: MOCK_MORPHIC_AI_TOS.creator.name,
-                            logo: MOCK_MORPHIC_AI_TOS.creator.logo
-                        },
-                        vcpus: MOCK_MORPHIC_AI_TOS.vcpus,
-                        vmemory: MOCK_MORPHIC_AI_TOS.vmemory,
-                        disk: MOCK_MORPHIC_AI_TOS.disk,
-                        dao: MOCK_MORPHIC_AI_TOS.dao,
-                        labels: MOCK_MORPHIC_AI_TOS.labels,
+                        id: '',
+                        name: MOCK_MORPHIC_AI_TOS.name || '',
+                        logo: MOCK_MORPHIC_AI_TOS.logo || DEFAULT_TOS_LOGO,
                         website: MOCK_MORPHIC_AI_TOS.website || '',
-                        logo: MOCK_MORPHIC_AI_TOS.logo
-                    });
-
-                    // 清除任何表单��误
-                    setFormErrors({
-                        name: false,
-                        description: false,
-                        dockerCompose: false
+                        description: MOCK_MORPHIC_AI_TOS.description || '',
+                        operatorTypes: MOCK_MORPHIC_AI_TOS.operatorTypes || [],
+                        creator: {
+                            address: MOCK_MORPHIC_AI_TOS.creator?.address || '',
+                            name: MOCK_MORPHIC_AI_TOS.creator?.name || '',
+                            logo: MOCK_MORPHIC_AI_TOS.creator?.logo || DEFAULT_CREATOR_LOGO
+                        },
+                        operatorMinimum: MOCK_MORPHIC_AI_TOS.operatorMinimum || 1,
+                        vcpus: MOCK_MORPHIC_AI_TOS.vcpus || 1,
+                        vmemory: MOCK_MORPHIC_AI_TOS.vmemory || 1,
+                        disk: MOCK_MORPHIC_AI_TOS.disk || 10,
+                        version: MOCK_MORPHIC_AI_TOS.version || '',
+                        code: '',
+                        labels: MOCK_MORPHIC_AI_TOS.labels || [],
+                        dao: MOCK_MORPHIC_AI_TOS.dao || '',
+                        operators: [],
+                        vms: [],
+                        restaked: 0,
+                        stakers: 0,
+                        likes: 0,
+                        status: 'waiting',
                     });
 
                     // 显示提示信息
@@ -1338,7 +1440,6 @@ const Developer: React.FC = () => {
                     notification.textContent = 'Form data pasted from template';
                     document.body.appendChild(notification);
 
-                    // 3秒后移除提示
                     setTimeout(() => {
                         notification.remove();
                     }, 3000);
@@ -1346,14 +1447,9 @@ const Developer: React.FC = () => {
             }
         };
 
-        // 添加事件监听器
         window.addEventListener('keydown', handleKeyDown);
-
-        // 清理函数
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [activeMenu, tosSubMenu]); // 依赖项包含当前菜单状态
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [activeMenu, tosSubMenu]);
 
     // 添加动画样式
     useEffect(() => {

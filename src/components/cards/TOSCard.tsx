@@ -35,10 +35,10 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                         }`}>
                             {tos.status}
                         </span>
-                        {tos.dao && (  // 添加条件检查
+                        {tos.id && (  // 添加条件检查
                             <div className="flex items-center space-x-2">
                                 <span className="text-gray-400 text-sm">
-                                    {tos.dao.slice(0, 6)}...{tos.dao.slice(-4)}
+                                    {tos.id.slice(0, 6)}...{tos.id.slice(-4)}
                                 </span>
                                 <ExternalLink className="h-4 w-4 text-gray-400" />
                             </div>

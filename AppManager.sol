@@ -5,26 +5,26 @@ contract AppManager {
 
     // TOS config
     struct Tos {
-        bytes16 id;
+        bytes16 id;  // TODO: consider to use uint128
         string name;
         string logo;
         string website;
         string description;
+        string[] operator_types;
         address creater;
+        string creater_name;
+        string creater_logo;
+        uint8 operator_minimum;
         uint16 vcpus;
         uint16 vmemory;
         uint64 disk;
         string version;
         bytes code;
+        string[] labels;
+        address dao;
+        address[] operators;
         bytes20[] vm_ids;
         TosStatus status;
-    }
-
-    enum OperatorType {
-        TDX,
-        H100,
-        A100,
-        CPU
     }
 
     struct TCBInfo {
@@ -68,9 +68,10 @@ contract AppManager {
     }
 
     struct Operator {
+        address id;
         bool is_operator;
         uint64 port;
-        OperatorType operator_type;
+        string[] operator_types;
         uint256 create_time;
         string base_domain;
         string name;
@@ -79,11 +80,11 @@ contract AppManager {
 
     // Registered TOSs
     mapping(bytes16 => Tos) toss;
-    uint128 public total_toss;
+    bytes16[] public registered_toss;
 
     // Registered CVMs
     mapping(bytes20 => Vm) vms;
-    uint128 public total_vms;
+    bytes20[] public registered_vms;
 
     // Registered Operators
     mapping(address => Operator) operators;
@@ -92,17 +93,26 @@ contract AppManager {
     // 标记用户所启动的app
     mapping(bytes20 => VmReport) vm_reports;
 
+    // 将映射移到合约层级
+    mapping(bytes16 => mapping(address => bool)) public tosOperators;  // tos_id => operator => exists
+
     event CreateTOS(
         bytes16 id,
         string name,
         string logo,
         string website,
         string description,
+        string[] operator_types,
+        string creater_name,
+        string creater_logo,
+        uint8 operator_minimum,
         uint16 vcpus,
         uint16 vmemory,
         uint64 disk,
         string version,
-        bytes code
+        bytes code,
+        string[] labels,
+        address dao
     );
 
     event RegisterVM(address indexed creater, bytes20 indexed vm_id);
@@ -126,17 +136,32 @@ contract AppManager {
         return vms[id];
     }
 
-    function get_tos(bytes16 id) external view returns (Tos memory) {
-        return toss[id];
+    function get_operator(address id) external view returns (Operator memory) {
+        return operators[id];
     }
 
-    function get_operator(address target) external view returns (Operator memory) {
-        return operators[target];
+    function get_tos(bytes16 id) external view returns (Tos memory) {
+        return toss[id];
     }
 
     function get_app_report(bytes20 target) external view returns (VmReport memory) {
         return vm_reports[target];
     }
+
+    function total_toss() external view returns (uint256) {
+        return registered_toss.length;
+    }
+
+    function total_operators() external view returns (uint256) {
+        return registerd_operators.length;
+    }
+
+    function total_vms() external view returns (uint256) {
+        return registered_vms.length;
+    }
+
+
+
 
     /** @dev register_operator: Register an operator
         - name: the name of the operator
@@ -146,7 +171,7 @@ contract AppManager {
     */
     function register_operator(
         string calldata name,
-        OperatorType operator_type,
+        string[] calldata operator_types,
         string calldata base_domain,
         uint64 port
     )
@@ -154,13 +179,14 @@ contract AppManager {
         OperatorNotRegister
     {
         operators[msg.sender] = Operator({
+            id: msg.sender,
             name: name,
             base_domain: base_domain,
-            operator_type: operator_type,
+            operator_types: operator_types,
             port: port,
             create_time: block.timestamp,
             is_operator: true,
-            vm_ids: new bytes20[](0)
+            vm_ids: new bytes20[](0)  // create a new vm array for this new operator
         });
 
         registerd_operators.push(msg.sender);
@@ -168,31 +194,19 @@ contract AppManager {
         emit RegisterOperator(msg.sender);
     }
 
-    function total_operator() public view returns (uint256) {
-        return registerd_operators.length;
-    }
 
-    function get_operator_by_index(uint256 index) public view returns (Operator memory) {
-        require(index < registerd_operators.length, "Index out of bounds");
-        return operators[registerd_operators[index]];
-    }
 
-    // function get_tos_by_index(uint128 index) public view returns (Tos memory) {
-    //     require(index <= total_toss, "Index out of bounds");
-    //     return toss[index];
+    // function get_operator_by_index(uint256 index) public view returns (Operator memory) {
+    //     require(index < registerd_operators.length, "Index out of bounds");
+    //     return operators[registerd_operators[index]];
     // }
 
-    function next_tos() internal returns (uint128) {
-        uint128 index = total_toss + 1;
-        total_toss = index;
-        return index;
-    }
+    // function get_tos_by_index(uint256 index) public view returns (Tos memory) {
+    //     require(index < registered_toss.length, "Index out of bounds");
+    //     bytes16 id = registered_toss[index];
+    //     return toss[id];
+    // }
 
-    function next_vm() internal returns (uint128) {
-        uint128 index = total_vms + 1;
-        total_vms = index;
-        return index;
-    }
 
     /** @dev create_tos: Create a TOS
         - name: the name of the TOS
@@ -207,44 +221,56 @@ contract AppManager {
         string calldata name,
         string calldata logo,
         string calldata website,
-        OperatorType operator_type,
+        string calldata description,
+        string[] calldata operator_types,
+        string calldata creater_name,
+        string calldata creater_logo,
+        uint8 operator_minimum,
         uint16 vcpus,
         uint16 vmemory,
         uint64 disk,
         string calldata version,
-        string calldata description,
-        bytes memory docker_compose
+        bytes memory code, // docker-compose.yml
+        string[] calldata labels,
+        address dao
     )
         external
-        returns (uint128)
+        returns (bytes16)
     {
-        uint128 index = next_tos();
-        bytes16 id = bytes16(index);
+        bytes16 id = generate_random(msg.sender, registered_toss.length);
+        registered_toss.push(id);
         toss[id] = Tos({
             id: id,
             name: name,
             logo: logo,
             website: website,
             description: description,
+            operator_types: operator_types ,
+            creater: msg.sender,
+            creater_name: creater_name,
+            creater_logo: creater_logo,
+            operator_minimum: operator_minimum,
             vcpus: vcpus,
             vmemory: vmemory,
             disk: disk,
-            creater: msg.sender,
             version: version,
-            code: docker_compose,
-            vm_ids: new bytes20[](0),
+            code: code,
+            labels: labels,
+            dao: dao,
+            operators: new address[](0),  // create a new operator array
+            vm_ids: new bytes20[](0),  // create a new vm array
             status: TosStatus.Waiting
         });
 
-        emit CreateTOS(id, name, logo, website, description, vcpus, vmemory, disk, version, docker_compose);
+        emit CreateTOS(id, name, logo, website, description, operator_types, creater_name, creater_logo, operator_minimum, vcpus, vmemory, disk, version, code, labels, dao);
 
-        return index;
+        return id;
     }
 
-    function is_valid_operator(address operator, OperatorType operator_type) public view returns (bool) {
-        Operator memory op = operators[operator];
-        return op.is_operator && op.operator_type == operator_type;
-    }
+    // function is_valid_operator(address operator, string memory operator_type) public view returns (bool) {
+    //     Operator memory op = operators[operator];
+    //     return op.is_operator && op.operator_types.contains(operator_type);
+    // }
 
     /** @dev register_vm: Register a CVM into an registerd TOS
         - tos_id: the id of the TOS
@@ -266,7 +292,6 @@ contract AppManager {
         // Ensure the instance is not registered
         require(vms[vm_id].creater == address(0), "Instance Already Registered");
         
-        next_vm();
         vms[vm_id] = Vm({
             id: vm_id,
             creater: msg.sender,
@@ -274,13 +299,23 @@ contract AppManager {
             status: VmStatus.Active
         });
 
-        // register the vm to the target tos
-        Tos storage tos = toss[tos_id];
-        tos.vm_ids.push(vm_id);
+        // register the vm to the global vm array
+        registered_vms.push(vm_id);
 
         // register the vm to the operator who register this vm
         Operator storage op = operators[msg.sender];
         op.vm_ids.push(vm_id);
+
+        // register the vm to the target tos
+        Tos storage tos = toss[tos_id];
+        tos.vm_ids.push(vm_id);
+
+        
+        // check and record the operator to the target tos
+        if (!tosOperators[tos_id][msg.sender]) {
+            tos.operators.push(msg.sender);
+            tosOperators[tos_id][msg.sender] = true;
+        }
 
         Vm memory vm = vms[vm_id];
         
@@ -298,23 +333,23 @@ contract AppManager {
         return bytes16(random);
     }
 
-    function shrinkArray(bytes16[] memory src, uint256 new_length) internal pure returns (bytes16[] memory) {
-        require(new_length != 0, "New length cannot be zero");
-        require(new_length <= src.length, "New length must be less than or equal to the original length");
+    // function shrinkArray(bytes16[] memory src, uint256 new_length) internal pure returns (bytes16[] memory) {
+    //     require(new_length != 0, "New length cannot be zero");
+    //     require(new_length <= src.length, "New length must be less than or equal to the original length");
 
-        if (new_length == src.length) {
-            return src;
-        }
+    //     if (new_length == src.length) {
+    //         return src;
+    //     }
 
-        uint256 index = 0;
-        bytes16[] memory target = new bytes16[](new_length);
-        for (uint256 i = 0; i < src.length; i++) {
-            if (src[i] != bytes16(0)) {
-                target[index] = src[i];
-                index++;
-            }
-        }
+    //     uint256 index = 0;
+    //     bytes16[] memory target = new bytes16[](new_length);
+    //     for (uint256 i = 0; i < src.length; i++) {
+    //         if (src[i] != bytes16(0)) {
+    //             target[index] = src[i];
+    //             index++;
+    //         }
+    //     }
 
-        return target;
-    }
+    //     return target;
+    // }
 }

@@ -76,14 +76,7 @@ const generateChartData = (label: string) => ({
     ],
 });
 
-// 更新 TOS 接口
-interface ExtendedTOS extends TOS {
-    blockchain?: string;
-    blockHeight?: string;
-}
 
-// 添加常量定义
-const ETHERSCAN_BASE_URL = 'https://etherscan.io/tx/';  // use Ethereaum mainnet for now
 
 const TosDetail: React.FC = () => {
     const { id } = useParams();
@@ -92,7 +85,7 @@ const TosDetail: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedOperators, setSelectedOperators] = useState<number[]>([]);
+    const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
     const [showVerification, setShowVerification] = useState(false);
 
     // 合并 mock 和链上的 TOS 数据
@@ -101,7 +94,7 @@ const TosDetail: React.FC = () => {
     }, [chainTOS]);
 
     // 从所有 TOS 中查找当前 TOS
-    const tos = allTOS.find(t => t.id === Number(id));
+    const tos = allTOS.find(t => t.id === id);
 
     // 获取用户的 operators
     const myOperators = MOCK_OPERATORS.slice(0, 3);
@@ -116,7 +109,7 @@ const TosDetail: React.FC = () => {
         currentPage * itemsPerPage
     );
 
-    const toggleOperator = (operatorId: number) => {
+    const toggleOperator = (operatorId: string) => {
         setSelectedOperators(prev =>
             prev.includes(operatorId)
                 ? prev.filter(id => id !== operatorId)
@@ -128,13 +121,6 @@ const TosDetail: React.FC = () => {
         console.log('Registering with operators:', selectedOperators);
         setIsModalOpen(false);
         // TODO: 处理注册逻辑
-    };
-
-    // 添加处理函数
-    const handleVerify = () => {
-        if (tos?.txHash) {
-            window.open(`${ETHERSCAN_BASE_URL}${tos.txHash}`, '_blank');
-        }
     };
 
     // TODO: Obtain the operators of this TOS
@@ -190,7 +176,7 @@ const TosDetail: React.FC = () => {
                                             </button>
                                         </div>
                                         <div className="flex items-center text-gray-400 mt-2">
-                                            <span className="font-mono">{tos.dao.slice(0, 6)}...{tos.dao.slice(-4)}</span>
+                                            <span className="font-mono">{tos.id.slice(0, 6)}...{tos.id.slice(-4)}</span>
                                             <ExternalLink className="h-4 w-4 ml-2" />
                                         </div>
                                     </div>
@@ -201,13 +187,13 @@ const TosDetail: React.FC = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Blockchain</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tos.blockchain}
+                                        Ethereum
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Block Height</div>
+                                    <div className="text-gray-400 text-sm">Total Operators</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tos.blockHeight}
+                                        {tos.operators.length}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">

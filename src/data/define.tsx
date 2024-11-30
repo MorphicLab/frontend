@@ -8,6 +8,8 @@ export interface TOS {
     logo: string;
     website?: string;
     description?: string;
+    operatorTypes: string[];
+    operatorMinimum: number;
     creator: {
         address: string;
         name: string;
@@ -18,19 +20,19 @@ export interface TOS {
     disk: number;
     version: string;
     code: string;
-    codeHash?: string;
+    codeHash?: string;   // calculated by code locally
     labels: string[];
     dao?: string;
-    restaked: number | string;
-    operators: number | string;
-    stakers: number | string;
-    likes: number | string;
-    txHash?: string;
+    operators?: string[];  // ids of operators
+    vms?: string[]; // ids of vm instances
+    restaked?: number;
+    stakers?: number | string;
+    likes?: number | string;
     status: TOSStatus;
 }
 
 export interface Operator {
-    id: number;
+    id: string;   // the address that registered the operator, so each operator has a unique address
     name: string;
     logo: string;
     labels: string[];
@@ -40,10 +42,10 @@ export interface Operator {
         logo: string;
     };
     location: string;
-    restaked: string;
-    numStakers: string;
+    restaked: number;
+    numStakers: number;
     numTosServing: number;
-    reputation: string;
+    reputation: number;
     description?: string;
     codeHash?: string;
 }
@@ -64,5 +66,5 @@ export interface Agent {
 
 // 标签定义
 export const tosLabels = ['DeAI', 'DeFi', 'Compute', 'Storage', 'Oracle'];
-export const operatorLabels = ['TDX', 'H100', 'A100', 'CPU', 'SGX', 'SEV', 'Plain'];
+export const operatorLabels = ['TDX', 'H100', 'A100', 'SGX', 'SEV', 'CPU', 'GPU'];
 export const agentLabels = ['Chat', 'Code', 'Image', 'Audio', 'Video'];

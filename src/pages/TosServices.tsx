@@ -5,20 +5,18 @@ import PageBackground from '../components/PageBackground';
 import { MOCK_TOS, tosLabels } from '../data/mockData';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
-import { useTOSStore } from '../store/tosStore';
 import { useVM } from '../request/vm';
+
 
 const TosServices: React.FC = () => {
     const navigate = useNavigate();
     const { tos: chainTOS } = useVM();
 
-    // 使用 zustand 的 selector 来订阅 store 变化
-    const registeredTOS = useTOSStore(state => state.registeredTOS);
-
     // 合并所有来源的 TOS 数据
     const allTOS = useMemo(() => {
-        return [...MOCK_TOS, ...registeredTOS, ...chainTOS];
-    }, [registeredTOS, chainTOS]);
+        return [...MOCK_TOS, ...chainTOS];
+    }, [chainTOS]);
+
 
     // 使用搜索和过滤 hook
     const {
