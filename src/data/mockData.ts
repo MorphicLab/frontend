@@ -1,14 +1,15 @@
-import { 
+import {
     TOSStatus,
     TOS,
     Operator,
     Agent,
+    Vm,
     tosLabels,
     operatorLabels,
     agentLabels
 } from './define';
 
-export type { TOSStatus, TOS, Operator, Agent };
+export type { TOSStatus, TOS, Operator, Agent, Vm };
 export { tosLabels, operatorLabels, agentLabels };
 
 // Mock 数据
@@ -120,8 +121,27 @@ export const MOCK_MORPHIC_OPERATOR: Operator = {
     numTosServing: 1,
     reputation: 90,
     description: "Leading TDX operator",
-    codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 }
+
+export const MOCK_OPERATOR_AI_VM: Vm = {
+    "id": "0x1234567890abcdef1234567890abcdef12345678",
+    "operator": "0xAbcDef1234567890abcdef1234567890ABCDEF12",
+    "vm_report": {
+        "app_id": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+        "tcb": {
+            "roots_hash": "0xabc123",
+            "mrtd": "0xdef456",
+            "rtmr0": "0x123abc",
+            "rtmr1": "0x456def",
+            "rtmr2": "0x789abc",
+            "rtmr3": "0x101112"
+        },
+        "certificate": "dummy_certificate"
+    },
+    "status": 0,
+    "codeHash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+}
+
 
 export const MOCK_AGENTS: Agent[] = [
     {
@@ -136,8 +156,8 @@ export const MOCK_AGENTS: Agent[] = [
         capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
         numOperators: 2,
         modelType: 'GPT-4'
-      },
-      {
+    },
+    {
         id: 2,
         name: "Code Assistant",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s",
@@ -149,8 +169,8 @@ export const MOCK_AGENTS: Agent[] = [
         capabilities: ['Code Generation', 'Code Review', 'Debugging'],
         modelType: 'GPT-3',
         numOperators: 2,
-      },
-      {
+    },
+    {
         id: 3,
         name: "Image Generator",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7rhk82CINydd8t9ASEi1twWHCUXVddaOSPw&s",
@@ -162,6 +182,6 @@ export const MOCK_AGENTS: Agent[] = [
         capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
         modelType: 'Stable Diffusion',
         numOperators: 2,
-      }
+    }
     // ... 可以添加更多 Agent 数据
 ]; 

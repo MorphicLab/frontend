@@ -28,8 +28,11 @@ const VM_ABI = [
     // Operator related functions
     "function total_operators() public view returns (uint256)",
     "function get_operator_by_index(uint256 index) public view returns (tuple(address id, string name, string logo, string[] operator_types, address owner, string owner_name, string owner_logo, string location, uint256 create_time, string domain, uint64 port, address[] staker_ids, bytes16[] tos_ids))",
-    "function register_operator_to_tos(bytes16 tos_id, address operator_id) public",
-    "function register_operator(string name, string logo, string[] operator_types, address owner, string owner_name, string owner_logo, string location, string domain, uint64 port, bytes16 tos_id) external",
+    "function register_operator_to_tos(bytes16 tos_id, tuple(bytes20 id, address operator, tuple(string app_id, tuple(string roots_hash, string mrtd, string rtmr0, string rtmr1, string rtmr2, string rtmr3) tcb, bytes certificate) vm_report, uint8 status) vm)",
+    "function register_operator(string name, string logo, string[] operator_types, address owner, string owner_name, string owner_logo, string location, string domain, uint64 port) external",
+    // Vm related functions
+    "function total_vms() public view returns (uint256)",
+    "function get_vm_by_index(uint256 index) public view returns (tuple(bytes20 id, address operator, tuple(string app_id, tuple(string roots_hash, string mrtd, string rtmr0, string rtmr1, string rtmr2, string rtmr3) tcb, bytes certificate) vm_report, uint8 status))"
 ];
 
 

@@ -13,8 +13,8 @@ const TosServices: React.FC = () => {
 
     // Fetch operators when component mounts
     useEffect(() => {
-        useBlockchainStore.getState().fetchTOSs();
-    }, []);
+        useBlockchainStore.getState().initializeStore();
+      }, []);
 
     const registeredTOS = useBlockchainStore(state => state.toss);
 

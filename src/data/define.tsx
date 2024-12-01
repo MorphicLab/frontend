@@ -53,7 +53,7 @@ export interface Operator {
     numStakers: number;
     numTosServing: number;
     reputation: number;
-    codeHash?: string;
+    codeHash?: string;   // TODO: should be moved to vm next
 }
 
 export interface Agent {
@@ -69,6 +69,34 @@ export interface Agent {
     modelType?: string;
     numOperators?: number;
 }
+
+export interface TCBInfo {
+    roots_hash: string;
+    mrtd: string;
+    rtmr0: string;
+    rtmr1: string;
+    rtmr2: string;
+    rtmr3: string;
+};
+
+export interface VmReport {
+    app_id: string;
+    tcb: TCBInfo;
+    certificate: string; // TODO: Hex-encoded bytes, should be changed to bytes next
+};
+
+export enum VmStatus {
+    Waiting = 0,
+    Active = 1,
+}
+
+export interface Vm {
+    id: string; // Hex-encoded bytes20 (e.g., "0x123...")
+    operator: string; // Ethereum address
+    vm_report: VmReport;
+    status: VmStatus;
+    codeHash?: string;
+};
 
 // 标签定义
 export const tosLabels = ['DeAI', 'DeFi', 'Compute', 'Storage', 'Oracle'];

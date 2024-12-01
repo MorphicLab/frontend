@@ -69,6 +69,9 @@ const Developer: React.FC = () => {
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
 
+    useEffect(() => {
+        useBlockchainStore.getState().initializeStore();
+      }, []);
     
     const allOperators = useBlockchainStore(state => state.operators);
 
@@ -290,40 +293,59 @@ const Developer: React.FC = () => {
 
             console.log('Operator info:', operatorFormState);
 
-            // Get TOS ID from form or use empty bytes16
-            const tosId = operatorFormState.tos_ids?.[0] || "0x" + "0".repeat(32);
+
+            // First, log all parameters before registration
+            console.log('Operator info: ', operatorFormState);
+
 
             // First register the operator
             const tx = await contract.register_operator(
                 operatorFormState.name,
-                operatorFormState.logo,
+                operatorFormState.logo || DEFAULT_OPERATOR_LOGO,
                 operatorFormState.labels,
                 contract?.runner?.address, // Use connected wallet as owner
-                operatorFormState.owner.name,
-                operatorFormState.owner.logo,
-                operatorFormState.location,
-                operatorFormState.domain,
-                operatorFormState.port,
-                tosId
+                operatorFormState.owner.name || '',
+                operatorFormState.owner.logo || DEFAULT_OPERATOR_OWNER_LOGO,
+                operatorFormState.location || '',
+                operatorFormState.domain || '',
+                Number(operatorFormState.port), // Ensure numeric
+                {
+                    gasLimit: 3000000 // 添加 gas 限制
+                }
             );
-
-            console.log('Transaction sent:', tx.hash);
-            await tx.wait();
-            console.log('Operator registered successfully');
-
-            // Update local state with the provided TOS ID
-            setOperatorFormState(prev => ({
-                ...prev,
-                tos_ids: tosId === "0x" + "0".repeat(32) ? [] : [tosId],
-            }));
-
-            // Navigate to my-operator page
-            setOperatorSubMenu('my-operator');
-            alert('Operator registered successfully');
-        } catch (error: any) {
-            console.error('Failed to register operator:', error);
-            alert(`Registration failed: ${error.message || 'Unknown error'}`);
+            
+            // Wait for transaction to be mined
+            const receipt = await tx.wait();
+            console.log('Operator Registration Transaction Receipt:', receipt);
+        } catch (error) {
+            console.error('Detailed Registration Error:', error);
+            // More detailed error logging
+            if (error instanceof Error) {
+                console.error('Error Name:', error.name);
+                console.error('Error Message:', error.message);
+                
+                // If it's an ethers error, log additional details
+                if ('reason' in error) {
+                    console.error('Ethers Error Reason:', (error as any).reason);
+                }
+                if ('code' in error) {
+                    console.error('Error Code:', (error as any).code);
+                }
+            }
+            
+            // Rethrow or handle the error as needed
+            throw error;
         }
+
+        // // Update local state with the provided TOS ID
+        // setOperatorFormState(prev => ({
+        //     ...prev,
+        //     tos_ids: tosId === "0x" + "0".repeat(32) ? [] : [tosId],
+        // }));
+
+        // Navigate to my-operator page
+        setOperatorSubMenu('my-operator');
+        alert('Operator registered successfully');
     };
 
     // Handle operator form input changes
@@ -489,17 +511,17 @@ const Developer: React.FC = () => {
                             <div className="bg-gray-800/50 rounded-xl p-6">
                                 <CircuitBoard className="h-8 w-8 text-morphic-primary mb-4" />
                                 <h3 className="text-lg font-semibold text-white mb-2">TOS Services</h3>
-                                <p className="text-gray-400">5 services deployed</p>
+                                <p className="text-gray-400">{myTOSs.length} services deployed</p>
                             </div>
                             <div className="bg-gray-800/50 rounded-xl p-6">
                                 <Network className="h-8 w-8 text-morphic-primary mb-4" />
                                 <h3 className="text-lg font-semibold text-white mb-2">Operators</h3>
-                                <p className="text-gray-400">12 operators registered</p>
+                                <p className="text-gray-400">{myOperators.length} operators registered</p>
                             </div>
                             <div className="bg-gray-800/50 rounded-xl p-6">
                                 <Coins className="h-8 w-8 text-morphic-primary mb-4" />
                                 <h3 className="text-lg font-semibold text-white mb-2">Total Staked</h3>
-                                <p className="text-gray-400">$25,420</p>
+                                <p className="text-gray-400">$0</p>
                             </div>
                         </div>
 
@@ -1018,7 +1040,7 @@ const Developer: React.FC = () => {
                                                 <img
                                                     src={operatorFormState.logo || DEFAULT_OPERATOR_LOGO}
                                                     alt="Operator Logo"
-                                                    className="w-16 h-16 rounded-lg"
+                                                    className="w-20 h-20 rounded-lg object-cover bg-gray-700/50"
                                                 />
                                                 <div>
                                                     <input
@@ -1191,20 +1213,6 @@ const Developer: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* TOS ID */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                TOS ID
-                                            </label>
-                                            <input
-                                                type="text"
-                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                placeholder="Enter TOS ID (optional)"
-                                                value={operatorFormState.tos_ids?.[0] || ''}
-                                                onChange={(e) => handleOperatorInputChange('tos_ids', [e.target.value])}
-                                            />
-                                        </div>
-
                                         {/* Submit Button */}
                                         <div className="flex justify-end">
                                             <button
@@ -1262,7 +1270,7 @@ const Developer: React.FC = () => {
                             // Agent Delivery Form
                             <div className="space-y-8">
                                 <h1 className="text-3xl font-bold text-white">Deliver Your Agent</h1>
-                                <p className="text-gray-400">Register your agent on-chain to make it alive and trustless</p>
+                                <p className="text-gray-400">Register your agent into Morphic AI to make it trustless (verifiable, unstoppable, unruggable, etc.)</p>
                                 <div className="bg-gray-800/50 rounded-xl p-6">
                                     <h2 className="text-xl font-semibold text-white mb-4">Agent Specification</h2>
                                     <div className="space-y-4">

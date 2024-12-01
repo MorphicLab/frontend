@@ -14,11 +14,12 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { MOCK_TOS, MOCK_OPERATORS } from '../data/mockData';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_OPERATOR_AI_VM } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
 import { useBlockchainStore } from '../components/store/store';
-
+import { hexlify } from 'ethers';
+import { createContractInstance } from '../request/vm';
 
 ChartJS.register(
     CategoryScale,
@@ -30,7 +31,6 @@ ChartJS.register(
     Legend,
     Filler
 );
-
 
 // 图表配置
 const chartOptions = {
@@ -78,8 +78,6 @@ const generateChartData = (label: string) => ({
     ],
 });
 
-
-
 const TosDetail: React.FC = () => {
     const { id } = useParams();
     const [operatorSearch, setOperatorSearch] = useState('');
@@ -88,7 +86,6 @@ const TosDetail: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
     const [showVerification, setShowVerification] = useState(false);
-
 
     const registeredTOS = useBlockchainStore(state => state.toss);
     const registeredOperators = useBlockchainStore(state => state.operators);
@@ -101,6 +98,8 @@ const TosDetail: React.FC = () => {
     const allOperators = useMemo(() => {
         return [...MOCK_OPERATORS, ...registeredOperators];
     }, [registeredOperators]);
+
+    const allVms = useBlockchainStore(state => state.vms);
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
@@ -132,7 +131,44 @@ const TosDetail: React.FC = () => {
 
             // Register each selected operator to the TOS
             for (const operatorId of selectedOperators) {
-                await contract.register_operator_to_tos(tos.id, operatorId);
+                // Create a vm for this operator, using the MOCK_OPERATOR_AI_VM as a template
+                const vm = { ...MOCK_OPERATOR_AI_VM };
+                
+                // Generate a proper bytes20 ID using Web Crypto API
+                const randomBytes = new Uint8Array(20);
+                crypto.getRandomValues(randomBytes);
+                vm.id = hexlify(randomBytes);
+                
+                // Set the operator
+                vm.operator = operatorId;
+
+                // Prepare VM report for contract registration
+                const vmReport = {
+                    app_id: vm.vm_report.app_id,
+                    tcb: {
+                        roots_hash: vm.vm_report.tcb.roots_hash,
+                        mrtd: vm.vm_report.tcb.mrtd,
+                        rtmr0: vm.vm_report.tcb.rtmr0,
+                        rtmr1: vm.vm_report.tcb.rtmr1,
+                        rtmr2: vm.vm_report.tcb.rtmr2,
+                        rtmr3: vm.vm_report.tcb.rtmr3
+                    },
+                    // Convert certificate to bytes
+                    certificate: hexlify(new TextEncoder().encode(vm.vm_report.certificate))
+                };
+
+                try {
+                    await contract.register_operator_to_tos(tos.id, {
+                        id: vm.id,
+                        operator: vm.operator,
+                        vm_report: vmReport,
+                        status: vm.status
+                    });
+                    console.log(`Registered operator ${operatorId} to TOS ${tos.id}`);
+                } catch (error) {
+                    console.error(`Failed to register operator ${operatorId}:`, error);
+                    // Optionally, you might want to break the loop or handle the error differently
+                }
             }
             
             setIsModalOpen(false);
@@ -234,7 +270,6 @@ const TosDetail: React.FC = () => {
                                 </div>
                             </div>
                         </motion.div>
-
 
                         {/* Stake Area */}
                         <div className="bg-gray-800 rounded-xl p-6">
@@ -425,6 +460,7 @@ const TosDetail: React.FC = () => {
                 <VerificationFlow
                     tos={tos}
                     operators={tosOperators}
+                    vms={allVms}
                     onClose={() => setShowVerification(false)}
                 />
             )}

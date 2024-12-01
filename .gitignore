@@ -12,3 +12,6 @@ dist
 stats.html
 
 .eslintcache
+
+# contract code for reference
+*.sol

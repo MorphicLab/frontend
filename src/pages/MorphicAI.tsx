@@ -9,9 +9,15 @@ import { useNavigate } from 'react-router-dom';
 import { MOCK_AGENTS, agentLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { AgentCard } from '../components/cards/AgentCard';
+import { useBlockchainStore } from '../components/store/store';
+import { useEffect } from 'react';
 
 const Product = () => {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        useBlockchainStore.getState().initializeStore();
+      }, []);
 
     const features = [
         {

@@ -1,17 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TOS, Operator } from '../../data/mockData';
+import { TOS, Operator, Vm } from '../../data/mockData';
 import { Users, Coins, Star, MapPin, Cpu } from 'lucide-react';
 
 interface VerificationFlowProps {
     tos: TOS;
     operators: Operator[];
+    vms: Vm[];
     onClose: () => void;
 }
 
 export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     tos,
     operators,
+    vms,
     onClose
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -196,7 +198,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                         <div className="operator-hash pt-1">
                                             <div className="text-sm text-gray-400 mb-1">Code Hash</div>
                                             <div className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                                                {operator.codeHash?.slice(0, 10)}...{operator.codeHash?.slice(-8)}
+                                                {vms.find(vm => vm.operator === operator.id)?.codeHash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.codeHash?.slice(-8)}
                                             </div>
                                         </div>
                                     </div>

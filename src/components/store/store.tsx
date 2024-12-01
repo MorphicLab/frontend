@@ -1,24 +1,30 @@
 import { ethers } from 'ethers';
 import { create } from 'zustand';
 import { createContractInstance } from '../../request/vm';
-import { TOS, Operator, Agent } from '../../data/define';
+import { TOS, Operator, Vm, Agent } from '../../data/define';
 import { TOSStatus } from '../../data/define';
 
 // Define the store state interface
 interface BlockchainStore {
     toss: TOS[];
     operators: Operator[];
+    vms: Vm[];
     agents: Agent[];
     
     // Fetch methods
     fetchTOSs: () => Promise<void>;
     fetchOperators: () => Promise<void>;
+    fetchVms: () => Promise<void>;
     fetchAgents: () => Promise<void>;
     
     // Add methods
     addTOS: (tos: TOS) => void;
     addOperator: (operator: Operator) => void;
+    addVm: (vm: Vm) => void;
     addAgent: (agent: Agent) => void;
+    
+    // Initialize store
+    initializeStore: () => Promise<void>;
 }
 
 const DEFAULT_TOS_LOGO = '/images/morphic-logo-sm.png';
@@ -29,6 +35,7 @@ const DEFAULT_OPERATOR_OWNER_LOGO = '/images/operator-owner-logo-sm.png';
 export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     toss: [],
     operators: [],
+    vms: [],
     agents: [],
 
     fetchTOSs: async () => {
@@ -119,6 +126,46 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         }
     },
 
+    fetchVms: async () => {
+        try {
+
+            // Implement VM fetching logic similar to TOSs and Operators
+            const contract = await createContractInstance();
+                
+            // Get total number of vms
+            const totalVms = await contract.total_vms();
+            
+            // Fetch each vm
+            const fetchedVms: Vm[] = [];
+            for (let i = 0; i < totalVms; i++) {
+                const vm = await contract.get_vm_by_index(i);
+                fetchedVms.push({
+                    id: vm.id,
+                    operator: vm.operator,
+                    vm_report: {
+                        app_id: vm.vm_report.app_id,
+                        tcb: {
+                            roots_hash: vm.vm_report.tcb.roots_hash,
+                            mrtd: vm.vm_report.tcb.mrtd,
+                            rtmr0: vm.vm_report.tcb.rtmr0,
+                            rtmr1: vm.vm_report.tcb.rtmr1,
+                            rtmr2: vm.vm_report.tcb.rtmr2,
+                            rtmr3: vm.vm_report.tcb.rtmr3,
+                        },
+                        certificate: vm.vm_report.certificate,
+                    },
+                    status: Number(vm.status),
+                    codeHash: get().toss.find(tos => tos.operators?.includes(vm.operator))?.codeHash
+                });
+            }
+
+            set({ vms: fetchedVms });
+
+        } catch (error) {
+            console.error('Failed to fetch vms:', error);
+        }
+    },
+
     fetchAgents: async () => {
         // TODO: Implement agent fetching logic similar to TOSs and Operators
         set({ agents: [] });
@@ -136,10 +183,23 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         }));
     },
 
+    addVm: (vm) => {
+        set(state => ({ 
+            vms: [...state.vms, vm] 
+        }));
+    },
+
     addAgent: (agent) => {
         set(state => ({ 
             agents: [...state.agents, agent] 
         }));
+    },
+
+    initializeStore: async () => {
+        await get().fetchOperators();
+        await get().fetchTOSs();
+        await get().fetchVms();
+        await get().fetchAgents();
     },
 }));
 

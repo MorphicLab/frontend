@@ -10,10 +10,10 @@ import { useBlockchainStore } from '../components/store/store';
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
 
-    // Fetch operators when component mounts
+    // Fetch data when component mounts
     useEffect(() => {
-        useBlockchainStore.getState().fetchOperators();
-    }, []);
+        useBlockchainStore.getState().initializeStore();
+      }, []);
 
     // Get registered operators from the store
     const registeredOperators = useBlockchainStore(state => state.operators);
