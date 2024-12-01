@@ -33,6 +33,7 @@ import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 import { TOS, Operator, Agent } from '../data/define';
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
+import { useBlockchainStore } from '../components/store/store';
 
 
 // 添加子菜单类型
@@ -58,6 +59,7 @@ const DEFAULT_CREATOR_LOGO = '/images/tos-creator-default-logo.png';  // 使用�
 const DEFAULT_OPERATOR_LOGO = '/images/operator-default-logo.png';  // 使用现有的 logo
 const DEFAULT_OPERATOR_OWNER_LOGO = '/images/operator-owner-default-logo.png';  // 使用现有的 logo
 
+
 const Developer: React.FC = () => {
     const location = useLocation();
     const activeTab = location.state?.activeTab || 'dashboard';
@@ -66,6 +68,32 @@ const Developer: React.FC = () => {
     const [tosSubMenu, setTosSubMenu] = useState<TOSSubMenu>('my-tos');
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
+
+    
+    const allOperators = useBlockchainStore(state => state.operators);
+
+    const myOperators = useMemo(() => {
+        if (!window.ethereum?.selectedAddress) return [];
+        return allOperators.filter(op => 
+            op.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+        );
+    }, [allOperators]);
+
+    const allTOSs = useBlockchainStore(state => state.toss);
+    const myTOSs = useMemo(() => {
+        if (!window.ethereum?.selectedAddress) return [];
+        return allTOSs.filter(tos => 
+            tos.creator.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+        );
+    }, [allTOSs]);
+
+    const allAgents = useBlockchainStore(state => state.agents);
+    const myAgents = useMemo(() => {
+        if (!window.ethereum?.selectedAddress) return [];
+        return allAgents.filter(agent => 
+            agent.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+        );
+    }, [allAgents]);    
 
     // Add form validation state
     const [formErrors, setFormErrors] = useState({
@@ -333,7 +361,7 @@ const Developer: React.FC = () => {
         selectedLabels: tosSelectedLabels,
         toggleLabel: toggleTosLabel,
         filteredItems: currentTOS
-    } = useSearchAndFilter(MOCK_TOS);
+    } = useSearchAndFilter(myTOSs);
 
     const {
         search: operatorSearch,
@@ -341,7 +369,7 @@ const Developer: React.FC = () => {
         selectedLabels: operatorSelectedLabels,
         toggleLabel: toggleOperatorLabel,
         filteredItems: currentOperators
-    } = useSearchAndFilter(MOCK_OPERATORS);
+    } = useSearchAndFilter(myOperators);
 
     const {
         search: agentSearch,
@@ -349,7 +377,7 @@ const Developer: React.FC = () => {
         selectedLabels: agentSelectedLabels,
         toggleLabel: toggleAgentLabel,
         filteredItems: currentAgents
-    } = useSearchAndFilter(MOCK_AGENTS);
+    } = useSearchAndFilter(myAgents);
 
     // 处理文件上传
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
@@ -546,7 +574,7 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {tosSubMenu === 'my-tos' ? (
-                            renderMyTOS()
+                            renderMyTOSs()
                         ) : (
                             // 新TOS表单
                             <div className="space-y-6">
@@ -956,7 +984,7 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {operatorSubMenu === 'my-operator' ? (
-                            renderMyOperator()
+                            renderMyOperators()
                         ) : (
                             <div className="space-y-6">
                                 <div className="bg-gray-800/50 rounded-xl p-6">
@@ -1229,7 +1257,7 @@ const Developer: React.FC = () => {
 
                         {/* 标签页内容 */}
                         {agentSubMenu === 'my-agent' ? (
-                            renderMyAgent()
+                            renderMyAgents()
                         ) : (
                             // Agent Delivery Form
                             <div className="space-y-8">
@@ -1503,13 +1531,18 @@ const Developer: React.FC = () => {
         </div>
     );
 
-    // TODO: Get the TOSs served by this operator
+    // Get the TOSs served by this operator
     const getServingTOSs = () => {
-        return MOCK_TOS;
+        const op_ids = myOperators.map(op => op.id);
+        const myTOSs: TOS[] = [];
+        for (let i = 0; i < op_ids.length; i++) {
+            myTOSs.push(...allTOSs.filter(tos => tos.operators?.includes(op_ids[i])));
+        }
+        return myTOSs;
     };
 
     // 修改 My Operator 标签页的渲染函数
-    const renderMyOperator = () => (
+    const renderMyOperators = () => (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">My Operators</h1>
             <p className="text-gray-400">Manage your registered operators</p>
@@ -1552,7 +1585,7 @@ const Developer: React.FC = () => {
         </div>
     );
 
-    const renderMyTOS = () => (
+    const renderMyTOSs = () => (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">My TOS</h1>
             <p className="text-gray-400">Manage your registered trustless off-chain services</p>
@@ -1578,7 +1611,7 @@ const Developer: React.FC = () => {
         </div>
     );
 
-    const renderMyAgent = () => (
+    const renderMyAgents = () => (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">My Agents</h1>
             <p className="text-gray-400">Manage your registered AI agents</p>

@@ -17,7 +17,8 @@ import {
 import { MOCK_TOS, MOCK_OPERATORS } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
-import { useVM, createContractInstance } from '../request/vm';
+import { useBlockchainStore } from '../components/store/store';
+
 
 ChartJS.register(
     CategoryScale,
@@ -29,6 +30,7 @@ ChartJS.register(
     Legend,
     Filler
 );
+
 
 // 图表配置
 const chartOptions = {
@@ -88,8 +90,8 @@ const TosDetail: React.FC = () => {
     const [showVerification, setShowVerification] = useState(false);
 
 
-    const registeredTOS = useVM().toss;
-    const registeredOperators = useVM().operators;
+    const registeredTOS = useBlockchainStore(state => state.toss);
+    const registeredOperators = useBlockchainStore(state => state.operators);
 
     // 合并 mock 和链上的 TOS 数据
     const allTOS = useMemo(() => {

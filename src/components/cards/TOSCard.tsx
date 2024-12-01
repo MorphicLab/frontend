@@ -66,7 +66,7 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                     </div>
                     <div className="flex items-center text-gray-400">
                         <Users className="h-4 w-4 mr-2" />
-                        <span className="text-sm">{tos.operators} Operators</span>
+                        <span className="text-sm">{tos.operators?.length} Operators</span>
                     </div>
                     <div className="flex items-center text-gray-400">
                         <Star className="h-4 w-4 mr-2" />

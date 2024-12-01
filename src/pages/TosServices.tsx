@@ -1,17 +1,22 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageBackground from '../components/PageBackground';
 import { MOCK_TOS, tosLabels } from '../data/mockData';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
-import { useVM } from '../request/vm';
+import { useBlockchainStore } from '../components/store/store';
 
 
 const TosServices: React.FC = () => {
     const navigate = useNavigate();
 
-    const registeredTOS = useVM().toss;
+    // Fetch operators when component mounts
+    useEffect(() => {
+        useBlockchainStore.getState().fetchTOSs();
+    }, []);
+
+    const registeredTOS = useBlockchainStore(state => state.toss);
 
     // 合并所有来源的 TOS 数据
     const allTOS = useMemo(() => {

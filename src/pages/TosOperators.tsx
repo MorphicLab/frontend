@@ -1,17 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import PageBackground from '../components/PageBackground';
 import { MOCK_OPERATORS, operatorLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { OperatorCard } from '../components/cards/OperatorCard';
-import { useVM } from '../request/vm';
+import { useBlockchainStore } from '../components/store/store';
 
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
 
-    // obtain all registered operators
-    const registeredOperators = useVM().operators;
+    // Fetch operators when component mounts
+    useEffect(() => {
+        useBlockchainStore.getState().fetchOperators();
+    }, []);
+
+    // Get registered operators from the store
+    const registeredOperators = useBlockchainStore(state => state.operators);
 
     const allOperators = useMemo(() => {
         return [...MOCK_OPERATORS, ...registeredOperators];

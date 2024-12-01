@@ -39,7 +39,7 @@ export const ThinTOSCard: React.FC<ThinTOSCardProps> = ({ tos }) => (
                     </div>
                     <div className="flex items-center">
                         <Users className="h-4 w-4 mr-2" />
-                        <span>{tos.operators} Operators</span>
+                        <span>{tos.operators?.length} Operators</span>
                     </div>
                 </div>
             </div>

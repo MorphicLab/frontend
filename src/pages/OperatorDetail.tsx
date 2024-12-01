@@ -1,11 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { 
     Cpu, 
     MapPin, 
-    Coins, 
-    Users, 
     Star, 
     Shield,
     ExternalLink 
@@ -13,12 +10,19 @@ import {
 import { MOCK_OPERATORS, MOCK_TOS } from '../data/mockData';
 import PageBackground from '../components/PageBackground';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
-import { useVM } from '../request/vm';
+import { useBlockchainStore } from '../components/store/store';
 
 
 const OperatorDetail: React.FC = () => {
     const { id } = useParams();
-    const { operators: registeredOperators, toss: registeredTOS } = useVM();
+
+    // Fetch operators when component mounts
+    useEffect(() => {
+        useBlockchainStore.getState().fetchOperators();
+    }, []);
+
+    const registeredOperators = useBlockchainStore(state => state.operators);
+    const registeredTOS = useBlockchainStore(state => state.toss);
 
     const allOperators = useMemo(() => {
         return [...MOCK_OPERATORS, ...registeredOperators];
