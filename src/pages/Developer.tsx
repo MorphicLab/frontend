@@ -26,12 +26,12 @@ import {
     operatorLabels,
     agentLabels,
     MOCK_MORPHIC_AI_TOS,
+    MOCK_MORPHIC_OPERATOR
 } from '../data/mockData';
 import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
-import { useTOSStore } from '../store/tosStore';
-import { TOS } from '../data/define';
+import { TOS, Operator, Agent } from '../data/define';
 import { VM_CONTRACT_ADDRESS, VM_ABI } from '../request/vm';
 
 
@@ -40,28 +40,6 @@ type TOSSubMenu = 'my-tos' | 'new-tos';
 type OperatorSubMenu = 'my-operator' | 'new-operator';
 type AgentSubMenu = 'my-agent' | 'new-agent';
 
-// // 更新 TOSFormState 接口
-// interface TOSFormState {
-//     id?: string;
-//     name: string;
-//     website?: string;
-//     version: string;
-//     description: string;
-//     platformType: string;
-//     creator: {
-//         address: string;
-//         name: string;
-//         logo: string;
-//     };
-//     vcpus: number;
-//     vmemory: number;
-//     disk: number;
-//     dao?: string;
-//     labels: string[];
-//     logo: string;
-//     operatorTypes: string[];
-//     operatorMinimum: number;
-// }
 
 // 在文件顶部添加类型声明
 declare global {
@@ -77,6 +55,8 @@ declare global {
 // 添加默认图片路径常量
 const DEFAULT_TOS_LOGO = '/images/tos-default-logo.png';  // 使用现有的 logo
 const DEFAULT_CREATOR_LOGO = '/images/tos-creator-default-logo.png';  // 使用现有的 logo
+const DEFAULT_OPERATOR_LOGO = '/images/operator-default-logo.png';  // 使用现有的 logo
+const DEFAULT_OPERATOR_OWNER_LOGO = '/images/operator-owner-default-logo.png';  // 使用现有的 logo
 
 const Developer: React.FC = () => {
     const location = useLocation();
@@ -126,6 +106,36 @@ const Developer: React.FC = () => {
     // Add deploy related state
     const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
     const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+
+    // Add operator form state
+    const [operatorFormState, setOperatorFormState] = useState<Operator>({
+        id: '',
+        name: '',
+        logo: DEFAULT_OPERATOR_LOGO,
+        labels: [] as string[],
+        description: '',
+        owner: {
+            address: '',
+            name: '',
+            logo: DEFAULT_OPERATOR_OWNER_LOGO
+        },
+        location: '',
+        create_time: 0,
+        domain: '',
+        port: 8000,
+        restaked: 132,
+        numStakers: 1000,
+        numTosServing: 1,
+        reputation: 0,
+        codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+    });
+
+    // Add operator form validation
+    const [operatorFormErrors, setOperatorFormErrors] = useState({
+        name: false,
+        operator_types: false,
+        domain: false
+    });
 
     const morphicAITOS = MOCK_TOS.find(tos => tos.name === 'Morphic AI');
     const availableOperators = useMemo(() => {
@@ -270,6 +280,109 @@ const Developer: React.FC = () => {
             }));
         }
     };
+
+    // Handle operator registration
+    const handleOperatorRegister = async () => {
+        // Validate form
+        const errors = {
+            name: !operatorFormState.name.trim(),
+            operator_types: operatorFormState.labels.length === 0,
+            domain: !operatorFormState.domain.trim()
+        };
+        
+        setOperatorFormErrors(errors);
+
+        if (errors.name || errors.operator_types || errors.domain) {
+            return;
+        }
+
+        try {
+            if (!window.ethereum) {
+                alert('Please install and connect MetaMask');
+                return;
+            }
+
+            const accounts = await window.ethereum.request({ 
+                method: 'eth_requestAccounts' 
+            });
+
+            if (!accounts || accounts.length === 0) {
+                alert('Failed to get wallet account');
+                return;
+            }
+
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+
+            if (!VM_CONTRACT_ADDRESS) {
+                throw new Error('Contract address not configured');
+            }
+
+            const contract = new ethers.Contract(
+                VM_CONTRACT_ADDRESS,
+                VM_ABI,
+                signer
+            );
+
+            console.log('Operator info:', operatorFormState);
+
+            // Convert empty tos_id to valid bytes16
+            const emptyTosId = "0x" + "0".repeat(32); // 32 characters = 16 bytes
+
+            const tx = await contract.register_operator(
+                operatorFormState.name,
+                operatorFormState.logo,
+                operatorFormState.labels,
+                accounts[0], // Use connected wallet as owner
+                operatorFormState.owner.name,
+                operatorFormState.owner.logo,
+                operatorFormState.location,
+                operatorFormState.domain,
+                operatorFormState.port,
+                emptyTosId
+            );
+
+            console.log('Transaction sent:', tx.hash);
+            const receipt = await tx.wait();
+            console.log('Transaction confirmed:', receipt);
+
+            alert('Operator registered successfully');
+            setOperatorSubMenu('my-operator');
+
+        } catch (error: any) {
+            console.error('Failed to register operator:', error);
+            alert(`Registration failed: ${error.message || 'Unknown error'}`);
+        }
+    };
+
+    // Handle operator form input changes
+    const handleOperatorInputChange = (field: string, value: any) => {
+        setOperatorFormState(prev => {
+            if (field.startsWith('owner.')) {
+                const ownerField = field.split('.')[1];
+                return {
+                    ...prev,
+                    owner: {
+                        ...prev.owner,
+                        [ownerField]: value
+                    }
+                };
+            }
+            return {
+                ...prev,
+                [field]: value
+            };
+        });
+
+        // Clear corresponding error
+        if (field in operatorFormErrors) {
+            setOperatorFormErrors(prev => ({
+                ...prev,
+                [field]: false
+            }));
+        }
+    };
+
 
     const {
         search: tosSearch,
@@ -705,7 +818,7 @@ const Developer: React.FC = () => {
                                                 onChange={(e) => handleInputChange('operatorMinimum', parseInt(e.target.value))}
                                             >
                                                 {[1, 10, 30, 50].map(num => (
-                                                    <option key={num} value={num}>{num} Operator{num > 1 ? 's' : ''}</option>
+                                                    <option key={num} value={num}>{num} Operator{num > 1 ? 's' : ' (testing)'}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -798,7 +911,7 @@ const Developer: React.FC = () => {
                                                 <img
                                                     src={tosFormState.creator.logo}
                                                     alt="Creator Logo"
-                                                    className="w-16 h-16 rounded-lg object-cover bg-gray-700/50"
+                                                    className="w-16 h-16 rounded-lg"
                                                 />
                                                 <div>
                                                     <input
@@ -866,16 +979,17 @@ const Developer: React.FC = () => {
                 return (
                     <div className="space-y-6">
                         <h1 className="text-3xl font-bold text-white">Operator</h1>
-                        <p className="text-gray-400">Manage and deploy your operators</p>
+                        <p className="text-gray-400">Register and manage your operator node</p>
 
-                        {/* 标签页切换按钮 */}
+                        {/* Operator tabs */}
                         <div className="flex space-x-4 border-b border-gray-700">
                             <button
                                 onClick={() => setOperatorSubMenu('my-operator')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${operatorSubMenu === 'my-operator'
-                                    ? 'text-morphic-primary'
-                                    : 'text-gray-400 hover:text-gray-300'
-                                    }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                                    operatorSubMenu === 'my-operator'
+                                        ? 'text-morphic-primary'
+                                        : 'text-gray-400 hover:text-gray-300'
+                                }`}
                             >
                                 My Operator
                                 {operatorSubMenu === 'my-operator' && (
@@ -884,10 +998,11 @@ const Developer: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setOperatorSubMenu('new-operator')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${operatorSubMenu === 'new-operator'
-                                    ? 'text-morphic-primary'
-                                    : 'text-gray-400 hover:text-gray-300'
-                                    }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                                    operatorSubMenu === 'new-operator'
+                                        ? 'text-morphic-primary'
+                                        : 'text-gray-400 hover:text-gray-300'
+                                }`}
                             >
                                 New Operator
                                 {operatorSubMenu === 'new-operator' && (
@@ -900,55 +1015,196 @@ const Developer: React.FC = () => {
                         {operatorSubMenu === 'my-operator' ? (
                             renderMyOperator()
                         ) : (
-                            // 现有的 New Operator 表单内容
                             <div className="space-y-6">
-                                <h1 className="text-3xl font-bold text-white">Deliver Your Operator</h1>
-                                <p className="text-gray-400">Register your operator on-chain to provision computing resources and earn rewards</p>
-
                                 <div className="bg-gray-800/50 rounded-xl p-6">
-                                    <h2 className="text-xl font-semibold text-white mb-4">Operator Configuration</h2>
+                                    <h2 className="text-xl font-semibold text-white mb-4">Operator Registration</h2>
                                     <div className="space-y-6">
+                                        {/* Basic Information */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Operator Name
+                                                Name *
                                             </label>
                                             <input
                                                 type="text"
-                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
+                                                    operatorFormErrors.name ? 'border-red-500' : 'border-gray-600'
+                                                }`}
                                                 placeholder="Enter operator name"
+                                                value={operatorFormState.name}
+                                                onChange={(e) => handleOperatorInputChange('name', e.target.value)}
                                             />
+                                            {operatorFormErrors.name && (
+                                                <p className="mt-1 text-sm text-red-500">Name is required</p>
+                                            )}
                                         </div>
 
+                                        {/* Logo */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Platform Types
+                                                Operator Logo
                                             </label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {operatorLabels.map(labels => (
-                                                    <button
-                                                        key={labels}
-                                                        onClick={() => toggleOperatorLabel(labels)}
-                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${operatorSelectedLabels.includes(labels)
-                                                            ? 'bg-morphic-primary text-white'
-                                                            : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                            }`}
+                                            <div className="flex items-center space-x-4">
+                                                <img
+                                                    src={operatorFormState.logo || DEFAULT_OPERATOR_LOGO}
+                                                    alt="Operator Logo"
+                                                    className="w-16 h-16 rounded-lg"
+                                                />
+                                                <div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => {
+                                                                    handleOperatorInputChange('logo', reader.result as string);
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                        className="hidden"
+                                                        id="operator-logo-upload"
+                                                    />
+                                                    <label
+                                                        htmlFor="operator-logo-upload"
+                                                        className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50 cursor-pointer inline-block"
                                                     >
-                                                        {labels}
-                                                    </button>
-                                                ))}
+                                                        Upload Logo
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Owner Information */}
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-medium text-white">Owner Information</h3>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                    IP Address
+                                                    Owner Name
                                                 </label>
                                                 <input
                                                     type="text"
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    placeholder="Enter IP address"
+                                                    placeholder="Enter owner name"
+                                                    value={operatorFormState.owner.name}
+                                                    onChange={(e) => handleOperatorInputChange('owner.name', e.target.value)}
                                                 />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    Owner Logo
+                                                </label>
+                                                <div className="flex items-center space-x-4">
+                                                    <img
+                                                        src={operatorFormState.owner.logo || DEFAULT_OPERATOR_OWNER_LOGO}
+                                                        alt="Owner Logo"
+                                                        className="w-16 h-16 rounded-lg"
+                                                    />
+                                                    <div>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onloadend = () => {
+                                                                        handleOperatorInputChange('owner.logo', reader.result as string);
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                            id="owner-logo-upload"
+                                                        />
+                                                        <label
+                                                            htmlFor="owner-logo-upload"
+                                                            className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50 cursor-pointer inline-block"
+                                                        >
+                                                            Upload Logo
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Description */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Description
+                                            </label>
+                                            <textarea
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                placeholder="Enter operator description"
+                                                value={operatorFormState.description}
+                                                onChange={(e) => handleOperatorInputChange('description', e.target.value)}
+                                                rows={4}
+                                            />
+                                        </div>
+
+                                        {/* Location */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Location
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                placeholder="e.g., US West"
+                                                value={operatorFormState.location}
+                                                onChange={(e) => handleOperatorInputChange('location', e.target.value)}
+                                            />
+                                        </div>
+
+                                        {/* Operator Types */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Operator Types *
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {operatorLabels.map(label => (
+                                                    <button
+                                                        key={label}
+                                                        onClick={() => {
+                                                            const labels = operatorFormState.labels.includes(label)
+                                                                ? operatorFormState.labels.filter(t => t !== label)
+                                                                : [...operatorFormState.labels, label];
+                                                            handleOperatorInputChange('labels', labels);
+                                                        }}
+                                                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                                            operatorFormState.labels.includes(label)
+                                                                ? 'bg-morphic-primary text-white'
+                                                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                                                        }`}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {operatorFormErrors.operator_types && (
+                                                <p className="mt-1 text-sm text-red-500">Select at least one operator type</p>
+                                            )}
+                                        </div>
+
+                                        {/* Network Configuration */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    Domain *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
+                                                        operatorFormErrors.domain ? 'border-red-500' : 'border-gray-600'
+                                                    }`}
+                                                    placeholder="e.g., operator.example.com"
+                                                    value={operatorFormState.domain}
+                                                    onChange={(e) => handleOperatorInputChange('domain', e.target.value)}
+                                                />
+                                                {operatorFormErrors.domain && (
+                                                    <p className="mt-1 text-sm text-red-500">Domain is required</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -957,31 +1213,37 @@ const Developer: React.FC = () => {
                                                 <input
                                                     type="number"
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    placeholder="Enter port number"
+                                                    placeholder="8080"
+                                                    value={operatorFormState.port}
+                                                    onChange={(e) => handleOperatorInputChange('port', parseInt(e.target.value))}
                                                 />
                                             </div>
                                         </div>
 
+                                        {/* Optional TOS Registration */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Operator Icon
+                                                Register for TOS (Optional)
                                             </label>
-                                            <div className="flex items-center space-x-4">
-                                                <div className="w-20 h-20 bg-gray-700/50 rounded-lg flex items-center justify-center border border-dashed border-gray-600">
-                                                    <Upload className="h-8 w-8 text-gray-400" />
-                                                </div>
-                                                <button className="px-4 py-2 bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-600/50">
-                                                    Upload Icon
-                                                </button>
-                                            </div>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                placeholder="Enter TOS ID"
+                                                value={operatorFormState.tos_ids}
+                                                onChange={(e) => handleOperatorInputChange('tos_id', e.target.value)}
+                                            />
+                                        </div>
+
+                                        {/* Submit Button */}
+                                        <div className="flex justify-end">
+                                            <button
+                                                onClick={handleOperatorRegister}
+                                                className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-primary/90 transition-colors"
+                                            >
+                                                Register Operator
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="flex justify-end">
-                                    <button className="px-6 py-3 bg-morphic-primary text-white rounded-lg font-medium">
-                                        Register Operator
-                                    </button>
                                 </div>
                             </div>
                         )}
@@ -1402,7 +1664,7 @@ const Developer: React.FC = () => {
     // 添加键盘事件处理
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (activeMenu === 'tos' && tosSubMenu === 'new-tos' && MOCK_MORPHIC_AI_TOS) {
+            if (tosSubMenu === 'new-tos' && MOCK_MORPHIC_AI_TOS) {
                 if (event.ctrlKey && event.key === 'v') {
                     event.preventDefault();
                     
@@ -1445,11 +1707,54 @@ const Developer: React.FC = () => {
                     }, 3000);
                 }
             }
+
+            if (activeMenu === 'operator' && operatorSubMenu === 'new-operator') {
+                if (event.ctrlKey && event.key === 'v') {
+                    event.preventDefault();
+                    
+                    setOperatorFormState({
+                        ...MOCK_MORPHIC_OPERATOR,
+                        // Override some fields to make them unique
+                        id: `0x${Math.random().toString(16).slice(2)}`,
+                        name: `${MOCK_MORPHIC_OPERATOR.name}_${Math.floor(Math.random() * 1000)}`,
+                        logo: MOCK_MORPHIC_OPERATOR.logo || DEFAULT_OPERATOR_LOGO,
+                        owner: {
+                            address: MOCK_MORPHIC_OPERATOR.owner?.address || '',
+                            name: MOCK_MORPHIC_OPERATOR.owner?.name || '',
+                            logo: MOCK_MORPHIC_OPERATOR.owner?.logo || DEFAULT_OPERATOR_OWNER_LOGO
+                        },
+                        description: MOCK_MORPHIC_OPERATOR.description || '',
+                        location: MOCK_MORPHIC_OPERATOR.location || '',
+                        create_time: Date.now(),
+                        domain: MOCK_MORPHIC_OPERATOR.domain || '',
+                        port: MOCK_MORPHIC_OPERATOR.port || 8000,
+                        labels: MOCK_MORPHIC_OPERATOR.labels || [],
+                        staker_ids: [],
+                        tos_ids: MOCK_MORPHIC_OPERATOR.tos_ids || [],
+                        vm_ids: [],
+                        restaked: 0,
+                        numStakers: 0,
+                        numTosServing: 0,
+                        reputation: 0,
+                        codeHash: MOCK_MORPHIC_OPERATOR.codeHash || '',
+                    });
+
+                    // 显示提示信息
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-morphic-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out';
+                    notification.textContent = 'Operator template data pasted';
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [activeMenu, tosSubMenu]);
+    }, [activeMenu, tosSubMenu, operatorSubMenu]);
 
     // 添加动画样式
     useEffect(() => {

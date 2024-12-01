@@ -35,18 +35,24 @@ export interface Operator {
     id: string;   // the address that registered the operator, so each operator has a unique address
     name: string;
     logo: string;
-    labels: string[];
-    address: string;
+    labels: string[];   // operator types
+    description?: string;
     owner: {
+        address: string;
         name: string;
         logo: string;
     };
     location: string;
-    restaked: number;
+    create_time: number;
+    domain: string;
+    port: number;
+    staker_ids?: string[];
+    tos_ids?: string[];
+    vm_ids?: string[];
+    restaked: number;    // calculated by the stakers' staked amount
     numStakers: number;
     numTosServing: number;
     reputation: number;
-    description?: string;
     codeHash?: string;
 }
 

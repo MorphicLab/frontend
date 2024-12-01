@@ -10,12 +10,13 @@ import { useVM } from '../request/vm';
 
 const TosServices: React.FC = () => {
     const navigate = useNavigate();
-    const { tos: chainTOS } = useVM();
+
+    const registeredTOS = useVM().toss;
 
     // 合并所有来源的 TOS 数据
     const allTOS = useMemo(() => {
-        return [...MOCK_TOS, ...chainTOS];
-    }, [chainTOS]);
+        return [...MOCK_TOS, ...registeredTOS];
+    }, [registeredTOS]);
 
 
     // 使用搜索和过滤 hook

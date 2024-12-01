@@ -1,25 +1,30 @@
 import { ethers } from 'ethers';
 import { useState, useEffect } from 'react';
 import { Operator, Agent, TOS, TOSStatus } from '../data/define';
-import { useTOSStore } from '../store/tosStore';
 
 const VM_CONTRACT_ADDRESS = import.meta.env.VITE_VM_CONTRACT_ADDRESS;
 
 // VM合约ABI
 const VM_ABI = [
+    // TOS related functions
     "function create_tos(string calldata name, string calldata logo, string calldata website, string calldata description, string[] calldata operator_types, string calldata creater_name, string calldata creater_logo, uint8 operator_minimum, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, bytes memory code, string[] calldata labels, address dao) external returns(bytes16)",
     "function total_toss() public view returns (uint256)",
-    "function get_tos_by_index(uint256 index) external view returns (tuple(bytes16 id, string name, string logo, string website, string description, string[] operator_types, address creater, string creater_name, string creater_logo, uint8 operator_minimum, uint16 vcpus, uint16 vmemory, uint64 disk, string version, bytes code, string[] labels, address dao, address[] operators, bytes20[] vm_ids, uint8 status))",
-    "function registered_toss() public view returns (bytes16[] memory)"  // Keep for backward compatibility
+    "function get_tos_by_index(uint256 index) external view returns (tuple(bytes16 id, string name, string logo, string website, string description, string[] operator_types, address creater, string creater_name, string creater_logo, uint8 operator_minimum, uint16 vcpus, uint16 vmemory, uint64 disk, string version, bytes code, string[] labels, address dao, address[] operator_ids, uint8 status))",
+    // Operator related functions
+    "function total_operators() public view returns (uint256)",
+    "function get_operator_by_index(uint256 index) public view returns (tuple(address id, string name, string logo, string[] operator_types, address owner, string owner_name, string owner_logo, string location, uint256 create_time, string domain, uint64 port, address[] staker_ids, bytes16[] tos_ids))",
+    "function register_operator_to_tos(bytes16 tos_id, address operator_id) public",
+    "function register_operator(string name, string logo, string[] operator_types, address owner, string owner_name, string owner_logo, string location, string domain, uint64 port, bytes16 tos_id) external",
 ];
 
 const DEFAULT_TOS_LOGO = '/images/morphic-logo-sm.png';
 const DEFAULT_CREATOR_LOGO = '/images/morphic-logo-sm.png';
 
 function useVM() {
+    const [toss, setTOS] = useState<TOS[]>([]);
     const [operators, setOperators] = useState<Operator[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
-    const { setTOS, registeredTOS } = useTOSStore();
+    // const { setTOS } = useTOSStore();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,55 +40,24 @@ function useVM() {
                     provider
                 );
 
-                // 获取所有注册的 TOS ID
-                let tosCount = 0;
-                try {
-                    // Get the total number of TOS
-                    tosCount = await vmContract.total_toss();
-                    console.log('Registered TOS Count:', tosCount);
+                // Fetch all registered TOS
+                const tosCount = await vmContract.total_toss();
+                console.log('Registered TOS Count:', tosCount);
 
-                    // If no TOS are registered, skip further processing
-                    if (tosCount === 0) {
-                        console.warn('No TOS registered yet');
-                        setTOS([]);  // Set empty array
-                        return;
-                    }
-                } catch (idsError) {
-                    console.error('Failed to fetch TOS Count:', idsError);
-                    
-                    // Log additional context for debugging
-                    console.error('Contract Address:', VM_CONTRACT_ADDRESS);
-                    console.error('Full Error:', idsError);
-                    
-                    // Set empty array if fetching fails
+                if (tosCount === 0) {
+                    console.warn('No TOS registered yet');
                     setTOS([]);
                     return;
                 }
-                
-                // 获取所有TOS数据
-                const tosItems = [];
-                for (let i = 0; i < tosCount; i++) {
-                    try {
-                        console.log(`Fetching TOS at index: ${i}`);  // Log the index being fetched
-                        
-                        const tos = await vmContract.get_tos_by_index(i);
-                        
-                        // Validate the returned TOS data
-                        if (!tos || !tos.id) {
-                            console.warn(`Invalid TOS data at index: ${i}`);
-                            continue;
-                        }
 
-                        console.log(`Fetched TOS at index ${i}:`, tos);
-                        
-                        tosItems.push(tos);
-                    } catch (err) {
-                        console.warn(`Failed to fetch TOS at index ${i}:`, err);
-                        continue;
-                    }
-                }
+                const tosPromises = Array.from({ length: Number(tosCount) }, (_, i) => 
+                    vmContract.get_tos_by_index(i)
+                );
 
-                // 转换为前端 TOS 格式
+                const tosItems = await Promise.all(tosPromises);
+                console.log('Fetched TOS items:', tosItems);
+
+                // Convert contract TOS data to frontend format
                 const tosData: TOS[] = tosItems.map((tos) => ({
                     id: tos.id,
                     name: tos.name || 'Unnamed Service',
@@ -94,7 +68,7 @@ function useVM() {
                     creator: {
                         address: tos.creater,
                         name: tos.creater_name || 'Unknown',
-                        logo: tos.creator_logo || DEFAULT_CREATOR_LOGO
+                        logo: tos.creater_logo || DEFAULT_CREATOR_LOGO
                     },
                     operatorMinimum: Number(tos.operator_minimum),
                     vcpus: Number(tos.vcpus),
@@ -104,46 +78,68 @@ function useVM() {
                     code: ethers.hexlify(tos.code),
                     labels: tos.labels || [],
                     dao: tos.dao || ethers.ZeroAddress,
-                    operators: tos.operators || [], // ignore the vm id here
-                    vms: tos.vm_ids || [],
-                    // Fix status conversion: 0 = Waiting, 1 = Active
+                    operators: tos.operator_ids || [], // Updated: now using operator_ids
                     status: Number(tos.status) === 0 ? 'waiting' : 'active' as TOSStatus,
-                    restaked: 0,  // TODO: Get from contract
-                    stakers: 0,   // TODO: Get from contract
-                    likes: 0,     // TODO: Get from contract
+                    restaked: 0,  // TODO: Calculate from operator staking data
+                    stakers: 0,   // TODO: Calculate from operator staking data
+                    likes: 0,     // TODO: Implement likes system
                     codeHash: ethers.keccak256(tos.code),
                 }));
 
-                // 更新 store
+                // Fetch all registered operators
+                const operatorCount = await vmContract.total_operators();
+                console.log('Registered Operator Count:', operatorCount);
+
+                if (operatorCount > 0) {
+                    const operatorPromises = Array.from({ length: Number(operatorCount) }, (_, i) =>
+                        vmContract.get_operator_by_index(i)
+                    );
+
+                    const operatorItems = await Promise.all(operatorPromises);
+                    console.log('Fetched Operator items:', operatorItems);
+
+                    // Convert contract Operator data to frontend format
+                    const operatorData: Operator[] = operatorItems.map((op) => ({
+                        id: op.id,
+                        name: op.name,
+                        logo: op.logo,
+                        labels: op.operator_types,
+                        owner: {
+                            address: op.owner,
+                            name: op.owner_name,
+                            logo: op.owner_logo
+                        },
+                        location: op.location,
+                        create_time: Number(op.create_time),
+                        domain: op.domain,
+                        port: Number(op.port),
+                        staker_ids: op.staker_ids,
+                        tos_ids: op.tos_ids,
+                        vm_ids: [],
+                        restaked: 0, // TODO: Calculate from staker data
+                        numStakers: op.staker_ids.length,
+                        numTosServing: op.tos_ids.length,
+                        reputation: 0 // TODO: Implement reputation system
+                    }));
+
+                    setOperators(operatorData);
+                }
+
+                // Update TOS store
                 setTOS(tosData);
 
             } catch (error) {
                 console.error("Failed to fetch data:", error);
                 // Ensure store is set to empty array in case of total failure
                 setTOS([]);
+                setOperators([]);
             }
         };
 
         fetchData();
-    }, []);
+    }, [setTOS]);
 
-    const fetchTOSById = async (id: number) => {
-        try {
-            const tosId = ethers.zeroPadValue(ethers.toBeHex(id), 16);
-            const tos = registeredTOS.find(tos => tos.id === tosId);
-            return { tos };
-        } catch (error) {
-            console.error("Failed to fetch TOS:", error);
-            throw error;
-        }
-    };
-
-    return {
-        tos: useTOSStore(state => state.registeredTOS),
-        operators,
-        agents,
-        fetchTOSById
-    };
+    return {toss, operators, agents };
 }
 
 export { useVM, VM_CONTRACT_ADDRESS, VM_ABI };
