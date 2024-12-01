@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Search, ExternalLink, Cpu, Star, Users, Coins, X, Shield } from 'lucide-react';
+import { ChevronRight, ExternalLink, Cpu, X, Shield } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -14,10 +14,10 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { MOCK_TOS, MOCK_OPERATORS, TOS } from '../data/mockData';
+import { MOCK_TOS, MOCK_OPERATORS } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
-import { useVM } from '../request/vm';
+import { useVM, createContractInstance } from '../request/vm';
 
 ChartJS.register(
     CategoryScale,
@@ -80,7 +80,6 @@ const generateChartData = (label: string) => ({
 
 const TosDetail: React.FC = () => {
     const { id } = useParams();
-    const { tos: chainTOS } = useVM();
     const [operatorSearch, setOperatorSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -88,18 +87,31 @@ const TosDetail: React.FC = () => {
     const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
     const [showVerification, setShowVerification] = useState(false);
 
+
+    const registeredTOS = useVM().toss;
+    const registeredOperators = useVM().operators;
+
     // 合并 mock 和链上的 TOS 数据
     const allTOS = useMemo(() => {
-        return [...MOCK_TOS, ...chainTOS];
-    }, [chainTOS]);
+        return [...MOCK_TOS, ...registeredTOS];
+    }, [registeredTOS]);
+
+    const allOperators = useMemo(() => {
+        return [...MOCK_OPERATORS, ...registeredOperators];
+    }, [registeredOperators]);
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
 
-    // 获取用户的 operators
-    const myOperators = MOCK_OPERATORS.slice(0, 3);
+    // 获取我的运营商（使用 window.ethereum.selectedAddress）
+    const myOperators = useMemo(() => {
+        if (!window.ethereum?.selectedAddress) return [];
+        return allOperators.filter(op => 
+            op.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+        );
+    }, [allOperators]);
 
-    const filteredOperators = MOCK_OPERATORS.filter(op =>
+    const filteredOperators = allOperators.filter(op =>
         op.name.toLowerCase().includes(operatorSearch.toLowerCase())
     );
 
@@ -109,6 +121,25 @@ const TosDetail: React.FC = () => {
         currentPage * itemsPerPage
     );
 
+    const handleRegisterOperators = async () => {
+        if (!tos || !selectedOperators.length) return;
+        
+        try {
+            // Get contract instance
+            const contract = await createContractInstance();
+
+            // Register each selected operator to the TOS
+            for (const operatorId of selectedOperators) {
+                await contract.register_operator_to_tos(tos.id, operatorId);
+            }
+            
+            setIsModalOpen(false);
+            setSelectedOperators([]);
+        } catch (error) {
+            console.error('Error registering operators:', error);
+        }
+    };
+
     const toggleOperator = (operatorId: string) => {
         setSelectedOperators(prev =>
             prev.includes(operatorId)
@@ -117,18 +148,9 @@ const TosDetail: React.FC = () => {
         );
     };
 
-    const handleRegister = () => {
-        console.log('Registering with operators:', selectedOperators);
-        setIsModalOpen(false);
-        // TODO: 处理注册逻辑
-    };
-
     // TODO: Obtain the operators of this TOS
-    const tosOperators = MOCK_OPERATORS
-
-    // 获取相关的 operators
-    const relatedOperators = MOCK_OPERATORS.filter(op => 
-        op.numTosServing.toString() === tos?.operators.toString()
+    const tosOperators = allOperators.filter(op => 
+        op.tos_ids?.includes(tos?.id)
     );
 
     if (!tos) return <div>TOS not found</div>;
@@ -193,7 +215,7 @@ const TosDetail: React.FC = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Operators</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tos.operators.length}
+                                        {tos.operators?.length}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
@@ -384,7 +406,7 @@ const TosDetail: React.FC = () => {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleRegister}
+                                    onClick={handleRegisterOperators}
                                     disabled={selectedOperators.length === 0}
                                     className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >

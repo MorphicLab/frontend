@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import PageBackground from '../components/PageBackground';
 import { MOCK_OPERATORS, operatorLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { OperatorCard } from '../components/cards/OperatorCard';
+import { useVM } from '../request/vm';
 
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
+
+    // obtain all registered operators
+    const registeredOperators = useVM().operators;
+
+    const allOperators = useMemo(() => {
+        return [...MOCK_OPERATORS, ...registeredOperators];
+    }, [registeredOperators]);
 
     const {
         search,
@@ -18,7 +26,7 @@ const TosOperators: React.FC = () => {
         setCurrentPage,
         totalPages,
         paginatedItems: currentOperators
-    } = useSearchAndFilter(MOCK_OPERATORS);
+    } = useSearchAndFilter(allOperators);
 
     return (
         <div className="relative pt-20 min-h-screen">

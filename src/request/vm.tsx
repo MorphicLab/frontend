@@ -5,6 +5,21 @@ import { Operator, Agent, TOS, TOSStatus } from '../data/define';
 const VM_CONTRACT_ADDRESS = import.meta.env.VITE_VM_CONTRACT_ADDRESS;
 
 // VM合约ABI
+/**
+ * The ABI (Application Binary Interface) for the VM contract, defining
+ * the available functions that can be called on the blockchain.
+ * 
+ * - TOS related functions:
+ *   - `create_tos`: Creates a TOS (Terms of Service) with specified parameters.
+ *   - `total_toss`: Returns the total number of TOS.
+ *   - `get_tos_by_index`: Retrieves a TOS by its index in the registry.
+ * 
+ * - Operator related functions:
+ *   - `total_operators`: Returns the total number of registered operators.
+ *   - `get_operator_by_index`: Retrieves an operator by its index in the registry.
+ *   - `register_operator_to_tos`: Registers an operator to a specific TOS.
+ *   - `register_operator`: Registers a new operator with specified details.
+ */
 const VM_ABI = [
     // TOS related functions
     "function create_tos(string calldata name, string calldata logo, string calldata website, string calldata description, string[] calldata operator_types, string calldata creater_name, string calldata creater_logo, uint8 operator_minimum, uint16 vcpus, uint16 vmemory, uint64 disk, string calldata version, bytes memory code, string[] calldata labels, address dao) external returns(bytes16)",
@@ -19,6 +34,8 @@ const VM_ABI = [
 
 const DEFAULT_TOS_LOGO = '/images/morphic-logo-sm.png';
 const DEFAULT_CREATOR_LOGO = '/images/morphic-logo-sm.png';
+const DEFAULT_OPERATOR_LOGO = '/images/operator-logo-sm.png';
+const DEFAULT_OPERATOR_OWNER_LOGO = '/images/operator-owner-logo-sm.png';
 
 function useVM() {
     const [toss, setTOS] = useState<TOS[]>([]);
@@ -101,25 +118,26 @@ function useVM() {
                     // Convert contract Operator data to frontend format
                     const operatorData: Operator[] = operatorItems.map((op) => ({
                         id: op.id,
-                        name: op.name,
-                        logo: op.logo,
-                        labels: op.operator_types,
+                        name: op.name || 'Unnamed Operator',
+                        logo: op.logo || DEFAULT_OPERATOR_LOGO,
+                        labels: op.operator_types || [],
                         owner: {
                             address: op.owner,
-                            name: op.owner_name,
-                            logo: op.owner_logo
+                            name: op.owner_name || 'Unknown',
+                            logo: op.owner_logo || DEFAULT_OPERATOR_OWNER_LOGO
                         },
-                        location: op.location,
+                        location: op.location || '',
                         create_time: Number(op.create_time),
-                        domain: op.domain,
+                        domain: op.domain || '',
                         port: Number(op.port),
-                        staker_ids: op.staker_ids,
-                        tos_ids: op.tos_ids,
+                        // Convert TOS IDs to string array
+                        tos_ids: op.tos_ids?.map(id => id.toString()) || [],
+                        staker_ids: op.staker_ids?.map(id => id.toString()) || [],
                         vm_ids: [],
-                        restaked: 0, // TODO: Calculate from staker data
-                        numStakers: op.staker_ids.length,
-                        numTosServing: op.tos_ids.length,
-                        reputation: 0 // TODO: Implement reputation system
+                        restaked: 0,  // TODO: Calculate from staking data
+                        numStakers: op.staker_ids?.length || 0,
+                        numTosServing: op.tos_ids?.length || 0,
+                        reputation: 0, // TODO: Implement reputation system
                     }));
 
                     setOperators(operatorData);
@@ -142,4 +160,36 @@ function useVM() {
     return {toss, operators, agents };
 }
 
-export { useVM, VM_CONTRACT_ADDRESS, VM_ABI };
+// Create contract instance
+export async function createContractInstance() {
+    if (!window.ethereum) {
+        throw new Error('Please install and connect MetaMask');
+    }
+
+    // Request user to connect MetaMask
+    const accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
+    });
+
+    if (!accounts || accounts.length === 0) {
+        throw new Error('Failed to get wallet account');
+    }
+
+    // Create provider and signer using ethers v6
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    // Verify contract address
+    if (!VM_CONTRACT_ADDRESS) {
+        throw new Error('Contract address not configured');
+    }
+
+    // Create and return contract instance
+    return new ethers.Contract(
+        VM_CONTRACT_ADDRESS,
+        VM_ABI,
+        signer
+    );
+}
+
+export { useVM };

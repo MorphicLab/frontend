@@ -44,7 +44,7 @@ export const MOCK_TOS: TOS[] = [
 ];
 
 export const MOCK_MORPHIC_AI_TOS: TOS = {
-    id: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+    id: '',
     name: 'Morphic AI',
     logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
     website: '/morphic-ai',

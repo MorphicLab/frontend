@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -13,15 +13,28 @@ import {
 import { MOCK_OPERATORS, MOCK_TOS } from '../data/mockData';
 import PageBackground from '../components/PageBackground';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
+import { useVM } from '../request/vm';
+
 
 const OperatorDetail: React.FC = () => {
     const { id } = useParams();
-    const operator = MOCK_OPERATORS.find(op => op.id === Number(id));
+    const { operators: registeredOperators, toss: registeredTOS } = useVM();
+
+    const allOperators = useMemo(() => {
+        return [...MOCK_OPERATORS, ...registeredOperators];
+    }, [registeredOperators]);
+
+    const operator = allOperators.find(op => op.id === id);
+
+
+    const allTOS = useMemo(() => {
+        return [...MOCK_TOS, ...registeredTOS];
+    }, [registeredTOS]);
 
     if (!operator) return <div>Operator not found</div>;
 
-    // TODO: Get the TOSs served by this operator
-    const servingTOSs = MOCK_TOS;
+    // Get the TOSs served by this operator
+    const servingTOSs = allTOS.filter(tos => tos.operators?.includes(operator.id));
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -53,7 +66,7 @@ const OperatorDetail: React.FC = () => {
                                         </button>
                                     </div>
                                     <div className="flex items-center text-gray-400 mt-2">
-                                        <span className="font-mono">{operator.address.slice(0, 6)}...{operator.address.slice(-4)}</span>
+                                        <span className="font-mono">{operator.owner.address.slice(0, 6)}...{operator.owner.address.slice(-4)}</span>
                                         <ExternalLink className="h-4 w-4 ml-2" />
                                     </div>
                                 </div>
@@ -74,7 +87,7 @@ const OperatorDetail: React.FC = () => {
                                 ))}
                             </div>
                             <p className="text-gray-300">
-                                {operator.introduction}
+                                {operator.description}
                             </p>
                         </div>
 

@@ -32,7 +32,7 @@ import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 import { TOS, Operator, Agent } from '../data/define';
-import { VM_CONTRACT_ADDRESS, VM_ABI } from '../request/vm';
+import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
 
 
 // 添加子菜单类型
@@ -127,7 +127,8 @@ const Developer: React.FC = () => {
         numStakers: 1000,
         numTosServing: 1,
         reputation: 0,
-        codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+        codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+        tos_ids: [], // Initialize empty tos_ids array
     });
 
     // Add operator form validation
@@ -155,7 +156,7 @@ const Developer: React.FC = () => {
         // 验证表单
         const errors = {
             name: !tosFormState.name.trim(),
-            description: !tosFormState.description.trim(),
+            description: !tosFormState.description?.trim(),
             dockerCompose: !tosFile
         };
         
@@ -166,82 +167,42 @@ const Developer: React.FC = () => {
         }
     
         try {
-            if (!window.ethereum) {
-                alert('Please install and connect MetaMask');
-                return;
-            }
-    
-            // 请求用户连接 MetaMask
-            const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-            });
-    
-            if (!accounts || accounts.length === 0) {
-                alert('Failed to get wallet account');
-                return;
-            }
-    
-            console.log('Connected account:', accounts[0]);
-    
-            // 使用 ethers v6 的新方式创建 provider 和 signer
-            const provider = new ethers.BrowserProvider(window.ethereum);  // 修改这里
-            const signer = await provider.getSigner();  // 修改这里
-    
-            // 验证合约地址
-            if (!VM_CONTRACT_ADDRESS) {
-                throw new Error('Contract address not configured');
-            }
-    
-            console.log('Creating contract instance with address:', VM_CONTRACT_ADDRESS);
-    
-            // 创建合约实例
-            const tosRegistry = new ethers.Contract(
-                VM_CONTRACT_ADDRESS,
-                VM_ABI,
-                signer
-            );
-    
+            // Get contract instance
+            const contract = await createContractInstance();
+            
             // 准备 docker-compose 数据
             const dockerComposeData = tosFile ? await tosFile.arrayBuffer() : new ArrayBuffer(0);
             const dockerComposeBytes = new Uint8Array(dockerComposeData);
     
-            try {
-                console.log('Tos info: ', tosFormState);
-                // 发送交易
-                const tx = await tosRegistry.create_tos(
-                    tosFormState.name,
-                    tosFormState.logo,
-                    tosFormState.website || '',
-                    tosFormState.description,
-                    tosFormState.operatorTypes,
-                    tosFormState.creator.name,
-                    tosFormState.creator.logo,
-                    tosFormState.operatorMinimum,
-                    tosFormState.vcpus,
-                    tosFormState.vmemory,
-                    tosFormState.disk,
-                    tosFormState.version,
-                    dockerComposeBytes,
-                    tosFormState.labels,
-                    tosFormState.dao || ethers.ZeroAddress
-                );
+            console.log('Tos info: ', tosFormState);
+            // 发送交易
+            const tx = await contract.create_tos(
+                tosFormState.name,
+                tosFormState.logo,
+                tosFormState.website || '',
+                tosFormState.description,
+                tosFormState.operatorTypes,
+                tosFormState.creator.name,
+                tosFormState.creator.logo,
+                tosFormState.operatorMinimum,
+                tosFormState.vcpus,
+                tosFormState.vmemory,
+                tosFormState.disk,
+                tosFormState.version,
+                dockerComposeBytes,
+                tosFormState.labels,
+                tosFormState.dao || ethers.ZeroAddress
+            );
     
-                console.log('Transaction sent:', tx.hash);
+            console.log('Transaction sent:', tx.hash);
     
-                // 等待交易确认
-                const receipt = await tx.wait();
-                console.log('Transaction confirmed:', receipt);
+            // 等待交易确认
+            const receipt = await tx.wait();
+            console.log('Transaction confirmed:', receipt);
+            console.log('Transaction logs:', receipt.logs);
     
-                // Log the transaction logs
-                console.log('Transaction logs:', receipt.logs);
-    
-                alert('TOS registered successfully');
-                setTosSubMenu('my-tos');
-
-            } catch (txError: any) {
-                console.error('Transaction failed:', txError);
-                alert(`交易失败: ${txError.message || '未知错误'}`);
-            }
+            alert('TOS registered successfully');
+            setTosSubMenu('my-tos');
     
         } catch (error: any) {
             console.error('Failed to register TOS:', error);
@@ -286,69 +247,51 @@ const Developer: React.FC = () => {
         // Validate form
         const errors = {
             name: !operatorFormState.name.trim(),
-            operator_types: operatorFormState.labels.length === 0,
-            domain: !operatorFormState.domain.trim()
+            location: !operatorFormState.location.trim(),
         };
-        
-        setOperatorFormErrors(errors);
 
-        if (errors.name || errors.operator_types || errors.domain) {
+        setFormErrors(errors);
+
+        if (errors.name || errors.location) {
             return;
         }
 
         try {
-            if (!window.ethereum) {
-                alert('Please install and connect MetaMask');
-                return;
-            }
-
-            const accounts = await window.ethereum.request({ 
-                method: 'eth_requestAccounts' 
-            });
-
-            if (!accounts || accounts.length === 0) {
-                alert('Failed to get wallet account');
-                return;
-            }
-
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-
-            if (!VM_CONTRACT_ADDRESS) {
-                throw new Error('Contract address not configured');
-            }
-
-            const contract = new ethers.Contract(
-                VM_CONTRACT_ADDRESS,
-                VM_ABI,
-                signer
-            );
+            // Get contract instance
+            const contract = await createContractInstance();
 
             console.log('Operator info:', operatorFormState);
 
-            // Convert empty tos_id to valid bytes16
-            const emptyTosId = "0x" + "0".repeat(32); // 32 characters = 16 bytes
+            // Get TOS ID from form or use empty bytes16
+            const tosId = operatorFormState.tos_ids?.[0] || "0x" + "0".repeat(32);
 
+            // First register the operator
             const tx = await contract.register_operator(
                 operatorFormState.name,
                 operatorFormState.logo,
                 operatorFormState.labels,
-                accounts[0], // Use connected wallet as owner
+                contract?.runner?.address, // Use connected wallet as owner
                 operatorFormState.owner.name,
                 operatorFormState.owner.logo,
                 operatorFormState.location,
                 operatorFormState.domain,
                 operatorFormState.port,
-                emptyTosId
+                tosId
             );
 
             console.log('Transaction sent:', tx.hash);
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
+            await tx.wait();
+            console.log('Operator registered successfully');
 
-            alert('Operator registered successfully');
+            // Update local state with the provided TOS ID
+            setOperatorFormState(prev => ({
+                ...prev,
+                tos_ids: tosId === "0x" + "0".repeat(32) ? [] : [tosId],
+            }));
+
+            // Navigate to my-operator page
             setOperatorSubMenu('my-operator');
-
+            alert('Operator registered successfully');
         } catch (error: any) {
             console.error('Failed to register operator:', error);
             alert(`Registration failed: ${error.message || 'Unknown error'}`);
@@ -1220,17 +1163,17 @@ const Developer: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Optional TOS Registration */}
+                                        {/* TOS ID */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Register for TOS (Optional)
+                                                TOS ID
                                             </label>
                                             <input
                                                 type="text"
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                placeholder="Enter TOS ID"
-                                                value={operatorFormState.tos_ids}
-                                                onChange={(e) => handleOperatorInputChange('tos_id', e.target.value)}
+                                                placeholder="Enter TOS ID (optional)"
+                                                value={operatorFormState.tos_ids?.[0] || ''}
+                                                onChange={(e) => handleOperatorInputChange('tos_ids', [e.target.value])}
                                             />
                                         </div>
 
@@ -1238,7 +1181,7 @@ const Developer: React.FC = () => {
                                         <div className="flex justify-end">
                                             <button
                                                 onClick={handleOperatorRegister}
-                                                className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-primary/90 transition-colors"
+                                                className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-accent transition-colors"
                                             >
                                                 Register Operator
                                             </button>
