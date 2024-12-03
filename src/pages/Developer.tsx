@@ -61,6 +61,7 @@ const DEFAULT_TOS_LOGO = '/images/tos-default-logo.png';  // 使用现有的 log
 const DEFAULT_CREATOR_LOGO = '/images/tos-creator-default-logo.png';  // 使用现有的 logo
 const DEFAULT_OPERATOR_LOGO = '/images/operator-default-logo.png';  // 使用现有的 logo
 const DEFAULT_OPERATOR_OWNER_LOGO = '/images/operator-owner-default-logo.png';  // 使用现有的 logo
+const DEFAULT_AGENT_LOGO = '/images/agent-default-logo.png';  // 使用现有的 logo
 
 
 const Developer: React.FC = () => {
@@ -1350,20 +1351,6 @@ const Developer: React.FC = () => {
                                                         onChange={(e) => handleAgentInputChange('name', e.target.value)}
                                                     />
                                                 </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                        Model Type
-                                                    </label>
-                                                    <select 
-                                                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                        value={agentFormState.modelType}
-                                                        onChange={(e) => handleAgentInputChange('modelType', e.target.value)}
-                                                    >
-                                                        <option value="GPT-4">GPT-4</option>
-                                                        <option value="GPT-3.5">GPT-3.5</option>
-                                                        <option value="Claude">Claude</option>
-                                                    </select>
-                                                </div>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -1795,7 +1782,7 @@ const Developer: React.FC = () => {
                 }
             }
 
-            if (activeMenu === 'operator' && operatorSubMenu === 'new-operator') {
+            if (operatorSubMenu === 'new-operator' && MOCK_MORPHIC_OPERATOR) {
                 if (event.ctrlKey && event.key === 'v') {
                     event.preventDefault();
                     
@@ -1838,10 +1825,40 @@ const Developer: React.FC = () => {
                 }
             }
 
-        };
+            if (agentSubMenu === 'new-agent' && MOCK_MORPHIC_AGENT) {
+                if (event.ctrlKey && event.key === 'v') {
+                    event.preventDefault();
 
+                    setAgentFormState({
+                        ...MOCK_MORPHIC_AGENT,
+                        // Override some fields to make them unique
+                        id: Math.random(),
+                        owner: MOCK_MORPHIC_AGENT.owner || '',
+                        name: `${MOCK_MORPHIC_AGENT.name}_${Math.floor(Math.random() * 1000)}`,
+                        logo: MOCK_MORPHIC_AGENT.logo || DEFAULT_AGENT_LOGO,
+                        labels: MOCK_MORPHIC_AGENT.labels || [],
+                        description: MOCK_MORPHIC_AGENT.description || '',
+                        capabilities: MOCK_MORPHIC_AGENT.capabilities || [],
+                        numOperators: MOCK_MORPHIC_AI_TOS.operators?.length || 0,
+                    });
+                    
+                    // 显示提示信息
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-morphic-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out';
+                    notification.textContent = 'Agent template data pasted';
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            }
+
+        };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
     }, [activeMenu, tosSubMenu, operatorSubMenu, agentSubMenu]);
 
     // 添加动画样式

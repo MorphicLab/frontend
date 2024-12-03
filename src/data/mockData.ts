@@ -174,6 +174,7 @@ export const MOCK_AGENTS: Agent[] = [
     },
     {
         id: 3,
+        owner: '',
         name: "Image Generator",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7rhk82CINydd8t9ASEi1twWHCUXVddaOSPw&s",
         labels: ["Chat", "Image"],
@@ -190,6 +191,7 @@ export const MOCK_AGENTS: Agent[] = [
 
 export const MOCK_MORPHIC_AGENT: Agent = {
     id: 0,
+    owner: '',
     name: "Morphic Agent", 
     logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
     labels: ["Chat"],
@@ -199,5 +201,4 @@ export const MOCK_MORPHIC_AGENT: Agent = {
     status: 'offline',
     capabilities: ['text generation'],
     numOperators: 1,
-    modelType: 'GPT-4'
 };

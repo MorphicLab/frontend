@@ -67,7 +67,6 @@ export interface Agent {
     rating: number;
     status?: 'online' | 'offline';
     capabilities?: string[];
-    modelType?: string;
     numOperators?: number;
     memoryRequirement?: string;
     storageRequirement?: string;
