@@ -23,6 +23,12 @@ const TosServices: React.FC = () => {
         return [...MOCK_TOS, ...registeredTOS];
     }, [registeredTOS]);
 
+    // 计算Operators总数
+    const totalOperators = useMemo(() => {
+        return allTOS.reduce((sum, tos) => {
+            return sum + (tos.operators?.length || 0);
+        }, 0);
+    }, [allTOS]);
 
     // 使用搜索和过滤 hook
     const {
@@ -67,7 +73,7 @@ const TosServices: React.FC = () => {
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                128
+                                {totalOperators}
                             </div>
                             <div className="text-morphic-light/80">Active Operators</div>
                         </div>

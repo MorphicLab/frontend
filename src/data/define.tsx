@@ -58,6 +58,7 @@ export interface Operator {
 
 export interface Agent {
     id: number;
+    owner: string;
     name: string;
     logo: string;
     labels: string[];
@@ -68,6 +69,9 @@ export interface Agent {
     capabilities?: string[];
     modelType?: string;
     numOperators?: number;
+    memoryRequirement?: string;
+    storageRequirement?: string;
+    daoContract?: string;
 }
 
 export interface TCBInfo {

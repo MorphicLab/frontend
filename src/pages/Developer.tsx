@@ -26,14 +26,17 @@ import {
     operatorLabels,
     agentLabels,
     MOCK_MORPHIC_AI_TOS,
-    MOCK_MORPHIC_OPERATOR
+    MOCK_MORPHIC_OPERATOR,
+    MOCK_MORPHIC_AGENT
 } from '../data/mockData';
 import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 import { TOS, Operator, Agent } from '../data/define';
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
+import { deployAgent } from '../request/operator'; 
 import { useBlockchainStore } from '../components/store/store';
+import { useOffChainStore } from '../components/store/OffChainStore'
 
 
 // 添加子菜单类型
@@ -71,6 +74,7 @@ const Developer: React.FC = () => {
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
+        useOffChainStore.getState().initializeStore();
       }, []);
     
     const allOperators = useBlockchainStore(state => state.operators);
@@ -91,12 +95,7 @@ const Developer: React.FC = () => {
     }, [allTOSs]);
 
     const allAgents = useBlockchainStore(state => state.agents);
-    const myAgents = useMemo(() => {
-        if (!window.ethereum?.selectedAddress) return [];
-        return allAgents.filter(agent => 
-            agent.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
-        );
-    }, [allAgents]);    
+    const myAgents = useOffChainStore(state => state.agents);
 
     // Add form validation state
     const [formErrors, setFormErrors] = useState({
@@ -171,10 +170,34 @@ const Developer: React.FC = () => {
 
     const morphicAITOS = MOCK_TOS.find(tos => tos.name === 'Morphic AI');
     const availableOperators = useMemo(() => {
-        // TODO: Filter the operators of Morphic AI TOS
-        return MOCK_OPERATORS;
+        const registeredOperators = useBlockchainStore.getState().operators;
+        return [...registeredOperators];
     }, []);
 
+    // 添加 agent form state
+    const [agentFormState, setAgentFormState] = useState<Agent>({
+        id: 0,
+        owner: '',
+        name: '',
+        logo: DEFAULT_TOS_LOGO,
+        labels: [] as string[],
+        description: '',
+        users: '0',
+        rating: 0,
+        status: 'offline',
+        modelType: '',
+        memoryRequirement: '',
+        storageRequirement: '',
+        daoContract: ''
+    });
+
+    // Add agent form validation state
+    const [agentFormErrors, setAgentFormErrors] = useState({
+        name: false,
+        description: false,
+        modelType: false,
+        dockerCompose: false
+    });
 
     const [tosFile, setTosFile] = useState<File | null>(null);
     const [agentFile, setAgentFile] = useState<File | null>(null);
@@ -376,6 +399,21 @@ const Developer: React.FC = () => {
         }
     };
 
+    // Handle agent form input changes
+    const handleAgentInputChange = (field: keyof Agent, value: any) => {
+        setAgentFormState(prev => ({
+            ...prev,
+            [field]: value
+        }));
+
+        // Clear corresponding error
+        if (field in agentFormErrors) {
+            setAgentFormErrors(prev => ({
+                ...prev,
+                [field]: false
+            }));
+        }
+    };
 
     const {
         search: tosSearch,
@@ -1278,14 +1316,14 @@ const Developer: React.FC = () => {
                                             <input
                                                 type="file"
                                                 accept=".yaml,.yml"
-                                                ref={tosFileInputRef}
-                                                onChange={(e) => handleFileUpload(e, setTosFile)}
+                                                ref={agentFileInputRef}
+                                                onChange={(e) => handleFileUpload(e, setAgentFile)}
                                                 className="hidden"
                                             />
                                             <button
-                                                onClick={() => tosFileInputRef.current?.click()}
+                                                onClick={() => agentFileInputRef.current?.click()}
                                                 className={`px-4 py-2 rounded-lg flex items-center ${
-                                                    formErrors.dockerCompose 
+                                                    agentFormErrors.dockerCompose 
                                                         ? 'bg-red-500/20 text-red-500 border border-red-500'
                                                         : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
                                                 }`}
@@ -1294,12 +1332,11 @@ const Developer: React.FC = () => {
                                                 Upload docker-compose.yaml
                                             </button>
                                             <span className="text-gray-400">
-                                                {tosFile ? tosFile.name : 'No file selected'}
+                                                {agentFile ? agentFile.name : 'No file selected'}
                                             </span>
                                         </div>
                                         <div className="border-t border-gray-700 my-6"></div>
                                         <div className="space-y-6">
-                                            {/* <h3 className="text-lg font-medium text-white mb-4">Configuration</h3> */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -1309,16 +1346,22 @@ const Developer: React.FC = () => {
                                                         type="text"
                                                         className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                         placeholder="Enter agent name"
+                                                        value={agentFormState.name}
+                                                        onChange={(e) => handleAgentInputChange('name', e.target.value)}
                                                     />
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-400 mb-2">
                                                         Model Type
                                                     </label>
-                                                    <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
-                                                        <option>GPT-4</option>
-                                                        <option>GPT-3.5</option>
-                                                        <option>Claude</option>
+                                                    <select 
+                                                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                        value={agentFormState.modelType}
+                                                        onChange={(e) => handleAgentInputChange('modelType', e.target.value)}
+                                                    >
+                                                        <option value="GPT-4">GPT-4</option>
+                                                        <option value="GPT-3.5">GPT-3.5</option>
+                                                        <option value="Claude">Claude</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -1329,6 +1372,8 @@ const Developer: React.FC = () => {
                                                 <textarea
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white h-32"
                                                     placeholder="Describe your agent's capabilities"
+                                                    value={agentFormState.description}
+                                                    onChange={(e) => handleAgentInputChange('description', e.target.value)}
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -1346,21 +1391,29 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Memory Requirement
                                                 </label>
-                                                <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
-                                                    <option value="2">2G</option>
-                                                    <option value="4">4G</option>
-                                                    <option value="16">16G</option>
-                                                    <option value="32">32G</option>
+                                                <select 
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={agentFormState.memoryRequirement}
+                                                    onChange={(e) => handleAgentInputChange('memoryRequirement', e.target.value)}
+                                                >
+                                                    <option value={'2G'}>2G</option>
+                                                    <option value={'4G'}>4G</option>
+                                                    <option value={'16G'}>16G</option>
+                                                    <option value={'32G'}>32G</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Storage Requirement
                                                 </label>
-                                                <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white">
-                                                    <option value="20">20G</option>
-                                                    <option value="50">50G</option>
-                                                    <option value="100">100G</option>
+                                                <select 
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={agentFormState.storageRequirement}
+                                                    onChange={(e) => handleAgentInputChange('storageRequirement', e.target.value)}
+                                                >
+                                                    <option value={'20G'}>20G</option>
+                                                    <option value={'50G'}>50G</option>
+                                                    <option value={'100G'}>100G</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1378,6 +1431,8 @@ const Developer: React.FC = () => {
                                             type="text"
                                             className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                             placeholder="0x..."
+                                            value={agentFormState.daoContract}
+                                            onChange={(e) => handleAgentInputChange('daoContract', e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -1456,13 +1511,61 @@ const Developer: React.FC = () => {
     // 处理部署
     const handleDeploy = async () => {
         if (!selectedOperator) {
-            alert('Please select an operator');
+            alert('please select an operator');
             return;
         }
-        // TODO: 实现实际的部署逻辑
-        console.log('Deploying agent to operator:', selectedOperator);
-        setIsDeployModalOpen(false);
-        setSelectedOperator(null);
+
+        try {
+            // 从operators中找到完整的operator对象
+            const operator = allOperators.find(op => op.id === selectedOperator);
+            if (!operator) {
+                throw new Error('operator not found');
+            }
+
+            // 准备agent部署数据
+            const agentData: Agent = {
+                id: Date.now(), 
+                owner: window.ethereum?.selectedAddress || '',
+                name: agentFormState.name,
+                description: agentFormState.description,
+                modelType: agentFormState.modelType,
+                logo: '/images/agent-default-logo.png',
+                labels: [],
+                users: '0',
+                rating: 0,
+                status: 'offline',
+                memoryRequirement: agentFormState.memoryRequirement,
+                storageRequirement: agentFormState.storageRequirement,
+                daoContract: agentFormState.daoContract || undefined
+            };
+    
+            // 调用deployAgent接口
+            const response = deployAgent(
+                operator.domain,
+                operator.port,
+                agentData
+            ).then(response => response).catch(error => console.error('failed to deploy agent:', error));
+    
+            if (response) {
+                console.log('Agent deployed successfully:', response);
+                
+                // 关闭模态框并重置选择
+                setIsDeployModalOpen(false);
+                setSelectedOperator(null);
+                
+                // 显示成功提示
+                alert('Agent deployed successfully!');
+                
+                // 可选:刷新agent列表
+                // refreshAgentList();
+            } else {
+                alert('Failed to deploy agent!');
+            }
+            
+        } catch (error: any) {
+            console.error('failed to deploy agent:', error);
+            alert(`failed to deploy: ${error?.message || 'unknown error'}`);
+        }
     };
 
     // 渲染部署模态框
@@ -1734,11 +1837,12 @@ const Developer: React.FC = () => {
                     }, 3000);
                 }
             }
+
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [activeMenu, tosSubMenu, operatorSubMenu]);
+    }, [activeMenu, tosSubMenu, operatorSubMenu, agentSubMenu]);
 
     // 添加动画样式
     useEffect(() => {

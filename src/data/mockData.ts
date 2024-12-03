@@ -146,6 +146,7 @@ export const MOCK_OPERATOR_AI_VM: Vm = {
 export const MOCK_AGENTS: Agent[] = [
     {
         id: 1,
+        owner: '',
         name: "ChatBot Agent",
         logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
         labels: ["Chat"],
@@ -159,6 +160,7 @@ export const MOCK_AGENTS: Agent[] = [
     },
     {
         id: 2,
+        owner: '',
         name: "Code Assistant",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s",
         labels: ["Chat", "Code"],
@@ -185,3 +187,17 @@ export const MOCK_AGENTS: Agent[] = [
     }
     // ... 可以添加更多 Agent 数据
 ]; 
+
+export const MOCK_MORPHIC_AGENT: Agent = {
+    id: 0,
+    name: "Morphic Agent", 
+    logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
+    labels: ["Chat"],
+    description: "A agent deployed to Morphic operator",
+    users: "0",
+    rating: 0,
+    status: 'offline',
+    capabilities: ['text generation'],
+    numOperators: 1,
+    modelType: 'GPT-4'
+};
