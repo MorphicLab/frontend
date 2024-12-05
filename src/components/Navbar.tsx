@@ -110,6 +110,26 @@ const Navbar = () => {
     };
   }, []);
 
+  // 检查是否已连接钱包
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      if (!window.ethereum) return;
+      try {
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_accounts' 
+        });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          await fetchMetaMaskAvatar();
+        }
+      } catch (error) {
+        console.error('Failed to check wallet connection:', error);
+      }
+    };
+
+    checkWalletConnection();
+  }, []);
+
   return (
     <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
