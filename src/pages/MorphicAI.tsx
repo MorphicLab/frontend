@@ -43,7 +43,7 @@ const Product = () => {
         selectedLabels,
         toggleLabel,
         filteredItems: filteredAgents
-    } = useSearchAndFilter(MOCK_AGENTS, undefined, ['Chat']);
+    } = useSearchAndFilter(MOCK_AGENTS, undefined);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -118,7 +118,7 @@ const Product = () => {
                                 <AgentCard 
                                     key={agent.id} 
                                     agent={agent} 
-                                    onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
+                                    onClick={() => agent.labels.includes('Chat') ? navigate(`/agent-chat/${agent.id}`, { state: { agent } }) : navigate(`/agent-detail/${agent.id}`, { state: { agent } })}
                                 />
                             ))}
                         </AnimatePresence>

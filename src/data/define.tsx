@@ -63,6 +63,7 @@ export interface Agent {
     logo: string;
     labels: string[];
     description: string;
+    readme: string;
     users: string;
     rating: number;
     status?: 'online' | 'offline';
@@ -71,6 +72,8 @@ export interface Agent {
     memoryRequirement?: string;
     storageRequirement?: string;
     daoContract?: string;
+    modelType: string;
+    visibility: string;
 }
 
 export interface TCBInfo {

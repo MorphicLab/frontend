@@ -8,6 +8,7 @@ import Developer from '../pages/Developer';
 import MorphicAI from '../pages/MorphicAI';
 import Docs from '../pages/Docs';
 import AgentChat from '../pages/AgentChat';
+import AgentDetail from '../pages/AgentDetail';
 import MorphicKMS from '../pages/MorphicKMS';
 import OperatorDetail from '../pages/OperatorDetail';
 
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
       {
         path: '/agent-chat/:id',
         element: <AgentChat />
+      },
+      {
+        path: '/agent-detail/:id',
+        element: <AgentDetail />
       },
       {
         path: '/morphic-kms',

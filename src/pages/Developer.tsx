@@ -102,7 +102,8 @@ const Developer: React.FC = () => {
     const [formErrors, setFormErrors] = useState({
         name: false,
         description: false,
-        dockerCompose: false
+        dockerCompose: false,
+        readme: false,
     });
 
     // Add TOS form state
@@ -183,13 +184,15 @@ const Developer: React.FC = () => {
         logo: DEFAULT_TOS_LOGO,
         labels: [] as string[],
         description: '',
+        readme: '',
         users: '0',
         rating: 0,
         status: 'offline',
         modelType: '',
         memoryRequirement: '',
         storageRequirement: '',
-        daoContract: ''
+        daoContract: '',
+        visibility: ''
     });
 
     // Add agent form validation state
@@ -197,13 +200,16 @@ const Developer: React.FC = () => {
         name: false,
         description: false,
         modelType: false,
-        dockerCompose: false
+        dockerCompose: false,
+        readme: false
     });
 
     const [tosFile, setTosFile] = useState<File | null>(null);
     const [agentFile, setAgentFile] = useState<File | null>(null);
+    const [agentReadmeFile, setAgentReadmeFile] = useState<File | null>(null);
     const tosFileInputRef = useRef<HTMLInputElement>(null);
     const agentFileInputRef = useRef<HTMLInputElement>(null);
+    const agentReadmeFileInputRef = useRef<HTMLInputElement>(null);
 
 
     // handle TOS register
@@ -453,6 +459,20 @@ const Developer: React.FC = () => {
                 }));
             } else {
                 alert('Please upload YAML format file');
+            }
+        }
+    };
+    const handleMDFileUpload = (event: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.name.endsWith('.md')) {
+                setFile(file);
+                setFormErrors(prev => ({
+                    ...prev,
+                    readme: false
+                }));
+            } else {
+                alert('Please upload Markdown format file');
             }
         }
     };
@@ -706,7 +726,6 @@ const Developer: React.FC = () => {
                                                 <p className="mt-1 text-sm text-red-500">Description is required</p>
                                             )}
                                         </div>
-
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
                                                 Labels
@@ -1363,6 +1382,44 @@ const Developer: React.FC = () => {
                                                     onChange={(e) => handleAgentInputChange('description', e.target.value)}
                                                 ></textarea>
                                             </div>
+
+                                            <div className="flex items-center space-x-4">
+                                                <input
+                                                    type="file"
+                                                    accept=".md"
+                                                    ref={agentReadmeFileInputRef}
+                                                    onChange={(e) => handleMDFileUpload(e, setAgentReadmeFile)}
+                                                    className="hidden"
+                                                />
+                                                <button
+                                                    onClick={() => agentReadmeFileInputRef.current?.click()}
+                                                    className={`px-4 py-2 rounded-lg flex items-center ${
+                                                        agentFormErrors.readme 
+                                                            ? 'bg-red-500/20 text-red-500 border border-red-500'
+                                                            : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
+                                                    }`}
+                                                >
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                Upload README.md
+                                                </button>
+                                                <span className="text-gray-400">
+                                                    {agentReadmeFile ? agentReadmeFile.name : 'No file selected'}
+                                                </span>
+                                            </div>      
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                    Visibility
+                                                </label>
+                                                <select 
+                                                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                                                    value={agentFormState.visibility}
+                                                    onChange={(e) => handleAgentInputChange('visibility', e.target.value)}
+                                                >
+                                                    <option value={'private'}>Private</option>
+                                                    <option value={'public'}>Public</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -1515,6 +1572,8 @@ const Developer: React.FC = () => {
                 owner: window.ethereum?.selectedAddress || '',
                 name: agentFormState.name,
                 description: agentFormState.description,
+                readme: agentFormState.readme,
+                visibility: agentFormState.visibility,
                 modelType: agentFormState.modelType,
                 logo: '/images/agent-default-logo.png',
                 labels: [],

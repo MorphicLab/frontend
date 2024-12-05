@@ -151,12 +151,14 @@ export const MOCK_AGENTS: Agent[] = [
         logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
         labels: ["Chat"],
         description: "An intelligent chatbot powered by advanced AI models",
+        readme: "",
         users: "2.5k",
         rating: 4.8,
         status: 'online',
         capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
         numOperators: 2,
-        modelType: 'GPT-4'
+        modelType: 'GPT-4',
+        visibility: 'public'
     },
     {
         id: 2,
@@ -165,12 +167,14 @@ export const MOCK_AGENTS: Agent[] = [
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s",
         labels: ["Chat", "Code"],
         description: "AI-powered coding assistant for developers",
+        readme: "",
         users: "1.8k",
         rating: 4.6,
         status: 'offline',
         capabilities: ['Code Generation', 'Code Review', 'Debugging'],
         modelType: 'GPT-3',
         numOperators: 2,
+        visibility: 'public'
     },
     {
         id: 3,
@@ -179,14 +183,31 @@ export const MOCK_AGENTS: Agent[] = [
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7rhk82CINydd8t9ASEi1twWHCUXVddaOSPw&s",
         labels: ["Chat", "Image"],
         description: "Advanced AI image generation and editing",
+        readme: "",
         users: "3.1k",
         rating: 4.9,
         status: 'online',
         capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
         modelType: 'Stable Diffusion',
         numOperators: 2,
+        visibility: 'public'
+    },
+    {
+        id: 4,
+        owner: '',
+        name: "Image Recognition",
+        logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
+        labels: ["Image"],
+        description: "AI-powered image recognition for various applications",
+        readme: "# Example Markdown Content\n\nThis is a sample markdown content for the readme section.\n\n## Features\n\n* Advanced AI image recognition\n* Object detection and image classification\n* Support for various image formats\n\n## Usage\n\n1. Upload an image to the platform\n2. Select the image recognition model\n3. Get the results in real-time\n\n## Benefits\n\n* Fast and accurate image recognition\n* Supports a wide range of applications\n* Easy to use and integrate",
+        users: "2.3k",
+        rating: 4.7,
+        status: 'online',
+        capabilities: ['Image Analysis', 'Object Detection', 'Image Classification'],
+        modelType: 'Stable Diffusion',
+        numOperators: 2,
+        visibility: 'public'
     }
-    // ... 可以添加更多 Agent 数据
 ]; 
 
 export const MOCK_MORPHIC_AGENT: Agent = {
@@ -196,9 +217,12 @@ export const MOCK_MORPHIC_AGENT: Agent = {
     logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
     labels: ["Chat"],
     description: "A agent deployed to Morphic operator",
+    readme: "",
     users: "0",
     rating: 0,
     status: 'offline',
     capabilities: ['text generation'],
     numOperators: 1,
+    modelType: 'GPT-4',
+    visibility: 'public'
 };
