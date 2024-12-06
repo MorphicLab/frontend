@@ -75,7 +75,8 @@ const Developer: React.FC = () => {
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-        useOffChainStore.getState().initializeStore();
+        const myOperators = [MOCK_MORPHIC_OPERATOR];
+        useOffChainStore.getState().initializeStore(allOperators, myOperators);
       }, []);
     
     const allOperators = useBlockchainStore(state => state.operators);
@@ -96,7 +97,7 @@ const Developer: React.FC = () => {
     }, [allTOSs]);
 
     const allAgents = useBlockchainStore(state => state.agents);
-    const myAgents = useOffChainStore(state => state.agents);
+    const myAgents = useOffChainStore(state => state.myAgents);
 
     // Add form validation state
     const [formErrors, setFormErrors] = useState({
@@ -192,7 +193,8 @@ const Developer: React.FC = () => {
         memoryRequirement: '',
         storageRequirement: '',
         daoContract: '',
-        visibility: ''
+        visibility: '',
+        dockerCompose: '',
     });
 
     // Add agent form validation state
@@ -1582,14 +1584,16 @@ const Developer: React.FC = () => {
                 status: 'offline',
                 memoryRequirement: agentFormState.memoryRequirement,
                 storageRequirement: agentFormState.storageRequirement,
-                daoContract: agentFormState.daoContract || undefined
+                daoContract: agentFormState.daoContract || undefined,
+                dockerCompose: agentFormState.dockerCompose,
             };
     
             // 调用deployAgent接口
             const response = deployAgent(
+                agentData,
                 operator.domain,
                 operator.port,
-                agentData
+                agentFormState.dockerCompose,
             ).then(response => response).catch(error => console.error('failed to deploy agent:', error));
     
             if (response) {

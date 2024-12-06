@@ -74,6 +74,7 @@ export interface Agent {
     daoContract?: string;
     modelType: string;
     visibility: string;
+    dockerCompose: string;
 }
 
 export interface TCBInfo {
