@@ -1568,13 +1568,18 @@ const Developer: React.FC = () => {
                 throw new Error('operator not found');
             }
 
+            // 准备 docker-compose 数据
+            const dockerCompose = agentFile ? await agentFile.text() : '';
+            const readme = agentReadmeFile ? await agentReadmeFile.text() : '';
+            
+
             // 准备agent部署数据
             const agentData: Agent = {
                 id: Date.now(), 
                 owner: window.ethereum?.selectedAddress || '',
                 name: agentFormState.name,
                 description: agentFormState.description,
-                readme: agentFormState.readme,
+                readme: readme,
                 visibility: agentFormState.visibility,
                 modelType: agentFormState.modelType,
                 logo: '/images/agent-default-logo.png',
@@ -1585,23 +1590,19 @@ const Developer: React.FC = () => {
                 memoryRequirement: agentFormState.memoryRequirement,
                 storageRequirement: agentFormState.storageRequirement,
                 daoContract: agentFormState.daoContract || undefined,
-                dockerCompose: agentFormState.dockerCompose,
+                dockerCompose: dockerCompose,
             };
     
             // 调用deployAgent接口
-            const response = deployAgent(
+            const response = await deployAgent(
                 agentData,
                 operator.domain,
                 operator.port,
-                agentFormState.dockerCompose,
-            ).then(response => response).catch(error => console.error('failed to deploy agent:', error));
-    
+                dockerCompose || '',
+            );
+
             if (response) {
                 console.log('Agent deployed successfully:', response);
-                
-                // 关闭模态框并重置选择
-                setIsDeployModalOpen(false);
-                setSelectedOperator(null);
                 
                 // 显示成功提示
                 alert('Agent deployed successfully!');
@@ -1616,6 +1617,9 @@ const Developer: React.FC = () => {
             console.error('failed to deploy agent:', error);
             alert(`failed to deploy: ${error?.message || 'unknown error'}`);
         }
+
+        setIsDeployModalOpen(false);
+        setSelectedOperator(null);
     };
 
     // 渲染部署模态框
@@ -1791,7 +1795,7 @@ const Developer: React.FC = () => {
                     <AgentCard
                         key={agent.id}
                         agent={agent}
-                        onClick={() => navigate(`/agent-chat/${agent.id}`, { state: { agent } })}
+                        onClick={() => navigate(`/agent-detail/${agent.id}`, { state: { agent } })}
                     />
                 ))}
             </div>

@@ -1,5 +1,13 @@
 import { Agent } from '../data/define';
 
+const AGENT_PREFIX = 'agent-';
+
+
+// 处理dockerCompose格式的函数
+function formatDockerCompose(content: string): string {
+    return JSON.stringify({ docker_compose_file: content });
+}
+
 
 // 部署agent到operator的接口
 export async function deployAgent(agent: Agent, operatorDomain: string, operatorPort: number, dockerCompose: string): Promise<boolean> {
@@ -7,16 +15,17 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
         return true; // for test
     }
 
+
     try {
-        const response = await fetch(`http://${operatorDomain}:${operatorPort}/prpc/Teepod.CreateVm?json`, {
+        const response = await fetch(`/prpc/Teepod.CreateVm?json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                name: agent.name,
+                name: AGENT_PREFIX + agent.name,
                 image: 'dstack-dev-0.3.0',
-                compose_file: dockerCompose,
+                compose_file: formatDockerCompose(dockerCompose),
                 vcpu: 1,
                 memory: 1024,
                 disk_size: 20,
@@ -37,6 +46,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
         return false;
     }
 }
+
 
 // 根据用户获取agent列表的接口
 export async function getAgentListByOwner(operatorDomain: string, operatorPort: number): Promise<Agent[]> {
@@ -67,32 +77,34 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
         const headers = {
             'Content-Type': 'application/json',
         };
-        const response = await fetch(`http://${operatorDomain}:${operatorPort}/prpc/Teepod.Status?json`, {
-            method: 'POST',
-            headers,
+        const response = await fetch(`/prpc/Teepod.Status?json`, {
+            method: 'GET',
+            headers
         });
         if (!response.ok) {
             const error = await response.text();
             throw new Error(error);
         }
         const data = await response.json();
-        const agents = data.vms.map((vm: { id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
-            id: vm.id,
-            owner: '',
-            name: vm.name,
-            description: '',
-            readme: '',
-            logo: '',
-            labels: [],
-            users: '0',
-            rating: 0,
-            status: vm.status,
-            modelType: '',
-            memoryRequirement: `${vm.configuration.memory}MB`,
-            storageRequirement: `${vm.configuration.disk_size}GB`,
-            daoContract: '',
-            visibility: ''
-        }));
+        const agents = data.vms
+            .filter((vm: { name: string }) => vm.name.startsWith(AGENT_PREFIX)) // 用于区分后台的agent实例
+            .map((vm: { id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
+                id: vm.id,
+                owner: '',
+                name: vm.name,
+                description: '',
+                readme: '',
+                logo: '',
+                labels: [],
+                users: '0',
+                rating: 0,
+                status: vm.status,
+                modelType: '',
+                memoryRequirement: `${vm.configuration.memory}MB`,
+                storageRequirement: `${vm.configuration.disk_size}GB`,
+                daoContract: '',
+                visibility: ''
+            }));
         
         return agents;
 
