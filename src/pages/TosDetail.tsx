@@ -14,7 +14,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { MOCK_TOS, MOCK_OPERATORS, MOCK_OPERATOR_AI_VM } from '../data/mockData';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_MORPHIC_AI_VM, MOCK_VMs } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
 import { useBlockchainStore } from '../components/store/store';
@@ -99,7 +99,10 @@ const TosDetail: React.FC = () => {
         return [...MOCK_OPERATORS, ...registeredOperators];
     }, [registeredOperators]);
 
-    const allVms = useBlockchainStore(state => state.vms);
+    const registeredVms = useBlockchainStore(state => state.vms);
+    const allVms = useMemo(() => {
+        return [...MOCK_VMs, ...registeredVms];
+    }, [registeredVms]);
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
@@ -131,8 +134,8 @@ const TosDetail: React.FC = () => {
 
             // Register each selected operator to the TOS
             for (const operatorId of selectedOperators) {
-                // Create a vm for this operator, using the MOCK_OPERATOR_AI_VM as a template
-                const vm = { ...MOCK_OPERATOR_AI_VM };
+                // Create a vm for this operator, using the MOCK_MORPHIC_AI_VM as a template
+                const vm = { ...MOCK_MORPHIC_AI_VM };
                 
                 // Generate a proper bytes20 ID using Web Crypto API
                 const randomBytes = new Uint8Array(20);
@@ -146,7 +149,7 @@ const TosDetail: React.FC = () => {
                 const vmReport = {
                     app_id: vm.vm_report.app_id,
                     tcb: {
-                        roots_hash: vm.vm_report.tcb.roots_hash,
+                        rootfs_hash: vm.vm_report.tcb.rootfs_hash,
                         mrtd: vm.vm_report.tcb.mrtd,
                         rtmr0: vm.vm_report.tcb.rtmr0,
                         rtmr1: vm.vm_report.tcb.rtmr1,

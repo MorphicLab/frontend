@@ -17,154 +17,179 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     onClose
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const tosHashRef = useRef<HTMLDivElement>(null);
+    const operatorsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        const operatorsContainer = operatorsRef.current;
+        if (!container || !operatorsContainer) return;
 
-        // 创建 SVG 元素
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('class', 'absolute inset-0 w-full h-full pointer-events-none');
-        svg.style.zIndex = '1';
-        container.appendChild(svg);
+        const updateConnections = () => {
+            const tosHash = tosHashRef.current;
+            if (!tosHash) return;
 
-        // 创建渐变
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        gradient.id = 'line-gradient';
-        gradient.innerHTML = `
-            <stop offset="0%" stop-color="#00D0EC" />
-            <stop offset="100%" stop-color="#46DCE1" />
-        `;
-        defs.appendChild(gradient);
-        svg.appendChild(defs);
+            // 清除现有的连线
+            const existingLines = container.querySelectorAll('.connection-line');
+            existingLines.forEach(line => line.remove());
 
-        // 获取 TOS codeHash 元素
-        const tosHash = container.querySelector('.tos-hash .hash-value');
-        // 获取所有 Operator codeHash 元素
-        const operatorHashes = container.querySelectorAll('.operator-hash .hash-value');
+            // 创建主SVG容器
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'connection-line');
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '10';
 
-        if (!tosHash) return;
-
-        const drawLines = () => {
-            // 清除现有的线
-            const existingPaths = svg.querySelectorAll('path');
-            existingPaths.forEach(path => path.remove());
+            // 创建渐变定义
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.id = 'line-gradient';
+            gradient.innerHTML = `
+                <stop offset="0%" stop-color="#00D0EC" />
+                <stop offset="100%" stop-color="#46DCE1" />
+            `;
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
 
             const tosRect = tosHash.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
+            const tosCenter = {
+                x: tosRect.right,
+                y: tosRect.top + tosRect.height / 2
+            };
 
-            operatorHashes.forEach((opHash) => {
-                const opRect = opHash.getBoundingClientRect();
+            // 为每个可见的operator创建连线
+            const operatorMrtds = operatorsContainer.querySelectorAll('.mrtd-value');
+            operatorMrtds.forEach((mrtd) => {
+                const rect = mrtd.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
 
-                const startX = tosRect.right - containerRect.left;
-                const startY = tosRect.top - containerRect.top + tosRect.height / 2;
-                const endX = opRect.left - containerRect.left;
-                const endY = opRect.top - containerRect.top + opRect.height / 2;
+                // 检查是否在视图中
+                if (rect.top < containerRect.bottom && rect.bottom > containerRect.top) {
+                    const targetCenter = {
+                        x: rect.left,
+                        y: rect.top + rect.height / 2
+                    };
 
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('stroke', 'url(#line-gradient)');
-                path.setAttribute('stroke-width', '2');
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke-dasharray', '4,4');
-                path.style.filter = 'drop-shadow(0 0 4px rgba(0, 208, 236, 0.5))';
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const startX = tosCenter.x - containerRect.left;
+                    const startY = tosCenter.y - containerRect.top;
+                    const endX = targetCenter.x - containerRect.left;
+                    const endY = targetCenter.y - containerRect.top;
 
-                // 创建平滑的 S 形曲线
-                const dx = endX - startX;
-                const curve = `
-                    M ${startX} ${startY}
-                    C ${startX + dx/3} ${startY},
-                      ${endX - dx/3} ${endY},
-                      ${endX} ${endY}
-                `;
+                    // 使用平滑的S形曲线
+                    const dx = endX - startX;
+                    const curve = `
+                        M ${startX} ${startY}
+                        C ${startX + dx/3} ${startY},
+                          ${endX - dx/3} ${endY},
+                          ${endX} ${endY}
+                    `;
 
-                path.setAttribute('d', curve);
+                    path.setAttribute('d', curve);
+                    path.setAttribute('stroke', 'url(#line-gradient)');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke-dasharray', '4,4');
+                    path.style.filter = 'drop-shadow(0 0 4px rgba(0, 208, 236, 0.5))';
 
-                // 添加动画
-                const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-                animate.setAttribute('attributeName', 'stroke-dashoffset');
-                animate.setAttribute('from', '8');
-                animate.setAttribute('to', '0');
-                animate.setAttribute('dur', '1s');
-                animate.setAttribute('repeatCount', 'indefinite');
-                path.appendChild(animate);
+                    // 添加动画
+                    const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                    animate.setAttribute('attributeName', 'stroke-dashoffset');
+                    animate.setAttribute('from', '8');
+                    animate.setAttribute('to', '0');
+                    animate.setAttribute('dur', '1s');
+                    animate.setAttribute('repeatCount', 'indefinite');
+                    path.appendChild(animate);
 
-                svg.appendChild(path);
+                    svg.appendChild(path);
+                }
             });
+
+            container.appendChild(svg);
         };
 
-        drawLines();
-        window.addEventListener('resize', drawLines);
+        // 监听滚动事件
+        const handleScroll = () => {
+            requestAnimationFrame(updateConnections);
+        };
 
+        operatorsContainer.addEventListener('scroll', handleScroll);
+        
+        // 初始化连线 - 等待动画完成后
+        setTimeout(updateConnections, 500); // 等待0.5秒让动画完成
+        
+        // 添加window resize事件监听
+        window.addEventListener('resize', updateConnections);
+
+        // 清理函数
         return () => {
-            container.removeChild(svg);
-            window.removeEventListener('resize', drawLines);
+            operatorsContainer.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', updateConnections);
+            const lines = container.querySelectorAll('.connection-line');
+            lines.forEach(line => line.remove());
         };
     }, [operators]);
 
-    // 根据 operators 数量计算布局
-    const getOperatorLayout = (numOperators: number) => {
-        if (numOperators <= 2) {
-            return {
-                gridCols: 1,
-                tosWidth: 'w-1/5',  // 缩小 TOS 宽度
-                operatorsWidth: 'w-1/3',  // 缩小 Operators 宽度
-                containerClass: 'justify-center'  // 居中显示
-            };
-        } else if (numOperators <= 4) {
-            return {
-                gridCols: 2,
-                tosWidth: 'w-1/5',
-                operatorsWidth: 'w-2/5',
-                containerClass: 'justify-center'
-            };
-        } else {
-            return {
-                gridCols: 3,
-                tosWidth: 'w-1/5',
-                operatorsWidth: 'w-1/2',
-                containerClass: 'justify-start'
-            };
-        }
+    const layout = {
+        containerClass: 'justify-center items-start',
+        tosWidth: 'w-[280px]',
+        operatorsWidth: 'w-[320px]',
+        gap: 'gap-20'  // 增加间距
     };
 
-    const layout = getOperatorLayout(operators.length);
-
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm"
+        <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
             onClick={onClose}
         >
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #2A4157;
+                    border-radius: 3px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #375672;
+                }
+                .custom-scrollbar {
+                    scrollbar-width: thin;
+                    scrollbar-color: #2A4157 transparent;
+                }
+            `}</style>
             <motion.div
                 ref={containerRef}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className={`relative ${operators.length <= 4 ? 'w-[80%]' : 'w-[90%]'} 
-                           ${operators.length <= 2 ? 'h-[70%]' : 'h-[85%]'} 
-                           p-8 bg-[#1B2B3A] rounded-3xl overflow-hidden`}
-                onClick={e => e.stopPropagation()}
+                className={`relative ${operators.length <= 4 ? 'w-[80%]' : 'w-[90%]'} h-[85%] 
+                           p-6 bg-[#1B2B3A] rounded-3xl overflow-hidden`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation();
+                }}
             >
-                <div className={`flex h-full ${layout.containerClass} gap-8`}>
+                <div className={`flex h-full ${layout.containerClass} ${layout.gap}`}>
                     {/* TOS Card */}
                     <motion.div
                         initial={{ x: -50, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
-                        className={`${layout.tosWidth}`}
+                        className={`${layout.tosWidth} min-w-[200px]`}
                     >
                         <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
-                            <div className="h-12 bg-gradient-to-r from-morphic-primary/20 to-morphic-accent/20 flex items-center px-4">
+                            <div className="h-10 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-4">
                                 <span className="text-lg font-bold text-white">{tos.name}</span>
                             </div>
-                            <div className="p-4 space-y-3">
-                                <InfoItem icon={<Users className="h-4 w-4" />} label="Creator" value={tos.creator.name} />
-                                <InfoItem icon={<Coins className="h-4 w-4" />} label="Restaked" value={`${tos.restaked} ETH`} />
-                                <InfoItem icon={<Users className="h-4 w-4" />} label="Operators" value={`${tos.operators}`} />
-                                <InfoItem icon={<Star className="h-4 w-4" />} label="Status" value={tos.status} />
-                                <div className="tos-hash pt-1">
+                            <div className="p-4">
+                                <div className="tos-hash" ref={tosHashRef}>
                                     <div className="text-sm text-gray-400 mb-1">Code Hash</div>
                                     <div className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
                                         {tos.codeHash?.slice(0, 10)}...{tos.codeHash?.slice(-8)}
@@ -175,30 +200,66 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     </motion.div>
 
                     {/* Operators */}
-                    <div className={`${layout.operatorsWidth}`}>
-                        <div className="space-y-3">
+                    <div 
+                        ref={operatorsRef}
+                        className={`${layout.operatorsWidth} h-full overflow-y-auto custom-scrollbar`}
+                    >
+                        <div className="space-y-2 pr-2">
                             {operators.map((operator, index) => (
                                 <motion.div
                                     key={operator.id}
                                     initial={{ x: 50, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg"
+                                    className="bg-[#1E3448] rounded-lg overflow-hidden shadow-lg"
                                 >
-                                    <div className="h-12 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-4">
-                                        <span className="text-lg font-bold text-white">{operator.name}</span>
+                                    <div className="h-9 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-3">
+                                        <span className="text-base font-bold text-white">{operator.name}</span>
                                     </div>
-                                    <div className="p-4 space-y-3">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <InfoItem icon={<MapPin className="h-4 w-4" />} label="Location" value={operator.location} />
-                                            <InfoItem icon={<Cpu className="h-4 w-4" />} label="Type" value={operator.labels.join(', ')} />
-                                            <InfoItem icon={<Coins className="h-4 w-4" />} label="Restaked" value={`${operator.restaked} ETH`} />
-                                            <InfoItem icon={<Star className="h-4 w-4" />} label="Reputation" value={operator.reputation} />
-                                        </div>
-                                        <div className="operator-hash pt-1">
-                                            <div className="text-sm text-gray-400 mb-1">Code Hash</div>
-                                            <div className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                                                {vms.find(vm => vm.operator === operator.id)?.codeHash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.codeHash?.slice(-8)}
+                                    <div className="p-2.5">
+                                        <div className="operator-hash">
+                                            <div className="text-xs text-gray-400 mb-1">TCB Info</div>
+                                            <div className="space-y-1.5">
+                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb && (
+                                                    <>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">Rootfs Hash</div>
+                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rootfs_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rootfs_hash?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">MRTD</div>
+                                                            <div className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.mrtd?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.mrtd?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">RTMR0</div>
+                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr0?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr0?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">RTMR1</div>
+                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr1?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr1?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">RTMR2</div>
+                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr2?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr2?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">RTMR3</div>
+                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr3?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr3?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -208,7 +269,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     </div>
                 </div>
             </motion.div>
-        </motion.div>
+        </div>
     );
 };
 

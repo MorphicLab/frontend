@@ -145,7 +145,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     vm_report: {
                         app_id: vm.vm_report.app_id,
                         tcb: {
-                            roots_hash: vm.vm_report.tcb.roots_hash,
+                            rootfs_hash: vm.vm_report.tcb.rootfs_hash,
                             mrtd: vm.vm_report.tcb.mrtd,
                             rtmr0: vm.vm_report.tcb.rtmr0,
                             rtmr1: vm.vm_report.tcb.rtmr1,

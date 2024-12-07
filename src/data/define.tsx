@@ -20,7 +20,7 @@ export interface TOS {
     disk: number;
     version: string;
     code: string;
-    codeHash?: string;   // calculated by code locally
+    codeHash?: string;   // calculated by code locally, corresponding to mrtd
     labels: string[];
     dao?: string;
     operators?: string[];  // ids of operators
@@ -74,11 +74,11 @@ export interface Agent {
     daoContract?: string;
     modelType: string;
     visibility: string;
-    dockerCompose: string;
+    dockerCompose?: string;
 }
 
 export interface TCBInfo {
-    roots_hash: string;
+    rootfs_hash: string;
     mrtd: string;
     rtmr0: string;
     rtmr1: string;
