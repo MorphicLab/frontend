@@ -88,22 +88,9 @@ const TosDetail: React.FC = () => {
     const [showVerification, setShowVerification] = useState(false);
     const [isCertCopied, setIsCertCopied] = useState(false);
 
-    const registeredTOS = useBlockchainStore(state => state.toss);
-    const registeredOperators = useBlockchainStore(state => state.operators);
-
-    // 合并 mock 和链上的 TOS 数据
-    const allTOS = useMemo(() => {
-        return [...MOCK_TOS, ...registeredTOS];
-    }, [registeredTOS]);
-
-    const allOperators = useMemo(() => {
-        return [...MOCK_OPERATORS, ...registeredOperators];
-    }, [registeredOperators]);
-
-    const registeredVms = useBlockchainStore(state => state.vms);
-    const allVms = useMemo(() => {
-        return [...MOCK_VMs, ...registeredVms];
-    }, [registeredVms]);
+    const allTOS = useBlockchainStore(state => state.toss);
+    const allOperators = useBlockchainStore(state => state.operators);
+    const allVms = useBlockchainStore(state => state.vms);
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
@@ -116,15 +103,6 @@ const TosDetail: React.FC = () => {
         );
     }, [allOperators]);
 
-    const filteredOperators = allOperators.filter(op =>
-        op.name.toLowerCase().includes(operatorSearch.toLowerCase())
-    );
-
-    const totalPages = Math.ceil(filteredOperators.length / itemsPerPage);
-    const currentOperators = filteredOperators.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
 
     const handleRegisterOperators = async () => {
         if (!tos || !selectedOperators.length) return;
@@ -136,44 +114,38 @@ const TosDetail: React.FC = () => {
             // Register each selected operator to the TOS
             for (const operatorId of selectedOperators) {
                 // Create a vm for this operator, using the MOCK_MORPHIC_AI_VM as a template
-                const vm = { ...MOCK_MORPHIC_AI_VM };
                 
                 // Generate a proper bytes20 ID using Web Crypto API
                 const randomBytes = new Uint8Array(20);
                 crypto.getRandomValues(randomBytes);
-                vm.id = hexlify(randomBytes);
-                
-                // Set the operator
-                vm.operator = operatorId;
 
-                // Prepare VM report for contract registration
-                const vmReport = {
-                    app_id: vm.report.app_id,
-                    tcb: {
-                        rootfs_hash: vm.report.tcb.rootfs_hash,
-                        mrtd: vm.report.tcb.mrtd,
-                        rtmr0: vm.report.tcb.rtmr0,
-                        rtmr1: vm.report.tcb.rtmr1,
-                        rtmr2: vm.report.tcb.rtmr2,
-                        rtmr3: vm.report.tcb.rtmr3
+                const vm = { 
+                    id: hexlify(randomBytes),
+                    vm_type: MOCK_MORPHIC_AI_VM.type,
+                    tos_id: tos.id,
+                    operator_id: operatorId,
+                    report: {
+                        tos_info: {
+                            code_hash: tos.code_hash,
+                            ca_cert_hash: MOCK_MORPHIC_AI_VM.report.tos_info?.ca_cert_hash
+                        },
+                        tcb_info: MOCK_MORPHIC_AI_VM.report.tcb_info,
+                        quote: MOCK_MORPHIC_AI_VM.report.quote
                     },
-                    // Convert certificate to bytes
-                    certificate: hexlify(new TextEncoder().encode(vm.report.certificate))
+                    status: MOCK_MORPHIC_AI_VM.status,
+                    code_hash: tos.code_hash   // should be obtained from report
                 };
 
                 try {
-                    await contract.register_operator_to_tos(tos.id, {
-                        id: vm.id,
-                        operator: vm.operator,
-                        report: vmReport,
-                        status: vm.status
-                    });
-                    console.log(`Registered operator ${operatorId} to TOS ${tos.id}`);
+                    await contract.register_vm_to_tos(tos.id, vm, {gasLimit: 3000000});
+                    console.log(`Registered vm ${vm.id} with operator ${operatorId} to TOS ${tos.id}`);
+                    alert('Operator with a new CVM registered successfully');
                 } catch (error) {
                     console.error(`Failed to register operator ${operatorId}:`, error);
                     // Optionally, you might want to break the loop or handle the error differently
                 }
             }
+
             
             setIsModalOpen(false);
             setSelectedOperators([]);
@@ -190,13 +162,18 @@ const TosDetail: React.FC = () => {
         );
     };
 
-    // TODO: Obtain the operators of this TOS
-    const tosOperators = allOperators.filter(op => 
-        op.tos_ids?.includes(tos?.id)
+    const tosOperators = tos?.id 
+        ? allOperators.filter(op => op.vm_ids?.hasOwnProperty(tos.id))
+        : [];
+
+    const totalPages = Math.ceil(tosOperators.length / itemsPerPage);
+    const currentOperators = tosOperators.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
     );
 
     const copyToClipboard = async () => {
-        if (tos.cert) {
+        if (tos?.cert) {
             await navigator.clipboard.writeText(tos.cert);
             setIsCertCopied(true);
             setTimeout(() => setIsCertCopied(false), 2000);
@@ -265,7 +242,7 @@ const TosDetail: React.FC = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Operators</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tos.operators?.length}
+                                        {Object.keys(tos.vm_ids || {}).length}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
@@ -277,54 +254,76 @@ const TosDetail: React.FC = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Stakes</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {tos.stakers}
+                                        {tos.num_stakers}
                                     </div>
                                 </div>
                             </div>
                         </motion.div>
 
-                        {/* Certificate Area */}
+                        {/* Trustlessness Area */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                             className="bg-gray-800 rounded-xl p-6"
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-semibold text-white">Certificate</h2>
-                                <button
-                                    onClick={copyToClipboard}
-                                    disabled={!tos.cert}
-                                    className={`p-1.5 rounded-lg transition-all duration-200 ${
-                                        tos.cert 
-                                            ? 'hover:bg-morphic-primary/10 text-morphic-primary/80 hover:text-morphic-primary' 
-                                            : 'text-gray-500 cursor-not-allowed'
-                                    }`}
-                                >
-                                    {isCertCopied ? (
-                                        <Check className="h-5 w-5" />
-                                    ) : (
-                                        <Copy className="h-5 w-5" />
-                                    )}
-                                </button>
-                            </div>
-                            <div className="relative">
-                                <pre 
-                                    className="font-mono text-sm text-morphic-primary/90 whitespace-pre-wrap break-words 
-                                    overflow-auto max-h-[160px] rounded-lg px-4 py-3 bg-gray-900/30
-                                    [&::-webkit-scrollbar]:w-2
-                                    [&::-webkit-scrollbar-track]:rounded-r-lg
-                                    [&::-webkit-scrollbar-track]:bg-gray-900/20
-                                    [&::-webkit-scrollbar-thumb]:bg-morphic-primary/20
-                                    [&::-webkit-scrollbar-thumb]:rounded-full
-                                    [&::-webkit-scrollbar-thumb]:border-2
-                                    [&::-webkit-scrollbar-thumb]:border-transparent
-                                    hover:[&::-webkit-scrollbar-thumb]:bg-morphic-primary/30
-                                    transition-all duration-200"
-                                >
-                                    {tos.cert || 'Certificate not available'}
-                                </pre>
-                                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-800/30 to-transparent pointer-events-none rounded-b-lg" />
+                            <h2 className="text-xl font-semibold text-white mb-4">Trustlessness</h2>
+                            <div className="space-y-4">
+                                {/* Decentralization */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm">Decentralization</div>
+                                    <div className="text-white font-semibold mt-1">
+                                        {tosOperators.length} Operators
+                                    </div>
+                                </div>
+
+                                {/* Verifiability */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm">Verifiability</div>
+                                    <div className="text-white font-mono text-sm mt-1">
+                                        {tos.address || 'Address not available'}
+                                    </div>
+                                </div>
+
+                                {/* Confidentiality */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="text-gray-400 text-sm">Confidentiality</div>
+                                        <button
+                                            onClick={copyToClipboard}
+                                            disabled={!tos.cert}
+                                            className={`p-1.5 rounded-lg transition-all duration-200 ${
+                                                tos.cert 
+                                                    ? 'hover:bg-morphic-primary/10 text-morphic-primary/80 hover:text-morphic-primary' 
+                                                    : 'text-gray-500 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            {isCertCopied ? (
+                                                <Check className="h-4 w-4" />
+                                            ) : (
+                                                <Copy className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="relative">
+                                        <pre 
+                                            className="font-mono text-sm text-morphic-primary/90 whitespace-pre-wrap break-words 
+                                            overflow-auto max-h-[120px] rounded-lg px-4 py-3 bg-gray-900/30
+                                            [&::-webkit-scrollbar]:w-2
+                                            [&::-webkit-scrollbar-track]:rounded-r-lg
+                                            [&::-webkit-scrollbar-track]:bg-gray-900/20
+                                            [&::-webkit-scrollbar-thumb]:bg-morphic-primary/20
+                                            [&::-webkit-scrollbar-thumb]:rounded-full
+                                            [&::-webkit-scrollbar-thumb]:border-2
+                                            [&::-webkit-scrollbar-thumb]:border-transparent
+                                            hover:[&::-webkit-scrollbar-thumb]:bg-morphic-primary/30
+                                            transition-all duration-200"
+                                        >
+                                            {tos.cert || 'Certificate not available'}
+                                        </pre>
+                                        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-800/30 to-transparent pointer-events-none rounded-b-lg" />
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
 
@@ -366,7 +365,7 @@ const TosDetail: React.FC = () => {
                             <h2 className="text-xl font-semibold text-white mb-4">Operators</h2>
                             <div className="space-y-2">
                                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
-                                    {tosOperators.map(operator => (
+                                    {currentOperators.map(operator => (
                                         <ThinOperatorCard key={operator.id} operator={operator} />
                                     ))}
                                 </div>

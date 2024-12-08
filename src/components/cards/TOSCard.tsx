@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ExternalLink, Coins, Users, Star, ThumbsUp } from 'lucide-react';
-import { TOS } from '../../data/define';
+import { TOS, TosStatus } from '../../data/define';
 
 interface TOSCardProps {
     tos: TOS;
@@ -27,13 +27,13 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                     />
                     <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
-                            tos.status === 'active' 
+                            tos.status === TosStatus.Active 
                                 ? 'bg-green-500/20 text-green-500'
-                                : tos.status === 'waiting'
+                                : tos.status === TosStatus.Waiting
                                 ? 'bg-yellow-500/20 text-yellow-500'
                                 : 'bg-gray-500/20 text-gray-500'
                         }`}>
-                            {tos.status}
+                            {TosStatus[tos.status].toLowerCase()}
                         </span>
                         {tos.id && (  // 添加条件检查
                             <div className="flex items-center space-x-2">
@@ -66,11 +66,11 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                     </div>
                     <div className="flex items-center text-gray-400">
                         <Users className="h-4 w-4 mr-2" />
-                        <span className="text-sm">{tos.operators?.length} Operators</span>
+                        <span className="text-sm">{Object.keys(tos.vm_ids || {}).length} Operators</span>
                     </div>
                     <div className="flex items-center text-gray-400">
                         <Star className="h-4 w-4 mr-2" />
-                        <span className="text-sm">{tos.stakers} Stakers</span>
+                        <span className="text-sm">{tos.num_stakers} Stakers</span>
                     </div>
                     <div className="flex items-center text-gray-400">
                         <ThumbsUp className="h-4 w-4 mr-2" />

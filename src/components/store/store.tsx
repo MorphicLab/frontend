@@ -2,7 +2,8 @@ import { ethers } from 'ethers';
 import { create } from 'zustand';
 import { createContractInstance } from '../../request/vm';
 import { TOS, Operator, Vm, Agent } from '../../data/define';
-import { TOSStatus } from '../../data/define';
+import { TosStatus } from '../../data/define';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs } from '../../data/mockData';
 
 // Define the store state interface
 interface BlockchainStore {
@@ -15,13 +16,11 @@ interface BlockchainStore {
     fetchTOSs: () => Promise<void>;
     fetchOperators: () => Promise<void>;
     fetchVms: () => Promise<void>;
-    fetchAgents: () => Promise<void>;
     
     // Add methods
     addTOS: (tos: TOS) => void;
     addOperator: (operator: Operator) => void;
     addVm: (vm: Vm) => void;
-    addAgent: (agent: Agent) => void;
     
     // Initialize store
     initializeStore: () => Promise<void>;
@@ -55,30 +54,31 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     logo: tos.logo || DEFAULT_TOS_LOGO,
                     website: tos.website || '',
                     description: tos.description || 'No description available',
-                    operator_types: tos.operator_types || [],
+                    labels: tos.labels || [],
+                    vm_types: tos.vtypes || [],
+                    operator_minimum: Number(tos.operator_minimum),
                     creator: {
                         address: tos.creater,
                         name: tos.creater_name || 'Unknown',
                         logo: tos.creater_logo || DEFAULT_CREATOR_LOGO
                     },
-                    operator_minimum: Number(tos.operator_minimum),
                     vcpus: Number(tos.vcpus),
                     vmemory: Number(tos.vmemory),
                     disk: Number(tos.disk),
                     version: tos.version || '0.1',
-                    code: ethers.hexlify(tos.code),
-                    labels: tos.labels || [],
+                    code: ethers.hexlify(tos.code), // Convert bytes to hex
+                    code_hash: tos.code_hash,
                     dao: tos.dao || ethers.ZeroAddress,
-                    operators: tos.operator_ids || [], // Updated: now using operator_ids
-                    status: Number(tos.status) === 0 ? 'waiting' : 'active' as TOSStatus,
-                    restaked: 0,  // TODO: Calculate from operator staking data
-                    stakers: 0,   // TODO: Calculate from operator staking data
-                    likes: 0,     // TODO: Implement likes system
-                    code_hash: ethers.keccak256(tos.code),
+                    status: Number(tos.status) === 0 ? TosStatus.Waiting : TosStatus.Active,
+                    restaked: Number(tos.restaked) || 0,
+                    cert: tos.cert,
+                    address: tos.addr
                 });
             }
+
+            const allTOS = [...MOCK_TOS, ...fetchedTOSs];
             
-            set({ toss: fetchedTOSs });
+            set({ toss: allTOS });
         } catch (error) {
             console.error('Failed to fetch TOSs:', error);
         }
@@ -96,31 +96,26 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
             for (let i = 0; i < totalOperators; i++) {
                 const op = await contract.get_operator_by_index(i);
                 fetchedOperators.push({
-                    id: op.id,
+                        id: op.id,
                         name: op.name || 'Unnamed Operator',
                         logo: op.logo || DEFAULT_OPERATOR_LOGO,
-                        labels: op.operator_types || [],
+                        labels: op.labels || [],
                         owner: {
                             address: op.owner,
                             name: op.owner_name || 'Unknown',
                             logo: op.owner_logo || DEFAULT_OPERATOR_OWNER_LOGO
                         },
                         location: op.location || '',
-                        create_time: Number(op.create_time),
                         domain: op.domain || '',
                         port: Number(op.port),
                         // Convert TOS IDs to string array
-                        tos_ids: op.tos_ids?.map(id => id.toString()) || [],
-                        staker_ids: op.staker_ids?.map(id => id.toString()) || [],
-                        vm_ids: [],
-                        restaked: 0,  // TODO: Calculate from staking data
-                        num_stakers: op.staker_ids?.length || 0,
-                        num_tos_serving: op.tos_ids?.length || 0,
-                        reputation: 0, // TODO: Implement reputation system
+                        vm_ids: {},  // TODO: Calculate here
                 });
             }
+
+            const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
             
-            set({ operators: fetchedOperators });
+            set({ operators: allOperators });
         } catch (error) {
             console.error('Failed to fetch operators:', error);
         }
@@ -139,37 +134,72 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
             const fetchedVms: Vm[] = [];
             for (let i = 0; i < totalVms; i++) {
                 const vm = await contract.get_vm_by_index(i);
-                fetchedVms.push({
+                // Add null checks for vm.report and its nested objects
+                const vmReport = vm?.report || {};
+                const tosInfo = vmReport?.tos_info || {};
+                const tcbInfo = vmReport?.tcb_info || {};
+                const quote = vmReport?.quote || {};
+    
+                const new_vm = {
                     id: vm.id,
-                    operator: vm.operator,
+                    type: vm.type,
+                    tos_id: vm.tos_id,
+                    operator_id: vm.operator_id,
                     report: {
-                        app_id: vm.report.app_id,
-                        tcb: {
-                            rootfs_hash: vm.report.tcb.rootfs_hash,
-                            mrtd: vm.report.tcb.mrtd,
-                            rtmr0: vm.report.tcb.rtmr0,
-                            rtmr1: vm.report.tcb.rtmr1,
-                            rtmr2: vm.report.tcb.rtmr2,
-                            rtmr3: vm.report.tcb.rtmr3,
+                        tos_info: {
+                            code_hash: tosInfo.code_hash || '',
+                            ca_cert_hash: tosInfo.ca_cert_hash || '',
                         },
-                        certificate: vm.report.certificate,
+                        tcb_info: {
+                            roots_hash: tcbInfo.roots_hash || '',
+                            mrtd: tcbInfo.mrtd || '',
+                            rtmr0: tcbInfo.rtmr0 || '',
+                            rtmr1: tcbInfo.rtmr1 || '',
+                            rtmr2: tcbInfo.rtmr2 || '',
+                            rtmr3: tcbInfo.rtmr3 || '',
+                        },
+                        quote: {
+                            type: quote.type || '',
+                            cpu_svn: quote.cpu_svn || '',
+                            tcb_hash: quote.tcb_hash || '',
+                            td_info_hash: quote.td_info_hash || '',
+                            report_data: quote.report_data || '',
+                            signature: quote.signature || '',
+                        }
                     },
                     status: Number(vm.status),
-                    code_hash: get().toss.find(tos => tos.operators?.includes(vm.operator))?.code_hash
-                });
+                    code_hash: vm.code_hash
+                }
+
+                fetchedVms.push(new_vm);
+
             }
 
-            set({ vms: fetchedVms });
+            const allVms = [...MOCK_VMs, ...fetchedVms];
+
+            for (let i = 0; i < allVms.length; i++) {
+                const vm = allVms[i];
+                const tos = get().toss.find(t => t.id === vm.tos_id);
+                const operator = get().operators.find(op => op.id === vm.operator_id);
+                if (tos) {
+                    if (!tos.vm_ids) tos.vm_ids = {};
+                    tos.vm_ids[vm.operator_id] = tos.vm_ids[vm.operator_id] || [];
+                    tos.vm_ids[vm.operator_id].push(vm.id);
+                }
+                if (operator) {
+                    if (!operator.vm_ids) operator.vm_ids = {};
+                    operator.vm_ids[vm.tos_id] = operator.vm_ids[vm.tos_id] || [];
+                    operator.vm_ids[vm.tos_id].push(vm.id);
+                }
+            }
+
+            set({ vms: allVms });
 
         } catch (error) {
             console.error('Failed to fetch vms:', error);
         }
     },
 
-    fetchAgents: async () => {
-        // TODO: Implement agent fetching logic similar to TOSs and Operators
-        set({ agents: [] });
-    },
 
     addTOS: (tos) => {
         set(state => ({ 
@@ -199,7 +229,6 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         await get().fetchOperators();
         await get().fetchTOSs();
         await get().fetchVms();
-        await get().fetchAgents();
     },
 }));
 

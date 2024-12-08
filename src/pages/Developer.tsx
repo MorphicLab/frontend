@@ -20,8 +20,6 @@ import { AgentCard } from '../components/cards/AgentCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import {
     MOCK_TOS,
-    MOCK_OPERATORS,
-    MOCK_AGENTS,
     tosLabels,
     operatorLabels,
     agentLabels,
@@ -32,7 +30,7 @@ import {
 import { ethers } from 'ethers';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
-import { TOS, Operator, Agent } from '../data/define';
+import { TOS, Operator, Agent, Vm, TosStatus, VmStatus, AgentStatus } from '../data/define';
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
 import { deployAgent } from '../request/operator'; 
 import { useBlockchainStore } from '../components/store/store';
@@ -113,7 +111,7 @@ const Developer: React.FC = () => {
         name: '',
         logo: DEFAULT_TOS_LOGO,
         description: '',
-        operator_types: [],
+        vm_types: [],
         creator: {
             address: '',
             name: '',
@@ -124,16 +122,13 @@ const Developer: React.FC = () => {
         vmemory: 1,
         disk: 10,
         version: '',
-        dao: '',
         labels: [],
         website: '',
         code: '',
-        operators: [],
-        vms: [],
         restaked: 0,
-        stakers: 0,
+        num_stakers: 0,
         likes: 0,
-        status: 'waiting',
+        status: TosStatus.Waiting,
     });
 
     // Add deploy related state
@@ -141,37 +136,31 @@ const Developer: React.FC = () => {
     const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
 
     // Add operator form state
-    const [operatorFormState, setOperatorFormState] = useState<Operator>({
-        id: '',
-        name: '',
-        logo: DEFAULT_OPERATOR_LOGO,
-        labels: [] as string[],
-        description: '',
-        owner: {
-            address: '',
+    const [operatorFormState, setOperatorFormState] = useState<Operator>(
+        {
+            id: '',
             name: '',
-            logo: DEFAULT_OPERATOR_OWNER_LOGO
-        },
-        location: '',
-        create_time: 0,
-        domain: '',
-        port: 8000,
-        restaked: 132,
-        num_stakers: 1000,
-        num_tos_serving: 1,
-        reputation: 0,
-        code_hash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-        tos_ids: [], // Initialize empty tos_ids array
-    });
+            logo: DEFAULT_OPERATOR_LOGO,
+            labels: [],
+            description: '',
+            owner: {
+                address: '',
+                name: '',
+                logo: DEFAULT_OPERATOR_OWNER_LOGO  // 使用常量
+            },
+            location: '',
+            domain: '',
+            port: 8000,
+        }
+    );
 
     // Add operator form validation
     const [operatorFormErrors, setOperatorFormErrors] = useState({
         name: false,
-        operator_types: false,
+        vm_types: false,
         domain: false
     });
 
-    const morphicAITOS = MOCK_TOS.find(tos => tos.name === 'Morphic AI');
     const availableOperators = useMemo(() => {
         const registeredOperators = useBlockchainStore.getState().operators;
         return [...registeredOperators];
@@ -188,7 +177,7 @@ const Developer: React.FC = () => {
         readme: '',
         users: '0',
         rating: 0,
-        status: 'offline',
+        status: AgentStatus.Offline,
         model_type: '',
         memory_requirement: '',
         storage_requirement: '',
@@ -242,19 +231,19 @@ const Developer: React.FC = () => {
             const tx = await contract.create_tos(
                 tosFormState.name,
                 tosFormState.logo,
-                tosFormState.website || '',
+                tosFormState.website,
                 tosFormState.description,
-                tosFormState.operator_types,
+                tosFormState.labels,
+                tosFormState.vm_types,
+                tosFormState.operator_minimum,
                 tosFormState.creator.name,
                 tosFormState.creator.logo,
-                tosFormState.operator_minimum,
                 tosFormState.vcpus,
                 tosFormState.vmemory,
                 tosFormState.disk,
                 tosFormState.version,
                 dockerComposeBytes,
-                tosFormState.labels,
-                tosFormState.dao || ethers.ZeroAddress
+                tosFormState.dao || ethers.ZeroAddress,
             );
     
             console.log('Transaction sent:', tx.hash);
@@ -269,7 +258,7 @@ const Developer: React.FC = () => {
     
         } catch (error: any) {
             console.error('Failed to register TOS:', error);
-            alert(`注册失败: ${error.message || '未知错误'}`);
+            alert(`Registration failed: ${error.message || 'Unknown error'}`);
         }
     };
 
@@ -335,15 +324,13 @@ const Developer: React.FC = () => {
                 operatorFormState.name,
                 operatorFormState.logo || DEFAULT_OPERATOR_LOGO,
                 operatorFormState.labels,
+                operatorFormState.description,
                 contract?.runner?.address, // Use connected wallet as owner
                 operatorFormState.owner.name || '',
                 operatorFormState.owner.logo || DEFAULT_OPERATOR_OWNER_LOGO,
                 operatorFormState.location || '',
                 operatorFormState.domain || '',
                 Number(operatorFormState.port), // Ensure numeric
-                {
-                    gasLimit: 3000000 // 添加 gas 限制
-                }
             );
             
             // Wait for transaction to be mined
@@ -756,23 +743,23 @@ const Developer: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-2">
-                                                Operator Types
+                                                Vm Types
                                             </label>
                                             <div className="flex flex-wrap gap-2">
                                                 {operatorLabels.map(label => (
                                                     <button
                                                         key={label}
                                                         onClick={() => {
-                                                            const newTypes = tosFormState.operator_types.includes(label)
-                                                                ? tosFormState.operator_types.filter(t => t !== label)
-                                                                : [...tosFormState.operator_types, label];
+                                                            const newTypes = tosFormState.vm_types.includes(label)
+                                                                ? tosFormState.vm_types.filter(t => t !== label)
+                                                                : [...tosFormState.vm_types, label];
                                                             setTosFormState(prev => ({
                                                                 ...prev,
-                                                                operator_types: newTypes
+                                                                vm_types: newTypes
                                                             }));
                                                         }}
                                                         className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                                            tosFormState.operator_types.includes(label)
+                                                            tosFormState.vm_types.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                         }`}
@@ -1235,7 +1222,7 @@ const Developer: React.FC = () => {
                                                     </button>
                                                 ))}
                                             </div>
-                                            {operatorFormErrors.operator_types && (
+                                            {operatorFormErrors.vm_types && (
                                                 <p className="mt-1 text-sm text-red-500">Select at least one operator type</p>
                                             )}
                                         </div>
@@ -1586,7 +1573,7 @@ const Developer: React.FC = () => {
                 labels: [],
                 users: '0',
                 rating: 0,
-                status: 'offline',
+                status: AgentStatus.Offline,
                 memory_requirement: agentFormState.memory_requirement,
                 storage_requirement: agentFormState.storage_requirement,
                 dao_contract: agentFormState.dao_contract || undefined,
@@ -1815,7 +1802,7 @@ const Developer: React.FC = () => {
                         logo: MOCK_MORPHIC_AI_TOS.logo || DEFAULT_TOS_LOGO,
                         website: MOCK_MORPHIC_AI_TOS.website || '',
                         description: MOCK_MORPHIC_AI_TOS.description || '',
-                        operator_types: MOCK_MORPHIC_AI_TOS.operator_types || [],
+                        vm_types: MOCK_MORPHIC_AI_TOS.vm_types || [],
                         creator: {
                             address: MOCK_MORPHIC_AI_TOS.creator?.address || '',
                             name: MOCK_MORPHIC_AI_TOS.creator?.name || '',
@@ -1829,12 +1816,7 @@ const Developer: React.FC = () => {
                         code: '',
                         labels: MOCK_MORPHIC_AI_TOS.labels || [],
                         dao: MOCK_MORPHIC_AI_TOS.dao || '',
-                        operators: [],
-                        vms: [],
-                        restaked: 0,
-                        stakers: 0,
-                        likes: 0,
-                        status: 'waiting',
+                        status: MOCK_MORPHIC_AI_TOS.status,
                     });
 
                     // 显示提示信息
@@ -1856,28 +1838,18 @@ const Developer: React.FC = () => {
                     setOperatorFormState({
                         ...MOCK_MORPHIC_OPERATOR,
                         // Override some fields to make them unique
-                        id: `0x${Math.random().toString(16).slice(2)}`,
                         name: `${MOCK_MORPHIC_OPERATOR.name}_${Math.floor(Math.random() * 1000)}`,
                         logo: MOCK_MORPHIC_OPERATOR.logo || DEFAULT_OPERATOR_LOGO,
+                        labels: MOCK_MORPHIC_OPERATOR.labels || [],
+                        description: MOCK_MORPHIC_OPERATOR.description || '',
                         owner: {
                             address: MOCK_MORPHIC_OPERATOR.owner?.address || '',
                             name: MOCK_MORPHIC_OPERATOR.owner?.name || '',
                             logo: MOCK_MORPHIC_OPERATOR.owner?.logo || DEFAULT_OPERATOR_OWNER_LOGO
                         },
-                        description: MOCK_MORPHIC_OPERATOR.description || '',
                         location: MOCK_MORPHIC_OPERATOR.location || '',
-                        create_time: Date.now(),
                         domain: MOCK_MORPHIC_OPERATOR.domain || '',
                         port: MOCK_MORPHIC_OPERATOR.port || 8000,
-                        labels: MOCK_MORPHIC_OPERATOR.labels || [],
-                        staker_ids: [],
-                        tos_ids: MOCK_MORPHIC_OPERATOR.tos_ids || [],
-                        vm_ids: [],
-                        restaked: 0,
-                        num_stakers: 0,
-                        num_tos_serving: 0,
-                        reputation: 0,
-                        code_hash: MOCK_MORPHIC_OPERATOR.code_hash || '',
                     });
 
                     // 显示提示信息
@@ -1899,14 +1871,12 @@ const Developer: React.FC = () => {
                     setAgentFormState({
                         ...MOCK_MORPHIC_AGENT,
                         // Override some fields to make them unique
-                        id: Math.random(),
                         owner: MOCK_MORPHIC_AGENT.owner || '',
                         name: `${MOCK_MORPHIC_AGENT.name}_${Math.floor(Math.random() * 1000)}`,
                         logo: MOCK_MORPHIC_AGENT.logo || DEFAULT_AGENT_LOGO,
                         labels: MOCK_MORPHIC_AGENT.labels || [],
                         description: MOCK_MORPHIC_AGENT.description || '',
                         capabilities: MOCK_MORPHIC_AGENT.capabilities || [],
-                        num_operators: MOCK_MORPHIC_AI_TOS.operators?.length || 0,
                     });
                     
                     // 显示提示信息

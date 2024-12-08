@@ -2,7 +2,7 @@ import React, { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageBackground from '../components/PageBackground';
-import { MOCK_TOS, tosLabels } from '../data/mockData';
+import { tosLabels } from '../data/mockData';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { useBlockchainStore } from '../components/store/store';
@@ -16,19 +16,8 @@ const TosServices: React.FC = () => {
         useBlockchainStore.getState().initializeStore();
       }, []);
 
-    const registeredTOS = useBlockchainStore(state => state.toss);
-
-    // 合并所有来源的 TOS 数据
-    const allTOS = useMemo(() => {
-        return [...MOCK_TOS, ...registeredTOS];
-    }, [registeredTOS]);
-
-    // 计算Operators总数
-    const totalOperators = useMemo(() => {
-        return allTOS.reduce((sum, tos) => {
-            return sum + (tos.operators?.length || 0);
-        }, 0);
-    }, [allTOS]);
+    const allTOS = useBlockchainStore(state => state.toss);
+    const allOperators = useBlockchainStore(state => state.operators);
 
     // 使用搜索和过滤 hook
     const {
@@ -73,7 +62,7 @@ const TosServices: React.FC = () => {
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                {totalOperators}
+                                {allOperators.length}
                             </div>
                             <div className="text-morphic-light/80">Active Operators</div>
                         </div>

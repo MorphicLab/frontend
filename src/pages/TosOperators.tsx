@@ -16,11 +16,8 @@ const TosOperators: React.FC = () => {
       }, []);
 
     // Get registered operators from the store
-    const registeredOperators = useBlockchainStore(state => state.operators);
+    const allOperators = useBlockchainStore(state => state.operators);
 
-    const allOperators = useMemo(() => {
-        return [...MOCK_OPERATORS, ...registeredOperators];
-    }, [registeredOperators]);
 
     const {
         search,
