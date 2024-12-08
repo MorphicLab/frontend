@@ -55,13 +55,13 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     logo: tos.logo || DEFAULT_TOS_LOGO,
                     website: tos.website || '',
                     description: tos.description || 'No description available',
-                    operatorTypes: tos.operator_types || [],
+                    operator_types: tos.operator_types || [],
                     creator: {
                         address: tos.creater,
                         name: tos.creater_name || 'Unknown',
                         logo: tos.creater_logo || DEFAULT_CREATOR_LOGO
                     },
-                    operatorMinimum: Number(tos.operator_minimum),
+                    operator_minimum: Number(tos.operator_minimum),
                     vcpus: Number(tos.vcpus),
                     vmemory: Number(tos.vmemory),
                     disk: Number(tos.disk),
@@ -74,7 +74,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     restaked: 0,  // TODO: Calculate from operator staking data
                     stakers: 0,   // TODO: Calculate from operator staking data
                     likes: 0,     // TODO: Implement likes system
-                    codeHash: ethers.keccak256(tos.code),
+                    code_hash: ethers.keccak256(tos.code),
                 });
             }
             
@@ -114,8 +114,8 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                         staker_ids: op.staker_ids?.map(id => id.toString()) || [],
                         vm_ids: [],
                         restaked: 0,  // TODO: Calculate from staking data
-                        numStakers: op.staker_ids?.length || 0,
-                        numTosServing: op.tos_ids?.length || 0,
+                        num_stakers: op.staker_ids?.length || 0,
+                        num_tos_serving: op.tos_ids?.length || 0,
                         reputation: 0, // TODO: Implement reputation system
                 });
             }
@@ -142,20 +142,20 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                 fetchedVms.push({
                     id: vm.id,
                     operator: vm.operator,
-                    vm_report: {
-                        app_id: vm.vm_report.app_id,
+                    report: {
+                        app_id: vm.report.app_id,
                         tcb: {
-                            rootfs_hash: vm.vm_report.tcb.rootfs_hash,
-                            mrtd: vm.vm_report.tcb.mrtd,
-                            rtmr0: vm.vm_report.tcb.rtmr0,
-                            rtmr1: vm.vm_report.tcb.rtmr1,
-                            rtmr2: vm.vm_report.tcb.rtmr2,
-                            rtmr3: vm.vm_report.tcb.rtmr3,
+                            rootfs_hash: vm.report.tcb.rootfs_hash,
+                            mrtd: vm.report.tcb.mrtd,
+                            rtmr0: vm.report.tcb.rtmr0,
+                            rtmr1: vm.report.tcb.rtmr1,
+                            rtmr2: vm.report.tcb.rtmr2,
+                            rtmr3: vm.report.tcb.rtmr3,
                         },
-                        certificate: vm.vm_report.certificate,
+                        certificate: vm.report.certificate,
                     },
                     status: Number(vm.status),
-                    codeHash: get().toss.find(tos => tos.operators?.includes(vm.operator))?.codeHash
+                    code_hash: get().toss.find(tos => tos.operators?.includes(vm.operator))?.code_hash
                 });
             }
 

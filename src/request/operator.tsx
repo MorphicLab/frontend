@@ -10,7 +10,7 @@ function formatDockerCompose(content: string): string {
 
 
 // 部署agent到operator的接口
-export async function deployAgent(agent: Agent, operatorDomain: string, operatorPort: number, dockerCompose: string): Promise<boolean> {
+export async function deployAgent(agent: Agent, operatorDomain: string, operatorPort: number, docker_compose: string): Promise<boolean> {
     if (import.meta.env.VITE_OFF_CHAIN_API_MOCK == true) {
         return true; // for test
     }
@@ -25,7 +25,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
             body: JSON.stringify({
                 name: AGENT_PREFIX + agent.name,
                 image: 'dstack-dev-0.3.0',
-                compose_file: formatDockerCompose(dockerCompose),
+                compose_file: formatDockerCompose(docker_compose),
                 vcpu: 1,
                 memory: 1024,
                 disk_size: 20,
@@ -64,12 +64,12 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
                 users: '0',
                 rating: 0,
                 status: 'offline',
-                modelType: 'GPT-4',
-                memoryRequirement: '2GB',
-                storageRequirement: '200GB',
-                daoContract: '0xMockDAOContractAddress',
+                model_type: 'GPT-4',
+                memory_requirement: '2GB',
+                storage_requirement: '200GB',
+                dao_contract: '0xMockDAOContractAddress',
                 visibility: 'public',
-                dockerCompose: '',
+                docker_compose: '',
             }
         ];
     }
@@ -99,10 +99,10 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
                 users: '0',
                 rating: 0,
                 status: vm.status,
-                modelType: '',
-                memoryRequirement: `${vm.configuration.memory}MB`,
-                storageRequirement: `${vm.configuration.disk_size}GB`,
-                daoContract: '',
+                model_type: '',
+                memory_requirement: `${vm.configuration.memory}MB`,
+                storage_requirement: `${vm.configuration.disk_size}GB`,
+                dao_contract: '',
                 visibility: ''
             }));
         

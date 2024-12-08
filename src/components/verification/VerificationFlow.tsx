@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TOS, Operator, Vm } from '../../data/mockData';
 import { Users, Coins, Star, MapPin, Cpu } from 'lucide-react';
@@ -12,134 +12,245 @@ interface VerificationFlowProps {
 
 export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     tos,
-    operators,
+    operators: operatorsList,
     vms,
     onClose
 }) => {
+    const [expandedSections, setExpandedSections] = useState<{[key: string]: {quote: boolean, tcb: boolean}}>({});
     const containerRef = useRef<HTMLDivElement>(null);
-    const tosHashRef = useRef<HTMLDivElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const operatorsRef = useRef<HTMLDivElement>(null);
+    const tosHashRef = useRef<HTMLDivElement>(null);
+    const [isDrawing, setIsDrawing] = useState(false);
 
-    useEffect(() => {
+    const toggleSection = (operatorId: string, section: 'quote' | 'tcb') => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [operatorId]: {
+                ...prev[operatorId],
+                [section]: !prev[operatorId]?.[section]
+            }
+        }));
+    };
+
+    // Draw connections between elements
+    const drawConnections = useCallback(() => {
+        if (!canvasRef.current || !containerRef.current) return;
+
+        const canvas = canvasRef.current;
         const container = containerRef.current;
-        const operatorsContainer = operatorsRef.current;
-        if (!container || !operatorsContainer) return;
+        const rect = container.getBoundingClientRect();
 
-        const updateConnections = () => {
-            const tosHash = tosHashRef.current;
-            if (!tosHash) return;
+        // Set canvas size
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
 
-            // 清除现有的连线
-            const existingLines = container.querySelectorAll('.connection-line');
-            existingLines.forEach(line => line.remove());
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-            // 创建主SVG容器
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('class', 'connection-line');
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '10';
+        // Scale context for retina displays
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-            // 创建渐变定义
-            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-            gradient.id = 'line-gradient';
-            gradient.innerHTML = `
-                <stop offset="0%" stop-color="#00D0EC" />
-                <stop offset="100%" stop-color="#46DCE1" />
-            `;
-            defs.appendChild(gradient);
-            svg.appendChild(defs);
+        // Clear previous drawings
+        ctx.clearRect(0, 0, rect.width, rect.height);
 
-            const tosRect = tosHash.getBoundingClientRect();
-            const tosCenter = {
-                x: tosRect.right,
-                y: tosRect.top + tosRect.height / 2
-            };
+        // Get all elements
+        const tosCard = container.querySelector('[data-type="tos"]');
+        const operatorCards = Array.from(container.querySelectorAll('[data-type="operator"]'));
+        const intelElements = Array.from(container.querySelectorAll('[data-type="intel"]'));
 
-            // 为每个可见的operator创建连线
-            const operatorMrtds = operatorsContainer.querySelectorAll('.mrtd-value');
-            operatorMrtds.forEach((mrtd) => {
-                const rect = mrtd.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
+        if (!tosCard || operatorCards.length === 0 || intelElements.length === 0) {
+            return;
+        }
 
-                // 检查是否在视图中
-                if (rect.top < containerRect.bottom && rect.bottom > containerRect.top) {
-                    const targetCenter = {
-                        x: rect.left,
-                        y: rect.top + rect.height / 2
-                    };
+        // Create gradient for line
+        const gradient = ctx.createLinearGradient(rect.width, 0, 0, 0);
+        gradient.addColorStop(0, 'rgba(234, 179, 8, 0.6)');    // 更透明的金色起点
+        gradient.addColorStop(0.3, 'rgba(234, 179, 8, 0.4)');  // 中间过渡色
+        gradient.addColorStop(0.7, 'rgba(234, 179, 8, 0.3)');  // 中间过渡色
+        gradient.addColorStop(1, 'rgba(234, 179, 8, 0.2)');    // 更透明的金色终点
 
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    const startX = tosCenter.x - containerRect.left;
-                    const startY = tosCenter.y - containerRect.top;
-                    const endX = targetCenter.x - containerRect.left;
-                    const endY = targetCenter.y - containerRect.top;
+        // Set line style
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        ctx.lineDashOffset = -performance.now() / 100;
+        
+        // Add shadow for glow effect
+        ctx.shadowColor = 'rgba(234, 179, 8, 0.3)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
 
-                    // 使用平滑的S形曲线
-                    const dx = endX - startX;
-                    const curve = `
-                        M ${startX} ${startY}
-                        C ${startX + dx/3} ${startY},
-                          ${endX - dx/3} ${endY},
-                          ${endX} ${endY}
-                    `;
+        // Draw curved line with additional effects
+        const drawCurvedLine = (startX: number, startY: number, endX: number, endY: number) => {
+            const controlX = (startX + endX) / 2;
+            
+            // Draw glow effect
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.bezierCurveTo(controlX, startY, controlX, endY, endX, endY);
+            ctx.stroke();
 
-                    path.setAttribute('d', curve);
-                    path.setAttribute('stroke', 'url(#line-gradient)');
-                    path.setAttribute('stroke-width', '2');
-                    path.setAttribute('fill', 'none');
-                    path.setAttribute('stroke-dasharray', '4,4');
-                    path.style.filter = 'drop-shadow(0 0 4px rgba(0, 208, 236, 0.5))';
+            // Draw core line with less blur
+            ctx.shadowBlur = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.bezierCurveTo(controlX, startY, controlX, endY, endX, endY);
+            ctx.stroke();
 
-                    // 添加动画
-                    const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-                    animate.setAttribute('attributeName', 'stroke-dashoffset');
-                    animate.setAttribute('from', '8');
-                    animate.setAttribute('to', '0');
-                    animate.setAttribute('dur', '1s');
-                    animate.setAttribute('repeatCount', 'indefinite');
-                    path.appendChild(animate);
-
-                    svg.appendChild(path);
-                }
-            });
-
-            container.appendChild(svg);
+            // Reset shadow
+            ctx.shadowBlur = 5;
         };
 
-        // 监听滚动事件
+        // Calculate relative coordinates
+        const getRelativeCoords = (element: Element) => {
+            const elementRect = element.getBoundingClientRect();
+            return {
+                left: elementRect.left - rect.left,
+                right: elementRect.right - rect.left,
+                top: elementRect.top - rect.top,
+                bottom: elementRect.bottom - rect.top,
+                width: elementRect.width,
+                height: elementRect.height
+            };
+        };
+
+        // Draw connections for each operator
+        operatorCards.forEach((operatorCard) => {
+            const operatorType = operatorCard.getAttribute('data-operator-type');
+
+            // Intel connection for TDX operators
+            if (operatorType === 'TDX') {
+                const intelCard = intelElements[0];
+                const intelCoords = getRelativeCoords(intelCard);
+                const operatorCoords = getRelativeCoords(operatorCard);
+                
+                drawCurvedLine(
+                    intelCoords.left,
+                    intelCoords.top + intelCoords.height / 2,
+                    operatorCoords.right,
+                    operatorCoords.top + 20
+                );
+            }
+
+            // Draw other connections
+            const codeHashElem = operatorCard.querySelector('[data-field="code-hash"]');
+            const tosCodeHashElem = tosCard.querySelector('[data-field="code-hash"]');
+            if (codeHashElem && tosCodeHashElem) {
+                const codeHashCoords = getRelativeCoords(codeHashElem);
+                const tosCodeHashCoords = getRelativeCoords(tosCodeHashElem);
+                drawCurvedLine(
+                    codeHashCoords.left,
+                    codeHashCoords.top + codeHashCoords.height / 2,
+                    tosCodeHashCoords.right,
+                    tosCodeHashCoords.top + tosCodeHashCoords.height / 2
+                );
+            }
+
+            const caCertElem = operatorCard.querySelector('[data-field="ca-cert"]');
+            const tosCertElem = tosCard.querySelector('[data-field="cert"]');
+            if (caCertElem && tosCertElem) {
+                const caCertCoords = getRelativeCoords(caCertElem);
+                const tosCertCoords = getRelativeCoords(tosCertElem);
+                drawCurvedLine(
+                    caCertCoords.left,
+                    caCertCoords.top + caCertCoords.height / 2,
+                    tosCertCoords.right,
+                    tosCertCoords.top + tosCertCoords.height / 2
+                );
+            }
+
+            const reportDataElem = operatorCard.querySelector('[data-field="report-data"]');
+            const tosAddressElem = tosCard.querySelector('[data-field="address"]');
+            if (reportDataElem && tosAddressElem) {
+                const reportDataCoords = getRelativeCoords(reportDataElem);
+                const tosAddressCoords = getRelativeCoords(tosAddressElem);
+                drawCurvedLine(
+                    reportDataCoords.left,
+                    reportDataCoords.top + reportDataCoords.height / 2,
+                    tosAddressCoords.right,
+                    tosAddressCoords.top + tosAddressCoords.height / 2
+                );
+            }
+        });
+
+        requestAnimationFrame(() => drawConnections());
+    }, []);
+
+    // Start drawing after animation
+    useEffect(() => {
+        const animationDelay = 1000;
+        const timer = setTimeout(() => {
+            drawConnections();
+        }, animationDelay);
+
+        return () => clearTimeout(timer);
+    }, [drawConnections]);
+
+    // Handle operator container scroll
+    useEffect(() => {
+        const operatorsContainer = operatorsRef.current;
+        if (!operatorsContainer) return;
+
         const handleScroll = () => {
-            requestAnimationFrame(updateConnections);
+            drawConnections();
         };
 
         operatorsContainer.addEventListener('scroll', handleScroll);
-        
-        // 初始化连线 - 等待动画完成后
-        setTimeout(updateConnections, 500); // 等待0.5秒让动画完成
-        
-        // 添加window resize事件监听
-        window.addEventListener('resize', updateConnections);
-
-        // 清理函数
-        return () => {
-            operatorsContainer.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('resize', updateConnections);
-            const lines = container.querySelectorAll('.connection-line');
-            lines.forEach(line => line.remove());
-        };
-    }, [operators]);
+        return () => operatorsContainer.removeEventListener('scroll', handleScroll);
+    }, [operatorsList, drawConnections]);
 
     const layout = {
-        containerClass: 'justify-center items-start',
-        tosWidth: 'w-[280px]',
-        operatorsWidth: 'w-[320px]',
-        gap: 'gap-20'  // 增加间距
+        containerClass: 'w-full justify-center',
+        tosWidth: 'w-[300px]',
+        operatorsWidth: 'w-[360px]',
+        trustedEntitiesWidth: 'w-[300px]',
+        gap: 'gap-48'
     };
+
+    // 添加自定义滚动条样式
+    const scrollbarStyles = `
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2A4157;
+            border-radius: 2px;
+        }
+        
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #2A4157 transparent;
+        }
+
+        /* 默认隐藏滚动条 */
+        .custom-scrollbar.hide-scrollbar {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .custom-scrollbar.hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* 悬浮时显示滚动条 */
+        .custom-scrollbar.hide-scrollbar:hover {
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;
+        }
+        
+        .custom-scrollbar.hide-scrollbar:hover::-webkit-scrollbar {
+            display: block;
+        }
+    `;
 
     return (
         <div 
@@ -165,25 +276,53 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     scrollbar-color: #2A4157 transparent;
                 }
             `}</style>
+            <style>{scrollbarStyles}</style>
             <motion.div
-                ref={containerRef}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className={`relative ${operators.length <= 4 ? 'w-[80%]' : 'w-[90%]'} h-[85%] 
-                           p-6 bg-[#1B2B3A] rounded-3xl overflow-hidden`}
+                className="relative w-[90%] h-[85%] bg-[#1B2B3A] rounded-3xl overflow-hidden"
+                ref={containerRef}
                 onClick={(e) => {
                     e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation();
                 }}
             >
-                <div className={`flex h-full ${layout.containerClass} ${layout.gap}`}>
+                <div 
+                    className="absolute inset-0"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        zIndex: 1,
+                        pointerEvents: 'none',
+                    }}
+                >
+                    <canvas 
+                        ref={canvasRef}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            zIndex: 1,
+                            opacity: 0.8,  // 降低整体画布透明度
+                        }}
+                    />
+                </div>
+                <div className={`relative h-full flex ${layout.containerClass} ${layout.gap} px-16`}>
                     {/* TOS Card */}
                     <motion.div
-                        initial={{ x: -50, opacity: 0 }}
+                        data-type="tos"
+                        className={`${layout.tosWidth} space-y-2`}
+                        initial={{ x: 50, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
-                        className={`${layout.tosWidth} min-w-[200px]`}
+                        transition={{ duration: 0.5, delay: 0.2 }}
                     >
+                        <div className="text-lg font-bold text-white space-y-4 py-4  mt-4">TOS</div>
                         <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
                             <div className="h-10 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-4">
                                 <span className="text-lg font-bold text-white">{tos.name}</span>
@@ -191,8 +330,24 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                             <div className="p-4">
                                 <div className="tos-hash" ref={tosHashRef}>
                                     <div className="text-sm text-gray-400 mb-1">Code Hash</div>
-                                    <div className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                                        {tos.codeHash?.slice(0, 10)}...{tos.codeHash?.slice(-8)}
+                                    <div data-field="code-hash" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
+                                        {tos.code_hash?.slice(0, 10)}...{tos.code_hash?.slice(-8)}
+                                    </div>
+                                </div>
+                                <div className="mt-3">
+                                    <div className="text-sm text-gray-400 mb-1">Certificate</div>
+                                    <div data-field="cert" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                            {tos.cert || 'Not available'}
+                                        </pre>
+                                    </div>
+                                </div>
+                                <div className="mt-3">
+                                    <div className="text-sm text-gray-400 mb-1">Address</div>
+                                    <div data-field="address" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                            {tos.address || 'Not available'}
+                                        </pre>
                                     </div>
                                 </div>
                             </div>
@@ -202,62 +357,170 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     {/* Operators */}
                     <div 
                         ref={operatorsRef}
-                        className={`${layout.operatorsWidth} h-full overflow-y-auto custom-scrollbar`}
+                        className={`${layout.operatorsWidth} h-full overflow-y-auto custom-scrollbar hide-scrollbar space-y-2`}
+                        initial={{ y: 50, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <div className="space-y-2 pr-2">
-                            {operators.map((operator, index) => (
+                        <div className="text-lg font-bold text-white mb-2 sticky top-0 bg-[#1B2B3A] z-10 space-y-4 py-4  mt-4">Serving Operators</div>
+                        <div className="space-y-4 pr-2">
+                            {operatorsList.map((operator, index) => (
                                 <motion.div
                                     key={operator.id}
+                                    data-type="operator"
+                                    data-operator-type={vms.find(vm => vm.operator === operator.id)?.type === 'TDX' ? 'TDX' : 'UNKNOWN'}
+                                    className="operator-card bg-[#1E3448] rounded-lg overflow-hidden shadow-lg space-y-2"
                                     initial={{ x: 50, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="bg-[#1E3448] rounded-lg overflow-hidden shadow-lg"
+                                    transition={{ delay: 0.4 + index * 0.1 }}
                                 >
                                     <div className="h-9 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-3">
                                         <span className="text-base font-bold text-white">{operator.name}</span>
                                     </div>
-                                    <div className="p-2.5">
-                                        <div className="operator-hash">
-                                            <div className="text-xs text-gray-400 mb-1">TCB Info</div>
+                                    <div className="p-2.5 space-y-1">
+
+                                        {/* TCB Info Section */}
+                                        <div className="tcb-section bg-morphic-primary/5 rounded-lg p-3">
+                                            <div 
+                                                className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
+                                                onClick={() => toggleSection(operator.id, 'tcb')}
+                                            >
+                                                <div className="flex-1">VM Info</div>
+                                                <div className="text-morphic-primary">
+                                                    {expandedSections[operator.id]?.tcb ? '▼' : '▶'}
+                                                </div>
+                                            </div>
                                             <div className="space-y-1.5">
-                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb && (
+                                                {vms.find(vm => vm.operator === operator.id)?.report.tcb && (
                                                     <>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">Rootfs Hash</div>
-                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rootfs_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rootfs_hash?.slice(-8)}
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">MRTD</div>
-                                                            <div className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.mrtd?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.mrtd?.slice(-8)}
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">RTMR0</div>
-                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr0?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr0?.slice(-8)}
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">RTMR1</div>
-                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr1?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr1?.slice(-8)}
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">RTMR2</div>
-                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr2?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr2?.slice(-8)}
-                                                            </div>
-                                                        </div>
+                                                        {/* Default visible field */}
                                                         <div>
                                                             <div className="text-[11px] text-gray-400">RTMR3</div>
                                                             <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr3?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.vm_report.tcb?.rtmr3?.slice(-8)}
+                                                                {vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr3?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr3?.slice(-8)}
                                                             </div>
                                                         </div>
+
+                                                        {/* Expandable fields */}
+                                                        {expandedSections[operator.id]?.tcb && (
+                                                            <>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">Rootfs Hash</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.tcb?.rootfs_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tcb?.rootfs_hash?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">MRTD</div>
+                                                                    <div data-field="mrtd" className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.tcb?.mrtd?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tcb?.mrtd?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">RTMR0</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr0?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr0?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">RTMR1</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr1?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr1?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">RTMR2</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr2?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tcb?.rtmr2?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* TOS Info Section */}
+                                        <div className="tos-section bg-morphic-accent/5 rounded-lg p-3">
+                                            <div className="text-xs text-gray-400 mb-2">TOS Info</div>
+                                            <div className="space-y-1.5">
+                                                {vms.find(vm => vm.operator === operator.id)?.report.tos && (
+                                                    <>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">Code Hash</div>
+                                                            <div data-field="code-hash" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.report.tos?.code_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tos?.code_hash?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">CA-Certificate</div>
+                                                            <div data-field="ca-cert" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.report.tos?.ca_cert_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.tos?.ca_cert_hash?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Quote Section */}
+                                        <div className="quote-section bg-morphic-accent/5 rounded-lg p-3">
+                                            <div 
+                                                className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
+                                                onClick={() => toggleSection(operator.id, 'quote')}
+                                            >
+                                                <div className="flex-1">Quote</div>
+                                                <div className="text-morphic-primary">
+                                                    {expandedSections[operator.id]?.quote ? '▼' : '▶'}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                {vms.find(vm => vm.operator === operator.id)?.report.quote && (
+                                                    <>
+                                                        {/* Default visible fields */}
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">TD info hash</div>
+                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                {vms.find(vm => vm.operator === operator.id)?.report.quote?.td_info_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.quote?.td_info_hash?.slice(-8)}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] text-gray-400">Report data</div>
+                                                            <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
+                                                                {vms.find(vm => vm.operator === operator.id)?.report.quote?.report_data?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.quote?.report_data?.slice(-8)}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Expandable fields */}
+                                                        {expandedSections[operator.id]?.quote && (
+                                                            <>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">Type</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.quote?.type?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.quote?.type?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">Cpu svn</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.quote?.cpu_svn?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.quote?.cpu_svn?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">TCB hash</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.quote?.tcb_hash?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.quote?.tcb_hash?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[11px] text-gray-400">Signature</div>
+                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                        {vms.find(vm => vm.operator === operator.id)?.report.quote?.signature?.slice(0, 10)}...{vms.find(vm => vm.operator === operator.id)?.report.quote?.signature?.slice(-8)}
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </>
                                                 )}
                                             </div>
@@ -267,6 +530,73 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                             ))}
                         </div>
                     </div>
+
+                    {/* Trusted Entities */}
+                    <motion.div 
+                        initial={{ x: 50, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className={layout.trustedEntitiesWidth + ' flex flex-col items-start space-y-2'}  
+                    >
+                        <div className="text-lg font-bold text-white space-y-4 py-4 mt-4">Decentralized Trust Roots</div>
+                        <div className="space-y-16 w-full">  
+                            {/* Ethereum Blockchain */}
+                            <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
+                                <div className="h-10 bg-gradient-to-r from-yellow-500/30 to-yellow-300/30 flex items-center px-4">
+                                    <Coins className="w-5 h-5 text-morphic-primary mr-2" />
+                                    <span className="text-base font-bold text-white">Ethereum</span>
+                                </div>
+                                <div className="p-3">
+                                    <div className="text-[11px] text-gray-400">Chain ID</div>
+                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                        1 (Mainnet)
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Intel Card */}
+                            <div data-type="intel" className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
+                                <div className="h-10 bg-gradient-to-r from-yellow-500/30 to-yellow-300/30 flex items-center px-4">
+                                    <Cpu className="w-5 h-5 text-morphic-primary mr-2" />
+                                    <span className="text-base font-bold text-white">Intel</span>
+                                </div>
+                                <div className="p-3">
+                                    <div className="text-[11px] text-gray-400">Product</div>
+                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                        TDX, SGX
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* AMD Card */}
+                            <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
+                                <div className="h-10 bg-gradient-to-r from-yellow-500/30 to-yellow-300/30 flex items-center px-4">
+                                    <Cpu className="w-5 h-5 text-morphic-primary mr-2" />
+                                    <span className="text-base font-bold text-white">AMD</span>
+                                </div>
+                                <div className="p-3">
+                                    <div className="text-[11px] text-gray-400">Product</div>
+                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                        SEV
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* NVIDIA Card */}
+                            <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
+                                <div className="h-10 bg-gradient-to-r from-yellow-500/30 to-yellow-300/30 flex items-center px-4">
+                                    <Cpu className="w-5 h-5 text-morphic-primary mr-2" />
+                                    <span className="text-base font-bold text-white">NVIDIA</span>
+                                </div>
+                                <div className="p-3">
+                                    <div className="text-[11px] text-gray-400">Product</div>
+                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                        H100, H200
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
             </motion.div>
         </div>

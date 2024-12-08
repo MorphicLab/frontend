@@ -103,7 +103,7 @@ const Developer: React.FC = () => {
     const [formErrors, setFormErrors] = useState({
         name: false,
         description: false,
-        dockerCompose: false,
+        docker_compose: false,
         readme: false,
     });
 
@@ -113,13 +113,13 @@ const Developer: React.FC = () => {
         name: '',
         logo: DEFAULT_TOS_LOGO,
         description: '',
-        operatorTypes: [],
+        operator_types: [],
         creator: {
             address: '',
             name: '',
             logo: DEFAULT_CREATOR_LOGO  // 使用常量
         },
-        operatorMinimum: 10,
+        operator_minimum: 10,
         vcpus: 1,
         vmemory: 1,
         disk: 10,
@@ -157,10 +157,10 @@ const Developer: React.FC = () => {
         domain: '',
         port: 8000,
         restaked: 132,
-        numStakers: 1000,
-        numTosServing: 1,
+        num_stakers: 1000,
+        num_tos_serving: 1,
         reputation: 0,
-        codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+        code_hash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
         tos_ids: [], // Initialize empty tos_ids array
     });
 
@@ -189,20 +189,20 @@ const Developer: React.FC = () => {
         users: '0',
         rating: 0,
         status: 'offline',
-        modelType: '',
-        memoryRequirement: '',
-        storageRequirement: '',
-        daoContract: '',
+        model_type: '',
+        memory_requirement: '',
+        storage_requirement: '',
+        dao_contract: '',
         visibility: '',
-        dockerCompose: '',
+        docker_compose: '',
     });
 
     // Add agent form validation state
     const [agentFormErrors, setAgentFormErrors] = useState({
         name: false,
         description: false,
-        modelType: false,
-        dockerCompose: false,
+        model_type: false,
+        docker_compose: false,
         readme: false
     });
 
@@ -220,12 +220,12 @@ const Developer: React.FC = () => {
         const errors = {
             name: !tosFormState.name.trim(),
             description: !tosFormState.description?.trim(),
-            dockerCompose: !tosFile
+            docker_compose: !tosFile
         };
         
         setFormErrors(errors);
     
-        if (errors.name || errors.description || errors.dockerCompose) {
+        if (errors.name || errors.description || errors.docker_compose) {
             return;
         }
     
@@ -244,10 +244,10 @@ const Developer: React.FC = () => {
                 tosFormState.logo,
                 tosFormState.website || '',
                 tosFormState.description,
-                tosFormState.operatorTypes,
+                tosFormState.operator_types,
                 tosFormState.creator.name,
                 tosFormState.creator.logo,
-                tosFormState.operatorMinimum,
+                tosFormState.operator_minimum,
                 tosFormState.vcpus,
                 tosFormState.vmemory,
                 tosFormState.disk,
@@ -457,7 +457,7 @@ const Developer: React.FC = () => {
                 // 清除docker-compose错误状态
                 setFormErrors(prev => ({
                     ...prev,
-                    dockerCompose: false
+                    docker_compose: false
                 }));
             } else {
                 alert('Please upload YAML format file');
@@ -763,16 +763,16 @@ const Developer: React.FC = () => {
                                                     <button
                                                         key={label}
                                                         onClick={() => {
-                                                            const newTypes = tosFormState.operatorTypes.includes(label)
-                                                                ? tosFormState.operatorTypes.filter(t => t !== label)
-                                                                : [...tosFormState.operatorTypes, label];
+                                                            const newTypes = tosFormState.operator_types.includes(label)
+                                                                ? tosFormState.operator_types.filter(t => t !== label)
+                                                                : [...tosFormState.operator_types, label];
                                                             setTosFormState(prev => ({
                                                                 ...prev,
-                                                                operatorTypes: newTypes
+                                                                operator_types: newTypes
                                                             }));
                                                         }}
                                                         className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                                            tosFormState.operatorTypes.includes(label)
+                                                            tosFormState.operator_types.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
                                                         }`}
@@ -798,7 +798,7 @@ const Developer: React.FC = () => {
                                                 <button
                                                     onClick={() => tosFileInputRef.current?.click()}
                                                     className={`px-4 py-2 rounded-lg flex items-center ${
-                                                        formErrors.dockerCompose 
+                                                        formErrors.docker_compose 
                                                             ? 'bg-red-500/20 text-red-500 border border-red-500'
                                                             : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
                                                     }`}
@@ -810,7 +810,7 @@ const Developer: React.FC = () => {
                                                     {tosFile ? tosFile.name : 'No file selected'}
                                                 </span>
                                             </div>
-                                            {formErrors.dockerCompose && (
+                                            {formErrors.docker_compose && (
                                                 <p className="mt-1 text-sm text-red-500">Docker compose file is required</p>
                                             )}
                                         </div>
@@ -867,8 +867,8 @@ const Developer: React.FC = () => {
                                             </label>
                                             <select
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                value={tosFormState.operatorMinimum}
-                                                onChange={(e) => handleInputChange('operatorMinimum', parseInt(e.target.value))}
+                                                value={tosFormState.operator_minimum}
+                                                onChange={(e) => handleInputChange('operator_minimum', parseInt(e.target.value))}
                                             >
                                                 {[1, 10, 30, 50].map(num => (
                                                     <option key={num} value={num}>{num} Operator{num > 1 ? 's' : ' (testing)'}</option>
@@ -1345,7 +1345,7 @@ const Developer: React.FC = () => {
                                             <button
                                                 onClick={() => agentFileInputRef.current?.click()}
                                                 className={`px-4 py-2 rounded-lg flex items-center ${
-                                                    agentFormErrors.dockerCompose 
+                                                    agentFormErrors.docker_compose 
                                                         ? 'bg-red-500/20 text-red-500 border border-red-500'
                                                         : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
                                                 }`}
@@ -1439,8 +1439,8 @@ const Developer: React.FC = () => {
                                                 </label>
                                                 <select 
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    value={agentFormState.memoryRequirement}
-                                                    onChange={(e) => handleAgentInputChange('memoryRequirement', e.target.value)}
+                                                    value={agentFormState.memory_requirement}
+                                                    onChange={(e) => handleAgentInputChange('memory_requirement', e.target.value)}
                                                 >
                                                     <option value={'2G'}>2G</option>
                                                     <option value={'4G'}>4G</option>
@@ -1454,8 +1454,8 @@ const Developer: React.FC = () => {
                                                 </label>
                                                 <select 
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                                                    value={agentFormState.storageRequirement}
-                                                    onChange={(e) => handleAgentInputChange('storageRequirement', e.target.value)}
+                                                    value={agentFormState.storage_requirement}
+                                                    onChange={(e) => handleAgentInputChange('storage_requirement', e.target.value)}
                                                 >
                                                     <option value={'20G'}>20G</option>
                                                     <option value={'50G'}>50G</option>
@@ -1477,8 +1477,8 @@ const Developer: React.FC = () => {
                                             type="text"
                                             className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                             placeholder="0x..."
-                                            value={agentFormState.daoContract}
-                                            onChange={(e) => handleAgentInputChange('daoContract', e.target.value)}
+                                            value={agentFormState.dao_contract}
+                                            onChange={(e) => handleAgentInputChange('dao_contract', e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -1569,7 +1569,7 @@ const Developer: React.FC = () => {
             }
 
             // 准备 docker-compose 数据
-            const dockerCompose = agentFile ? await agentFile.text() : '';
+            const docker_compose = agentFile ? await agentFile.text() : '';
             const readme = agentReadmeFile ? await agentReadmeFile.text() : '';
             
 
@@ -1581,16 +1581,16 @@ const Developer: React.FC = () => {
                 description: agentFormState.description,
                 readme: readme,
                 visibility: agentFormState.visibility,
-                modelType: agentFormState.modelType,
+                model_type: agentFormState.model_type,
                 logo: '/images/agent-default-logo.png',
                 labels: [],
                 users: '0',
                 rating: 0,
                 status: 'offline',
-                memoryRequirement: agentFormState.memoryRequirement,
-                storageRequirement: agentFormState.storageRequirement,
-                daoContract: agentFormState.daoContract || undefined,
-                dockerCompose: dockerCompose,
+                memory_requirement: agentFormState.memory_requirement,
+                storage_requirement: agentFormState.storage_requirement,
+                dao_contract: agentFormState.dao_contract || undefined,
+                docker_compose: docker_compose,
             };
     
             // 调用deployAgent接口
@@ -1598,7 +1598,7 @@ const Developer: React.FC = () => {
                 agentData,
                 operator.domain,
                 operator.port,
-                dockerCompose || '',
+                docker_compose || '',
             );
 
             if (response) {
@@ -1815,13 +1815,13 @@ const Developer: React.FC = () => {
                         logo: MOCK_MORPHIC_AI_TOS.logo || DEFAULT_TOS_LOGO,
                         website: MOCK_MORPHIC_AI_TOS.website || '',
                         description: MOCK_MORPHIC_AI_TOS.description || '',
-                        operatorTypes: MOCK_MORPHIC_AI_TOS.operatorTypes || [],
+                        operator_types: MOCK_MORPHIC_AI_TOS.operator_types || [],
                         creator: {
                             address: MOCK_MORPHIC_AI_TOS.creator?.address || '',
                             name: MOCK_MORPHIC_AI_TOS.creator?.name || '',
                             logo: MOCK_MORPHIC_AI_TOS.creator?.logo || DEFAULT_CREATOR_LOGO
                         },
-                        operatorMinimum: MOCK_MORPHIC_AI_TOS.operatorMinimum || 1,
+                        operator_minimum: MOCK_MORPHIC_AI_TOS.operator_minimum || 1,
                         vcpus: MOCK_MORPHIC_AI_TOS.vcpus || 1,
                         vmemory: MOCK_MORPHIC_AI_TOS.vmemory || 1,
                         disk: MOCK_MORPHIC_AI_TOS.disk || 10,
@@ -1874,10 +1874,10 @@ const Developer: React.FC = () => {
                         tos_ids: MOCK_MORPHIC_OPERATOR.tos_ids || [],
                         vm_ids: [],
                         restaked: 0,
-                        numStakers: 0,
-                        numTosServing: 0,
+                        num_stakers: 0,
+                        num_tos_serving: 0,
                         reputation: 0,
-                        codeHash: MOCK_MORPHIC_OPERATOR.codeHash || '',
+                        code_hash: MOCK_MORPHIC_OPERATOR.code_hash || '',
                     });
 
                     // 显示提示信息
@@ -1906,7 +1906,7 @@ const Developer: React.FC = () => {
                         labels: MOCK_MORPHIC_AGENT.labels || [],
                         description: MOCK_MORPHIC_AGENT.description || '',
                         capabilities: MOCK_MORPHIC_AGENT.capabilities || [],
-                        numOperators: MOCK_MORPHIC_AI_TOS.operators?.length || 0,
+                        num_operators: MOCK_MORPHIC_AI_TOS.operators?.length || 0,
                     });
                     
                     // 显示提示信息

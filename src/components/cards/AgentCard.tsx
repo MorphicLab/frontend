@@ -42,7 +42,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => (
             </div>
             <div className="flex items-center text-gray-400">
                 <Network className="h-4 w-4 mr-2" />
-                <span className="text-sm">{agent.numOperators}</span>
+                <span className="text-sm">{agent.num_operators}</span>
             </div>
             <div className="flex items-center text-gray-400">
                 <Star className="h-4 w-4 mr-2 text-yellow-500" />

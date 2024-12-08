@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ExternalLink, Cpu, X, Shield } from 'lucide-react';
+import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -86,6 +86,7 @@ const TosDetail: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
     const [showVerification, setShowVerification] = useState(false);
+    const [isCertCopied, setIsCertCopied] = useState(false);
 
     const registeredTOS = useBlockchainStore(state => state.toss);
     const registeredOperators = useBlockchainStore(state => state.operators);
@@ -147,24 +148,24 @@ const TosDetail: React.FC = () => {
 
                 // Prepare VM report for contract registration
                 const vmReport = {
-                    app_id: vm.vm_report.app_id,
+                    app_id: vm.report.app_id,
                     tcb: {
-                        rootfs_hash: vm.vm_report.tcb.rootfs_hash,
-                        mrtd: vm.vm_report.tcb.mrtd,
-                        rtmr0: vm.vm_report.tcb.rtmr0,
-                        rtmr1: vm.vm_report.tcb.rtmr1,
-                        rtmr2: vm.vm_report.tcb.rtmr2,
-                        rtmr3: vm.vm_report.tcb.rtmr3
+                        rootfs_hash: vm.report.tcb.rootfs_hash,
+                        mrtd: vm.report.tcb.mrtd,
+                        rtmr0: vm.report.tcb.rtmr0,
+                        rtmr1: vm.report.tcb.rtmr1,
+                        rtmr2: vm.report.tcb.rtmr2,
+                        rtmr3: vm.report.tcb.rtmr3
                     },
                     // Convert certificate to bytes
-                    certificate: hexlify(new TextEncoder().encode(vm.vm_report.certificate))
+                    certificate: hexlify(new TextEncoder().encode(vm.report.certificate))
                 };
 
                 try {
                     await contract.register_operator_to_tos(tos.id, {
                         id: vm.id,
                         operator: vm.operator,
-                        vm_report: vmReport,
+                        report: vmReport,
                         status: vm.status
                     });
                     console.log(`Registered operator ${operatorId} to TOS ${tos.id}`);
@@ -193,6 +194,14 @@ const TosDetail: React.FC = () => {
     const tosOperators = allOperators.filter(op => 
         op.tos_ids?.includes(tos?.id)
     );
+
+    const copyToClipboard = async () => {
+        if (tos.cert) {
+            await navigator.clipboard.writeText(tos.cert);
+            setIsCertCopied(true);
+            setTimeout(() => setIsCertCopied(false), 2000);
+        }
+    };
 
     if (!tos) return <div>TOS not found</div>;
 
@@ -271,6 +280,51 @@ const TosDetail: React.FC = () => {
                                         {tos.stakers}
                                     </div>
                                 </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Certificate Area */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-gray-800 rounded-xl p-6"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-white">Certificate</h2>
+                                <button
+                                    onClick={copyToClipboard}
+                                    disabled={!tos.cert}
+                                    className={`p-1.5 rounded-lg transition-all duration-200 ${
+                                        tos.cert 
+                                            ? 'hover:bg-morphic-primary/10 text-morphic-primary/80 hover:text-morphic-primary' 
+                                            : 'text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    {isCertCopied ? (
+                                        <Check className="h-5 w-5" />
+                                    ) : (
+                                        <Copy className="h-5 w-5" />
+                                    )}
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <pre 
+                                    className="font-mono text-sm text-morphic-primary/90 whitespace-pre-wrap break-words 
+                                    overflow-auto max-h-[160px] rounded-lg px-4 py-3 bg-gray-900/30
+                                    [&::-webkit-scrollbar]:w-2
+                                    [&::-webkit-scrollbar-track]:rounded-r-lg
+                                    [&::-webkit-scrollbar-track]:bg-gray-900/20
+                                    [&::-webkit-scrollbar-thumb]:bg-morphic-primary/20
+                                    [&::-webkit-scrollbar-thumb]:rounded-full
+                                    [&::-webkit-scrollbar-thumb]:border-2
+                                    [&::-webkit-scrollbar-thumb]:border-transparent
+                                    hover:[&::-webkit-scrollbar-thumb]:bg-morphic-primary/30
+                                    transition-all duration-200"
+                                >
+                                    {tos.cert || 'Certificate not available'}
+                                </pre>
+                                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-800/30 to-transparent pointer-events-none rounded-b-lg" />
                             </div>
                         </motion.div>
 

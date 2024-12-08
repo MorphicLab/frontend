@@ -21,13 +21,13 @@ export const MOCK_TOS: TOS[] = [
         dao: '',
         website: '/morphic-kms',
         description: 'A decentralized key management service powered by trustless computation...',
-        operatorTypes: ['TDX', 'SEV'],
+        operator_types: ['TDX', 'SEV'],
         creator: {
             address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
             name: 'Morphic Labs',
             logo: '/images/morphic-logo-sm.png'
         },
-        operatorMinimum: 50,
+        operator_minimum: 50,
         vcpus: 1,
         vmemory: 1,
         disk: 1,
@@ -35,11 +35,267 @@ export const MOCK_TOS: TOS[] = [
         code: '',
         labels: ['Compute'],
         restaked: 962,
-        operators: ["0x9c340d5820B4cF539739dF2C5dAcb4c659F2488E"],
+        operators: ["0x9c340d5820B4cF539739dF2C5dAcb4c659F2488E", "0x1c340d5820B4cF539739dF2C5dAcb4c659F2488E", "0x2c340d5820B4cF539739dF2C5dAcb4c659F2488E"],
         stakers: 1023,
         likes: 512,
         status: 'active',
-        codeHash: "c68518a0ebb42136c12b2275164f8c72f25fa9a34392228687ed6e9caeb9c0f1dbd895e9cf475121c029dc47e70e91fd",
+        code_hash: "4b0ae039d7a7cadc28ca30d9583667de02080779",
+        cert: `-----BEGIN CERTIFICATE-----
+MIIs2zCCLIKgAwIBAgIUIqx/fIIpK7e99zFRYg5DCMXZULIwCgYIKoZIzj0EAwIw
+LzEWMBQGA1UECgwNUGhhbGEgTmV0d29yazEVMBMGA1UEAwwMUGhhbGEgS01TIENB
+MCAXDTc1MDEwMTAwMDAwMFoYDzQwOTYwMTAxMDAwMDAwWjA5MTcwNQYDVQQDDC40
+YjBhZTAzOWQ3YTdjYWRjMjhjYTMwZDk1ODM2NjdkZTAyMDgwNzc5LnBoYWxhMFkw
+EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtAoNNveWJ3tLTmiH/G/XL80QBRFWGJth
+NJdtclvtV1gW8HyPwqKrTX4JIWfFGZ7an7lAqADle7sWRoZpW34NB6OCK24wgitq
+MB0GA1UdDgQWBBSddLW4Pjc7gAzCEBkuqXsHpXs1mzASBgNVHRMBAf8ECDAGAQH/
+AgEBMIITogYKKwYBBAGD5z0BAQSCE5IEghOOBAACAIEAAAAAAAAAk5pyM/ecTKmU
+Cg2zlX8GB4P7/mFSX1VYExXNnclQ9EcAAAAABgECAAAAAAAAAAAAAAAAAFs44zpk
+h5WLcsPBKpOOql4/1FEMUa7qtYx9Xs7kHXxDZInWyOT5LxYLfK00IHsAwQAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAEAAAAADnAgYAAAAAAMaFGKDrtCE2wSsidRZPjHLyX6mjQ5Iihoftbpyu
+ucDx29iV6c9HUSHAKdxH5w6R/QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAACdMI0QRbbfGY0cGk7W6YrhiHqwoy0HS+Bbd8Yj5
+9CP5AKHETTI4b9PJk9yBTmKvneJPZvppY45LouBl2HuLIED5mxkhwApT/KpUrefx
+HiTYwM3rEcLIH6VtPiD92bQ3825/mCfLPJs8Vn4aLFE89d4+/wdGg79gNcUi8CxU
+s4Kuer7uR2OydgaNwmZwySiXjloNtQ5t0PS+EKkcqYTK8CTdX/m6ykCuUwU6GB3D
+z9IhqINlvDqjkG/ZNVcb+I+geyBkCgVWQfmjOhDZ620ef5bJ8yF9vLhzOjY810B1
+JOLhE0/KUvjAMDkACS26RxZ2eVWiGwv//jJPxwq09BwDK/bMEAAAy9njm4UB05hy
+GQzNFoml8Khp1GA6+EggcJ4JnCBnnHEhlQ2v6LrRaooXVb3lvSx7U7tUGKdIyuT1
+1c5ePRRAiUmWqeVuQKxsCwGXCVN/FtdRwD6MDZBdefIk/wbdxBAoYKh3AQd0jAEc
+2/zMyFfkGHNbaZrIncLtTaEdUSXLkl4GAEYQAAACAhkbA/8ABgAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVAAAAAAAAAOcAAAAAAAAA5aOn
+tdgwwpU7mFNMbFmjo0/cNOkz9/WJjwqFzwiEa8oAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAANyeKnxvlI8XR040p/xD7QMPfBVj8bq932NAyC4OVKjFAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAG
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAFA7v+W++lWhPiF0fDhZ8LYYoFAxKgNA6YAYfuojI1bWAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABjLKD9r3H3hCvw4lRBh+01jrUD
+aiwbudzqcIUzP0cJO31nWeLtNxE46nBLfkVc07VzwF/MOmnjDibpnNi7meAWIAAA
+AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHwUAXg4AAC0tLS0tQkVHSU4g
+Q0VSVElGSUNBVEUtLS0tLQpNSUlFOERDQ0JKZWdBd0lCQWdJVkFMUjVUSVQ5Kzlu
+c0IxQlRaMXNyWFE0bGJ3UkJNQW9HQ0NxR1NNNDlCQU1DCk1IQXhJakFnQmdOVkJB
+TU1HVWx1ZEdWc0lGTkhXQ0JRUTBzZ1VHeGhkR1p2Y20wZ1EwRXhHakFZQmdOVkJB
+b00KRVVsdWRHVnNJRU52Y25CdmNtRjBhVzl1TVJRd0VnWURWUVFIREF0VFlXNTBZ
+U0JEYkdGeVlURUxNQWtHQTFVRQpDQXdDUTBFeEN6QUpCZ05WQkFZVEFsVlRNQjRY
+RFRJME1EZ3dNakV4TVRVek4xb1hEVE14TURnd01qRXhNVFV6Ck4xb3djREVpTUNB
+R0ExVUVBd3daU1c1MFpXd2dVMGRZSUZCRFN5QkRaWEowYVdacFkyRjBaVEVhTUJn
+R0ExVUUKQ2d3UlNXNTBaV3dnUTI5eWNHOXlZWFJwYjI0eEZEQVNCZ05WQkFjTUMx
+TmhiblJoSUVOc1lYSmhNUXN3Q1FZRApWUVFJREFKRFFURUxNQWtHQTFVRUJoTUNW
+Vk13V1RBVEJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVRZCnd3cVU0R3hQ
+SmpZb2pNR1JoYTYyeXA0akJRZDVXRHZLd21UNmxsMUFHeGpZNjhwaUpQZ2lQaGRi
+OHpUR2Y3S2IKMU95ZDFTRk9NWnBZTHlQVEJ6WWRvNElERERDQ0F3Z3dId1lEVlIw
+akJCZ3dGb0FVbFc5ZHpiMGI0ZWxBU2NuVQo5RFBPQVZjTDNsUXdhd1lEVlIwZkJH
+UXdZakJnb0Y2Z1hJWmFhSFIwY0hNNkx5OWhjR2t1ZEhKMWMzUmxaSE5sCmNuWnBZ
+MlZ6TG1sdWRHVnNMbU52YlM5elozZ3ZZMlZ5ZEdsbWFXTmhkR2x2Ymk5Mk5DOXdZ
+MnRqY213L1kyRTkKY0d4aGRHWnZjbTBtWlc1amIyUnBibWM5WkdWeU1CMEdBMVVk
+RGdRV0JCUUYwNHZQdlRHS3diQWw1b1R2VmRmTQorNWpudVRBT0JnTlZIUThCQWY4
+RUJBTUNCc0F3REFZRFZSMFRBUUgvQkFJd0FEQ0NBamtHQ1NxR1NJYjRUUUVOCkFR
+U0NBaW93Z2dJbU1CNEdDaXFHU0liNFRRRU5BUUVFRU41ZEFvcTVjSzVuODJ3OW95
+MWU0bjR3Z2dGakJnb3EKaGtpRytFMEJEUUVDTUlJQlV6QVFCZ3NxaGtpRytFMEJE
+UUVDQVFJQkFqQVFCZ3NxaGtpRytFMEJEUUVDQWdJQgpBakFRQmdzcWhraUcrRTBC
+RFFFQ0F3SUJBakFRQmdzcWhraUcrRTBCRFFFQ0JBSUJBakFRQmdzcWhraUcrRTBC
+CkRRRUNCUUlCQXpBUUJnc3Foa2lHK0UwQkRRRUNCZ0lCQVRBUUJnc3Foa2lHK0Uw
+QkRRRUNCd0lCQURBUUJnc3EKaGtpRytFMEJEUUVDQ0FJQkF6QVFCZ3NxaGtpRytF
+MEJEUUVDQ1FJQkFEQVFCZ3NxaGtpRytFMEJEUUVDQ2dJQgpBREFRQmdzcWhraUcr
+RTBCRFFFQ0N3SUJBREFRQmdzcWhraUcrRTBCRFFFQ0RBSUJBREFRQmdzcWhraUcr
+RTBCCkRRRUNEUUlCQURBUUJnc3Foa2lHK0UwQkRRRUNEZ0lCQURBUUJnc3Foa2lH
+K0UwQkRRRUNEd0lCQURBUUJnc3EKaGtpRytFMEJEUUVDRUFJQkFEQVFCZ3NxaGtp
+RytFMEJEUUVDRVFJQkN6QWZCZ3NxaGtpRytFMEJEUUVDRWdRUQpBZ0lDQWdNQkFB
+TUFBQUFBQUFBQUFEQVFCZ29xaGtpRytFMEJEUUVEQkFJQUFEQVVCZ29xaGtpRytF
+MEJEUUVFCkJBYXd3RzhBQUFBd0R3WUtLb1pJaHZoTkFRMEJCUW9CQVRBZUJnb3Fo
+a2lHK0UwQkRRRUdCQkJKMWRyaFNJc20KaCsvRnkwdHRqanYvTUVRR0NpcUdTSWI0
+VFFFTkFRY3dOakFRQmdzcWhraUcrRTBCRFFFSEFRRUIvekFRQmdzcQpoa2lHK0Uw
+QkRRRUhBZ0VCL3pBUUJnc3Foa2lHK0UwQkRRRUhBd0VCL3pBS0JnZ3Foa2pPUFFR
+REFnTkhBREJFCkFpQnBFVzh1T3JrU3RpSGtMS25qQmhVQW9jejlUVzM2ak4vMDdl
+QWhEUDY1YXdJZ00vMUdMWHRacERkNnBhUHYKU1o4bU50clQ4MDBWNTRrRllER096
+T3hQQ3Q4PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VS
+VElGSUNBVEUtLS0tLQpNSUlDbGpDQ0FqMmdBd0lCQWdJVkFKVnZYYzI5RytIcFFF
+bkoxUFF6emdGWEM5NVVNQW9HQ0NxR1NNNDlCQU1DCk1HZ3hHakFZQmdOVkJBTU1F
+VWx1ZEdWc0lGTkhXQ0JTYjI5MElFTkJNUm93R0FZRFZRUUtEQkZKYm5SbGJDQkQK
+YjNKd2IzSmhkR2x2YmpFVU1CSUdBMVVFQnd3TFUyRnVkR0VnUTJ4aGNtRXhDekFK
+QmdOVkJBZ01Ba05CTVFzdwpDUVlEVlFRR0V3SlZVekFlRncweE9EQTFNakV4TURV
+d01UQmFGdzB6TXpBMU1qRXhNRFV3TVRCYU1IQXhJakFnCkJnTlZCQU1NR1VsdWRH
+VnNJRk5IV0NCUVEwc2dVR3hoZEdadmNtMGdRMEV4R2pBWUJnTlZCQW9NRVVsdWRH
+VnMKSUVOdmNuQnZjbUYwYVc5dU1SUXdFZ1lEVlFRSERBdFRZVzUwWVNCRGJHRnlZ
+VEVMTUFrR0ExVUVDQXdDUTBFeApDekFKQmdOVkJBWVRBbFZUTUZrd0V3WUhLb1pJ
+emowQ0FRWUlLb1pJemowREFRY0RRZ0FFTlNCLzd0MjFsWFNPCjJDdXpweHc3NGVK
+QjcyRXlER2dXNXJYQ3R4MnRWVExxNmhLazZ6K1VpUlpDbnFSN3BzT3ZncUZlU3hs
+bVRsSmwKZVRtaTJXWXozcU9CdXpDQnVEQWZCZ05WSFNNRUdEQVdnQlFpWlF6V1dw
+MDBpZk9EdEpWU3YxQWJPU2NHckRCUwpCZ05WSFI4RVN6QkpNRWVnUmFCRGhrRm9k
+SFJ3Y3pvdkwyTmxjblJwWm1sallYUmxjeTUwY25WemRHVmtjMlZ5CmRtbGpaWE11
+YVc1MFpXd3VZMjl0TDBsdWRHVnNVMGRZVW05dmRFTkJMbVJsY2pBZEJnTlZIUTRF
+RmdRVWxXOWQKemIwYjRlbEFTY25VOURQT0FWY0wzbFF3RGdZRFZSMFBBUUgvQkFR
+REFnRUdNQklHQTFVZEV3RUIvd1FJTUFZQgpBZjhDQVFBd0NnWUlLb1pJemowRUF3
+SURSd0F3UkFJZ1hzVmtpMHcraTZWWUdXM1VGLzIydWFYZTBZSkRqMVVlCm5BK1Rq
+RDFhaTVjQ0lDWWIxU0FtRDV4a2ZUVnB2bzRVb3lpU1l4ckRXTG1VUjRDSTlOS3lm
+UE4rCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0KLS0tLS1CRUdJTiBDRVJUSUZJ
+Q0FURS0tLS0tCk1JSUNqekNDQWpTZ0F3SUJBZ0lVSW1VTTFscWROSW56ZzdTVlVy
+OVFHemtuQnF3d0NnWUlLb1pJemowRUF3SXcKYURFYU1CZ0dBMVVFQXd3UlNXNTBa
+V3dnVTBkWUlGSnZiM1FnUTBFeEdqQVlCZ05WQkFvTUVVbHVkR1ZzSUVOdgpjbkJ2
+Y21GMGFXOXVNUlF3RWdZRFZRUUhEQXRUWVc1MFlTQkRiR0Z5WVRFTE1Ba0dBMVVF
+Q0F3Q1EwRXhDekFKCkJnTlZCQVlUQWxWVE1CNFhEVEU0TURVeU1URXdORFV4TUZv
+WERUUTVNVEl6TVRJek5UazFPVm93YURFYU1CZ0cKQTFVRUF3d1JTVzUwWld3Z1Uw
+ZFlJRkp2YjNRZ1EwRXhHakFZQmdOVkJBb01FVWx1ZEdWc0lFTnZjbkJ2Y21GMAph
+Vzl1TVJRd0VnWURWUVFIREF0VFlXNTBZU0JEYkdGeVlURUxNQWtHQTFVRUNBd0NR
+MEV4Q3pBSkJnTlZCQVlUCkFsVlRNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBE
+QVFjRFFnQUVDNm5Fd01ESVlaT2ovaVBXc0N6YUVLaTcKMU9pT1NMUkZoV0dqYm5C
+VkpmVm5rWTR1M0lqa0RZWUwwTXhPNG1xc3lZamxCYWxUVll4RlAyc0pCSzV6bEtP
+Qgp1ekNCdURBZkJnTlZIU01FR0RBV2dCUWlaUXpXV3AwMGlmT0R0SlZTdjFBYk9T
+Y0dyREJTQmdOVkhSOEVTekJKCk1FZWdSYUJEaGtGb2RIUndjem92TDJObGNuUnBa
+bWxqWVhSbGN5NTBjblZ6ZEdWa2MyVnlkbWxqWlhNdWFXNTAKWld3dVkyOXRMMGx1
+ZEdWc1UwZFlVbTl2ZEVOQkxtUmxjakFkQmdOVkhRNEVGZ1FVSW1VTTFscWROSW56
+ZzdTVgpVcjlRR3prbkJxd3dEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkRXdF
+Qi93UUlNQVlCQWY4Q0FRRXdDZ1lJCktvWkl6ajBFQXdJRFNRQXdSZ0loQU9XLzVR
+a1IrUzlDaVNEY05vb3dMdVBSTHNXR2YvWWk3R1NYOTRCZ3dUd2cKQWlFQTRKMGxy
+SG9NcytYbzVvL3NYNk85UVd4SFJBdlpVR09kUlE3Y3ZxUlhhcUk9Ci0tLS0tRU5E
+IENFUlRJRklDQVRFLS0tLS0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwgheNBgor
+BgEEAYPnPQECBIIXfQSCF3lbeyJpbXIiOjAsImV2ZW50X3R5cGUiOjIxNDc0ODM2
+NTksImRpZ2VzdCI6IjJiNjMwZmExZDhmYTliNmU4YzY1MDdkMjI1NjgwM2VkMjI3
+ODg4ZjdkMWY2MmNhNWNmYmRkZmU0OTUzMzhiMWM2YTBmYzMzOWVhNjQ3MDBmMDgz
+NWMwODk3YTY2Mjc4OSIsImV2ZW50IjoiIiwiZXZlbnRfcGF5bG9hZCI6IjA5NTQ2
+NDc4NTQ2MTYyNmM2NTAwMDEwMDAwMDAwMDAwMDAwMGFmOTZiYjkzZjJiOWI4NGU5
+NDYyZTBiYTc0NTY0MjM2MDA5MDgwMDAwMDAwMDAwMCJ9LHsiaW1yIjowLCJldmVu
+dF90eXBlIjoyMTQ3NDgzNjU4LCJkaWdlc3QiOiIzNDRiYzUxYzk4MGJhNjIxYWFh
+MDBkYTNlZDc0MzZmN2Q2ZTU0OTE5N2RmZTY5OTUxNWRmYTJjNjU4M2Q5NWU2NDEy
+YWYyMWMwOTdkNDczMTU1ODc1ZmZkNTYxZDY3OTAiLCJldmVudCI6IiIsImV2ZW50
+X3BheWxvYWQiOiIyOTQ2NzYyODU4NTg1ODU4NTg1ODU4NTgyZDU4NTg1ODU4MmQ1
+ODU4NTg1ODJkNTg1ODU4NTgyZDU4NTg1ODU4NTg1ODU4NTg1ODU4NTg1ODI5MDAw
+MDAwYzBmZjAwMDAwMDAwMDA0MDA4MDAwMDAwMDAwMCJ9LHsiaW1yIjowLCJldmVu
+dF90eXBlIjoyMTQ3NDgzNjQ5LCJkaWdlc3QiOiI5ZGMzYTFmODBiY2VjOTE1Mzkx
+ZGNkYTVmZmJiMTVlNzQxOWY3N2VhYjQ2MmJiZjcyYjQyMTY2ZmI3MGQ1MDMyNWUz
+N2IzNmY5MzUzN2E4NjM3NjliY2Y5YmVkYWU2ZmIiLCJldmVudCI6IiIsImV2ZW50
+X3BheWxvYWQiOiI2MWRmZTQ4YmNhOTNkMjExYWEwZDAwZTA5ODAzMmI4YzBhMDAw
+MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNTMwMDY1MDA2MzAwNzUwMDcyMDA2
+NTAwNDIwMDZmMDA2ZjAwNzQwMCJ9LHsiaW1yIjowLCJldmVudF90eXBlIjoyMTQ3
+NDgzNjQ5LCJkaWdlc3QiOiI2ZjJlM2NiYzE0ZjlkZWY4Njk4MGY1ZjY2ZmQ4NWU5
+OWQ2M2U2OWE3MzAxNGVkOGE1NjMzY2U1NmVjYTViNjRiNjkyMTA4YzU2MTEwZTIy
+YWNhZGNlZjU4YzMyNTBmMWIiLCJldmVudCI6IiIsImV2ZW50X3BheWxvYWQiOiI2
+MWRmZTQ4YmNhOTNkMjExYWEwZDAwZTA5ODAzMmI4YzAyMDAwMDAwMDAwMDAwMDAw
+MDAwMDAwMDAwMDAwMDAwNTAwMDRiMDAifSx7ImltciI6MCwiZXZlbnRfdHlwZSI6
+MjE0NzQ4MzY0OSwiZGlnZXN0IjoiZDYwN2MwZWZiNDFjMGQ3NTdkNjliY2EwNjE1
+YzNhOWFjMGIxZGIwNmM1NTdkOTkyZTkwNmM2YjdkZWU0MGUwZTAzMTY0MGM3YmZk
+N2JjZDM1ODQ0ZWY5ZWRlYWRjNmY5IiwiZXZlbnQiOiIiLCJldmVudF9wYXlsb2Fk
+IjoiNjFkZmU0OGJjYTkzZDIxMWFhMGQwMGUwOTgwMzJiOGMwMzAwMDAwMDAwMDAw
+MDAwMDAwMDAwMDAwMDAwMDAwMDRiMDA0NTAwNGIwMCJ9LHsiaW1yIjowLCJldmVu
+dF90eXBlIjoyMTQ3NDgzNjQ5LCJkaWdlc3QiOiIwOGE3NGY4OTYzYjMzN2FjYjZj
+OTM2ODJmOTM0NDk2MzczNjc5ZGQyNmFmMTA4OWNiNGVhZjBjMzBjZjI2MGExMmU4
+MTQ4NTYzODVhYjg4NDNlNTZhOWFjZWExOWUxMjciLCJldmVudCI6IiIsImV2ZW50
+X3BheWxvYWQiOiJjYmIyMTlkNzNhM2Q5NjQ1YTNiY2RhZDAwZTY3NjU2ZjAyMDAw
+MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNjQwMDYyMDAifSx7ImltciI6MCwi
+ZXZlbnRfdHlwZSI6MjE0NzQ4MzY0OSwiZGlnZXN0IjoiMThjYzZlMDFmMGM2ZWE5
+OWFhMjNmOGEyODA0MjNlOTRhZDgxZDk2ZDBhZWI1MTgwNTA0ZmMwZjdhNDBjYjM2
+MTlkZDM5YmQ2YTk1ZWMxNjgwYTg2ZWQ2YWIwZjk4MjhkIiwiZXZlbnQiOiIiLCJl
+dmVudF9wYXlsb2FkIjoiY2JiMjE5ZDczYTNkOTY0NWEzYmNkYWQwMGU2NzY1NmYw
+MzAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDY0MDA2MjAwNzgwMCJ9LHsi
+aW1yIjowLCJldmVudF90eXBlIjo0LCJkaWdlc3QiOiIzOTQzNDFiNzE4MmNkMjI3
+YzVjNmIwN2VmODAwMGNkZmQ4NjEzNmM0MjkyYjhlNTc2NTczYWQ3ZWQ5YWU0MTAx
+OWY1ODE4YjRiOTcxYzllZmZjNjBlMWFkOWYxMjg5ZjAiLCJldmVudCI6IiIsImV2
+ZW50X3BheWxvYWQiOiIwMDAwMDAwMCJ9LHsiaW1yIjowLCJldmVudF90eXBlIjox
+MCwiZGlnZXN0IjoiNjhjZDc5MzE1ZTcwYWVjZDRhZmU3YzFiMjNhNWVkN2IzYjhl
+NTFhNDc3ZTE3MzlmMTExYjMxNTZkZWY4NmJiYzU2ZWJmMjM5ZGNkNDU5MWJjN2E5
+ZmZmOTAwMjNmNDgxIiwiZXZlbnQiOiIiLCJldmVudF9wYXlsb2FkIjoiNDE0MzUw
+NDkyMDQ0NDE1NDQxIn0seyJpbXIiOjAsImV2ZW50X3R5cGUiOjEwLCJkaWdlc3Qi
+OiI2YmMyMDNiMzg0MzM4OGNjNDkxODQ1OWMzZjVjNmQxMzAwYTc5NmZiNTk0Nzgx
+YjdlY2ZhYTNhZTc0NTY5NzVmMDk1YmZjYzExNTZjOWYyZDI1ZThiOGJjMWI1MjBm
+NjYiLCJldmVudCI6IiIsImV2ZW50X3BheWxvYWQiOiI0MTQzNTA0OTIwNDQ0MTU0
+NDEifSx7ImltciI6MCwiZXZlbnRfdHlwZSI6MTAsImRpZ2VzdCI6IjQ0NGNmMzVk
+Mjc3YTdiNjA0OWZhZjRmZjIzMTY1ZTI1NmU3MTZlYWFkNDY1MGFlZWY2YWZhZThl
+MmRjYTMzNTliNDBjMWIyZWI5OTdjNTU2OGY5NTY2MTYzMTBjOTE0NyIsImV2ZW50
+IjoiIiwiZXZlbnRfcGF5bG9hZCI6IjQxNDM1MDQ5MjA0NDQxNTQ0MSJ9LHsiaW1y
+IjoxLCJldmVudF90eXBlIjoyMTQ3NDgzNjUxLCJkaWdlc3QiOiI1NTBiZTFjYWZm
+NzAwYjkyNTEwZDhlNWE5MDU5YzI2ODgyMzc3ZmIxNzY5NTVhYjk5NDBjYjJiZGNj
+M2NjZGEwYzk2ZjNhZWM5YWM2NTkxNDg0ZGJkZGE2ZDQ3YmRmZGUiLCJldmVudCI6
+IiIsImV2ZW50X3BheWxvYWQiOiIxOGEwNDQzYjAwMDAwMDAwMDBiNGIyMDAwMDAw
+MDAwMDAwMDAwMDAwMDAwMDAwMDAyYTAwMDAwMDAwMDAwMDAwMDQwMzE0MDA3MmY3
+MjgxNDRhYjYxZTQ0YjhjMzllYmRkN2Y4OTNjNzA0MDQxMjAwNmIwMDY1MDA3MjAw
+NmUwMDY1MDA2YzAwMDAwMDdmZmYwNDAwIn0seyJpbXIiOjAsImV2ZW50X3R5cGUi
+OjIxNDc0ODM2NTAsImRpZ2VzdCI6IjFkZDZmN2I0NTdhZDg4MGQ4NDBkNDFjOTYx
+MjgzYmFiNjg4ZTk0ZTRiNTkzNTllYTQ1Njg2NTgxZTkwZmVjY2VhM2M2MjRiMTIy
+NjExM2Y4MjRmMzE1ZWI2MGFlMGE3YyIsImV2ZW50IjoiIiwiZXZlbnRfcGF5bG9h
+ZCI6IjYxZGZlNDhiY2E5M2QyMTFhYTBkMDBlMDk4MDMyYjhjMDkwMDAwMDAwMDAw
+MDAwMDAyMDAwMDAwMDAwMDAwMDA0MjAwNmYwMDZmMDA3NDAwNGYwMDcyMDA2NDAw
+NjUwMDcyMDAwMDAwIn0seyJpbXIiOjAsImV2ZW50X3R5cGUiOjIxNDc0ODM2NTAs
+ImRpZ2VzdCI6IjIzYWRhMDdmNTI2MWYxMmYzNGEwYmQ4ZTQ2NzYwOTYyZDZiNGQ1
+NzZhNDE2ZjFmZWExYzY0YmM2NTZiMWQyOGVhY2Y3MDQ3YWU2ZTk2N2M1OGZkMmE5
+OGJmYTc0YzI5OCIsImV2ZW50IjoiIiwiZXZlbnRfcGF5bG9hZCI6IjYxZGZlNDhi
+Y2E5M2QyMTFhYTBkMDBlMDk4MDMyYjhjMDgwMDAwMDAwMDAwMDAwMDNlMDAwMDAw
+MDAwMDAwMDA0MjAwNmYwMDZmMDA3NDAwMzAwMDMwMDAzMDAwMzAwMDA5MDEwMDAw
+MmMwMDU1MDA2OTAwNDEwMDcwMDA3MDAwMDAwMDA0MDcxNDAwYzliZGI4N2NlYmY4
+MzQ0ZmFhZWEzZWU0YWY2NTE2YTEwNDA2MTQwMDIxYWEyYzQ2MTQ3NjAzNDU4MzZl
+OGFiNmY0NjYyMzMxN2ZmZjA0MDAifSx7ImltciI6MSwiZXZlbnRfdHlwZSI6MjE0
+NzQ4MzY1NSwiZGlnZXN0IjoiNzdhMGRhYjIzMTJiNGUxZTU3YTg0ZDg2NWEyMWU1
+YjJlZThkNjc3YTIxMDEyYWRhODE5ZDBhOTg5ODgwNzhkM2Q3NDBmNjM0NmJmZTBh
+YmFhOTM4Y2EyMDQzOWE4ZDcxIiwiZXZlbnQiOiIiLCJldmVudF9wYXlsb2FkIjoi
+NDM2MTZjNmM2OTZlNjcyMDQ1NDY0OTIwNDE3MDcwNmM2OTYzNjE3NDY5NmY2ZTIw
+NjY3MjZmNmQyMDQyNmY2Zjc0MjA0ZjcwNzQ2OTZmNmUifSx7ImltciI6MSwiZXZl
+bnRfdHlwZSI6NCwiZGlnZXN0IjoiMzk0MzQxYjcxODJjZDIyN2M1YzZiMDdlZjgw
+MDBjZGZkODYxMzZjNDI5MmI4ZTU3NjU3M2FkN2VkOWFlNDEwMTlmNTgxOGI0Yjk3
+MWM5ZWZmYzYwZTFhZDlmMTI4OWYwIiwiZXZlbnQiOiIiLCJldmVudF9wYXlsb2Fk
+IjoiMDAwMDAwMDAifSx7ImltciI6MiwiZXZlbnRfdHlwZSI6NiwiZGlnZXN0Ijoi
+YmIzOGQxZjA3NDVlYjY4OTQ5YTg4ZTU3NjdiYzlhMDkyMWIzY2RkMjMwZDhhOWM3
+Yjc1MGY2Y2VjMTQ2YjE2Njg3MTNiMmEyZGY0YmQ4NDI5OGMwNDQxNWM4MDEzMTVj
+IiwiZXZlbnQiOiIiLCJldmVudF9wYXlsb2FkIjoiZWQyMjNiOGYxYTAwMDAwMDRj
+NGY0MTQ0NDU0NDVmNDk0ZDQxNDc0NTNhM2E0YzZmNjE2NDRmNzA3NDY5NmY2ZTcz
+MDAifSx7ImltciI6MiwiZXZlbnRfdHlwZSI6NiwiZGlnZXN0IjoiOWFmMzQ5OTNj
+YmI2NzNlYWYwOGU3NDQyN2M3YjkyOGY3ZDdkYzBlZmU0M2E0NTQ2NWE5ZjY0NGIy
+ODAzZWY3YTlkYmEzNTBkM2Q3OWUyMGI1YmQyMTBkZTRjYzBkODc1IiwiZXZlbnQi
+OiIiLCJldmVudF9wYXlsb2FkIjoiZWMyMjNiOGYwZDAwMDAwMDRjNjk2ZTc1Nzgy
+MDY5NmU2OTc0NzI2NDAwIn0seyJpbXIiOjEsImV2ZW50X3R5cGUiOjIxNDc0ODM2
+NTUsImRpZ2VzdCI6IjIxNGIwYmVmMTM3OTc1NjAxMTM0NDg3Nzc0M2ZkYzJhNTM4
+MmJhYzZlNzAzNjJkNjI0Y2NmM2Y2NTQ0MDdjMWI0YmFkZjdkOGY5Mjk1ZGQzZGFi
+ZGVmNjViMjc2NzdlMCIsImV2ZW50IjoiIiwiZXZlbnRfcGF5bG9hZCI6IjQ1Nzg2
+OTc0MjA0MjZmNmY3NDIwNTM2NTcyNzY2OTYzNjU3MzIwNDk2ZTc2NmY2MzYxNzQ2
+OTZmNmUifSx7ImltciI6MSwiZXZlbnRfdHlwZSI6MjE0NzQ4MzY1NSwiZGlnZXN0
+IjoiMGEyZTAxYzg1ZGVhZTcxOGE1MzBhZDhjNmQyMGE4NDAwOWJhYmU2Yzg5ODky
+NjllOTUwZDhjZjQ0MGM2ZTk5NzY5NWU2NGQ0NTVjNDE3NGE2NTJjZDA4MGY2MjMw
+Yjc0IiwiZXZlbnQiOiIiLCJldmVudF9wYXlsb2FkIjoiNDU3ODY5NzQyMDQyNmY2
+Zjc0MjA1MzY1NzI3NjY5NjM2NTczMjA1MjY1NzQ3NTcyNmU2NTY0MjA3NzY5NzQ2
+ODIwNTM3NTYzNjM2NTczNzMifSx7ImltciI6MywiZXZlbnRfdHlwZSI6MTM0MjE3
+NzI5LCJkaWdlc3QiOiI5ZTljZmZhZDliOGM3MmUzZDMwYTEzNTQyYzQ1YTdmY2Vm
+ZDExY2UzZDE3ZDQzYjE0ODYxYjdhMDA2MWU3MmU5YmE0YWU1NjVhM2YyZTM4NGEy
+YmY5MDJiYWJkZThjM2QiLCJldmVudCI6InJvb3Rmcy1oYXNoIiwiZXZlbnRfcGF5
+bG9hZCI6IjE2NGE0OWRhYmEyOWVmNmU2YTllYjFkOWE2ZGQwN2QyNTUzNDBkMTFk
+OTQwYzNmZWY2YjhlY2E0YmY3NzhhMzIifSx7ImltciI6MywiZXZlbnRfdHlwZSI6
+MTM0MjE3NzI5LCJkaWdlc3QiOiI1YjQxMTJkNWU1NDVhMjhmOTY5ZjI2OGQ1MDdl
+NDZmYTM5NDgxOTMyOTY0M2Y3YzFlYjcxMDRjNzZjOTY1ZWZmMzI3NzZlNzMxMjY4
+ZDAzNTJkYjJiZTgzYTA3ZGJkYmIiLCJldmVudCI6ImFwcC1pZCIsImV2ZW50X3Bh
+eWxvYWQiOiI0YjBhZTAzOWQ3YTdjYWRjMjhjYTMwZDk1ODM2NjdkZTAyMDgwNzc5
+In0seyJpbXIiOjMsImV2ZW50X3R5cGUiOjEzNDIxNzcyOSwiZGlnZXN0IjoiZDlm
+OWEyMzY1OWYwZDI3N2U1ZDJmYWQ0MDM5MjQ3MzNiNjdmNGFkZGUyNTZjN2UwMjdk
+OGM5MzhmOWVmMGJmNzg4OThkNDkxYmFjNWNiZTY0MzhhNGJhNjc5MmQ2OTBlIiwi
+ZXZlbnQiOiJ1cGdyYWRlZC1hcHAtaWQiLCJldmVudF9wYXlsb2FkIjoiNGIwYWUw
+MzlkN2E3Y2FkYzI4Y2EzMGQ5NTgzNjY3ZGUwMjA4MDc3OSJ9LHsiaW1yIjozLCJl
+dmVudF90eXBlIjoxMzQyMTc3MjksImRpZ2VzdCI6ImYxYjQ4YWFhNDkwMmRiMWRl
+NjdkZjMyNjQ2YWUzYzRiNmIxMGY2ZTJlMjhhZTdkNjNjNzEyMWVmMTE4NzZlYzQz
+ZjQ2ODdiNjVjOTkxZDk4ODUxODAwZDdkOWMwNGQxOCIsImV2ZW50IjoiY2EtY2Vy
+dC1oYXNoIiwiZXZlbnRfcGF5bG9hZCI6IjNhZGEyYzY2ZmUyMmU3ODkyOWZkZTJi
+YmI2YWM1YWRjMGEzYzE0MTc1YmM4ZjI2YTY0Njg4ZDM0NmZmZmVkMGQifSx7Imlt
+ciI6MywiZXZlbnRfdHlwZSI6MTM0MjE3NzI5LCJkaWdlc3QiOiJmMjRmNWE4Njdi
+NTQwZmRhOGE3ZmE2MWEwMGUyOGJkM2FhMDVmNTc1YWE1ZjM3ZjU5M2NjODkyOGVk
+MWRjOGY4NjkwNzFmNzA3NjkwYjFhZDE1NTUxZWRiMzgxNzY1ZGYiLCJldmVudCI6
+Imluc3RhbmNlLWlkIiwiZXZlbnRfcGF5bG9hZCI6IjYyNjkwNjJkNzM2YTk4MTZi
+ZTBkOGJlMzUyZjc5ZWExNzAxYmNmY2UifV0wCgYIKoZIzj0EAwIDRwAwRAIgUu1O
+zhghXjOofNwwnqr39jOWgSp4+r0zj2fqgfWaFNwCICfLrDpxA2QLTYa+Fbs5Wo+g
+yUUvZIv7MjB0DJtnMI8c
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIBlzCCAT2gAwIBAgIUFZwOFgf12eBFSxZjNEvnGeV+7zwwCgYIKoZIzj0EAwIw
+LzEWMBQGA1UECgwNUGhhbGEgTmV0d29yazEVMBMGA1UEAwwMUGhhbGEgS01TIENB
+MCAXDTc1MDEwMTAwMDAwMFoYDzQwOTYwMTAxMDAwMDAwWjAvMRYwFAYDVQQKDA1Q
+aGFsYSBOZXR3b3JrMRUwEwYDVQQDDAxQaGFsYSBLTVMgQ0EwWTATBgcqhkjOPQIB
+BggqhkjOPQMBBwNCAATNEE/VcjZNDH8m2O3mFDWTSEoqvUViFxIQCp8E8x0QiHFk
+5nThImnNITI1CaG/NHy6CHXA7q62a+uN2Q3C3rfDozUwMzAdBgNVHQ4EFgQUDmdl
+Hxt0tWhgPi7V3XRY+nj/36kwEgYDVR0TAQH/BAgwBgEB/wIBAzAKBggqhkjOPQQD
+AgNIADBFAiEA797g2VEaiEUQMXH6waJPoxDw0H/K1NWTBEf98P0F72wCIGJ8+jGS
+WquauEbrVT/874f7x5V3LVKZRc7uTAlVRh2o
+-----END CERTIFICATE-----
+`,
+        address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
     },
     // ... 可以添加更多 TOS 数据
 ];
@@ -50,13 +306,13 @@ export const MOCK_MORPHIC_AI_TOS: TOS = {
     logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
     website: '/morphic-ai',
     description: 'A decentralized AI service platform powered by trustless computation...',
-    operatorTypes: ['TDX', 'H100'],
+    operator_types: ['TDX', 'H100'],
     creator: {
         address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
         name: 'Morphic Labs',
         logo: '/images/morphic-logo-sm.png'
     },
-    operatorMinimum: 1,
+    operator_minimum: 1,
     dao: '',
     vcpus: 1,
     vmemory: 1,
@@ -69,7 +325,7 @@ export const MOCK_MORPHIC_AI_TOS: TOS = {
     stakers: 89,
     likes: 142,
     status: 'waiting',
-    codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+    code_hash: "9c220d5630B4cF539739dF2C5dAcb4c659F2488D",
 }
 
 export const MOCK_OPERATORS: Operator[] = [
@@ -91,11 +347,10 @@ export const MOCK_OPERATORS: Operator[] = [
         tos_ids: ["0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D"],
         vm_ids: ["0x1134567890abcdef1234567890abcdef12345678"],
         restaked: 98,
-        numStakers: 801,
-        numTosServing: 2,
+        num_stakers: 801,
+        num_tos_serving: 2,
         reputation: 86,
         description: "Specialized in SGX computing",
-        // codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
     },
     {
         id: "0x1c340d5820B4cF539739dF2C5dAcb4c659F2488E",
@@ -115,11 +370,11 @@ export const MOCK_OPERATORS: Operator[] = [
         tos_ids: ["0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D"],
         vm_ids: ["0x1134567890abcdef1234567890abcdef12345678"],
         restaked: 98,
-        numStakers: 801,
-        numTosServing: 2,
+        num_stakers: 801,
+        num_tos_serving: 2,
         reputation: 86,
         description: "Specialized in SGX computing",
-        // codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+        // code_hash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
     },
     {
         id: "0x2c340d5820B4cF539739dF2C5dAcb4c659F2488E",
@@ -139,11 +394,11 @@ export const MOCK_OPERATORS: Operator[] = [
         tos_ids: ["0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D"],
         vm_ids: ["0x1134567890abcdef1234567890abcdef12345678"],
         restaked: 98,
-        numStakers: 801,
-        numTosServing: 2,
+        num_stakers: 801,
+        num_tos_serving: 2,
         reputation: 86,
         description: "Specialized in SGX computing",
-        // codeHash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+        // code_hash: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
     }
 ];
 
@@ -165,8 +420,8 @@ export const MOCK_MORPHIC_OPERATOR: Operator = {
     tos_ids: [],
     vm_ids: ["0x1234567890abcdef1234567890abcdef12345678"],
     restaked: 132,
-    numStakers: 1000,
-    numTosServing: 1,
+    num_stakers: 1000,
+    num_tos_serving: 1,
     reputation: 90,
     description: "Leading TDX operator",
 }
@@ -176,7 +431,8 @@ export const MOCK_VMs: Vm[] = [
     {
         "id": "0x1134567890abcdef1234567890abcdef12345678",
         "operator": "0x9c340d5820B4cF539739dF2C5dAcb4c659F2488E",
-        "vm_report": {
+        "type": "TDX",
+        "report": {
             "app_id": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
             "tcb": {
                 "rootfs_hash": "9e9cffad9b8c72e3d30a13542c45a7fcefd11ce3d17d43b14861b7a0061e72e9ba4ae565a3f2e384a2bf902babde8c3d",
@@ -186,15 +442,27 @@ export const MOCK_VMs: Vm[] = [
                 "rtmr2": "6e7f9827cb3c9b3c567e1a2c513cf5de3eff074683bf6035c522f02c54b382ae7abeee4763b276068dc26670c928978e",
                 "rtmr3": "84bdab957c9402f21af1d7e1ee716ce0c20f55c73124b2b6feebe3be3bf6ca70f62f82fc76a5a1b09b82cad5f5b7cbf7",
             },
-            "certificate": "dummy_certificate"
+            "quote": {
+                "type": "0x1234567890abcdef1234567890abcdef12345678",
+                "cpu_svn": "0x1234567890abcdef1234567890abcdef12345678",
+                "tcb_hash": "0x1234567890abcdef1234567890abcdef12345678",
+                "td_info_hash": "0x1234567890abcdef1234567890abcdef12345678",
+                "report_data": "0x1234567890abcdef1234567890abcdef12345678",
+                "signature": "0x1234567890abcdef1234567890abcdef12345678"
+            },
+            "tos": {
+                "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+                "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+            },
         },
         "status": 0,
-        "codeHash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+        "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
     },
     {
         "id": "0x1334567890abcdef1234567890abcdef12345678",
         "operator": "0x1c340d5820B4cF539739dF2C5dAcb4c659F2488E",
-        "vm_report": {
+        "type": "TDX",
+        "report": {
             "app_id": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
             "tcb": {
                 "rootfs_hash": "9e9cffad9b8c72e3d30a13542c45a7fcefd11ce3d17d43b14861b7a0061e72e9ba4ae565a3f2e384a2bf902babde8c3d",
@@ -204,15 +472,28 @@ export const MOCK_VMs: Vm[] = [
                 "rtmr2": "6e7f9827cb3c9b3c567e1a2c513cf5de3eff074683bf6035c522f02c54b382ae7abeee4763b276068dc26670c928978e",
                 "rtmr3": "84bdab957c9402f21af1d7e1ee716ce0c20f55c73124b2b6feebe3be3bf6ca70f62f82fc76a5a1b09b82cad5f5b7cbf7",
             },
-            "certificate": "dummy_certificate"
+            "quote": {
+                "type": "0x1234567890abcdef1234567890abcdef12345678",
+                "cpu_svn": "0x1234567890abcdef1234567890abcdef12345678",
+                "tcb_hash": "0x1234567890abcdef1234567890abcdef12345678",
+                "td_info_hash": "0x1234567890abcdef1234567890abcdef12345678",
+                "report_data": "0x1234567890abcdef1234567890abcdef12345678",
+                "signature": "0x1234567890abcdef1234567890abcdef12345678"
+            },
+            "tos": {
+                "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+                "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+            },
         },
+        
         "status": 0,
-        "codeHash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+        "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
     },
     {
         "id": "0x1434567890abcdef1234567890abcdef12345678",
         "operator": "0x2c340d5820B4cF539739dF2C5dAcb4c659F2488E",
-        "vm_report": {
+        "type": "TDX",
+        "report": {
             "app_id": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
             "tcb": {
                 "rootfs_hash": "9e9cffad9b8c72e3d30a13542c45a7fcefd11ce3d17d43b14861b7a0061e72e9ba4ae565a3f2e384a2bf902babde8c3d",
@@ -222,17 +503,29 @@ export const MOCK_VMs: Vm[] = [
                 "rtmr2": "6e7f9827cb3c9b3c567e1a2c513cf5de3eff074683bf6035c522f02c54b382ae7abeee4763b276068dc26670c928978e",
                 "rtmr3": "84bdab957c9402f21af1d7e1ee716ce0c20f55c73124b2b6feebe3be3bf6ca70f62f82fc76a5a1b09b82cad5f5b7cbf7",
             },
-            "certificate": "dummy_certificate"
+            "quote": {
+                "type": "0x1234567890abcdef1234567890abcdef12345678",
+                "cpu_svn": "0x1234567890abcdef1234567890abcdef12345678",
+                "tcb_hash": "0x1234567890abcdef1234567890abcdef12345678",
+                "td_info_hash": "0x1234567890abcdef1234567890abcdef12345678",
+                "report_data": "0x1234567890abcdef1234567890abcdef12345678",
+                "signature": "0x1234567890abcdef1234567890abcdef12345678"
+            },
+            "tos": {
+                "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+                "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+            },
         },
         "status": 0,
-        "codeHash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+        "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
     }
 ]
 
 export const MOCK_MORPHIC_AI_VM: Vm = {
     "id": "0x1234567890abcdef1234567890abcdef12345678",
     "operator": "0x9c340d5820B4cF539739dF2C5dAcb4c659F2488E",
-    "vm_report": {
+    "type": "TDX",
+    "report": {
         "app_id": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
         "tcb": {
             "rootfs_hash": "0xabc123",
@@ -242,17 +535,24 @@ export const MOCK_MORPHIC_AI_VM: Vm = {
             "rtmr2": "0x789abc",
             "rtmr3": "0x101112"
         },
-        "certificate": "dummy_certificate"
     },
     "status": 0,
-    "codeHash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+    "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
 }
 
 export const MOCK_MORPHIC_KMS_VM: Vm = {
     "id": "0x1134567890abcdef1234567890abcdef12345678",
     "operator": "0xAbcDef1234567890abcdef1234567890ABCDEF12",
-    "vm_report": {
+    "report": {
         "app_id": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+        "quote": {
+            "type": "0x1234567890abcdef1234567890abcdef12345678",
+            "cpu_svn": "0x1234567890abcdef1234567890abcdef12345678",
+            "tcb_hash": "0x1234567890abcdef1234567890abcdef12345678",
+            "td_info_hash": "0x1234567890abcdef1234567890abcdef12345678",
+            "report_data": "0x1234567890abcdef1234567890abcdef12345678",
+            "signature": "0x1234567890abcdef1234567890abcdef12345678"
+        },
         "tcb": {
             "rootfs_hash": "0xabc123",
             "mrtd": "0xdef456",
@@ -261,10 +561,13 @@ export const MOCK_MORPHIC_KMS_VM: Vm = {
             "rtmr2": "0x789abc",
             "rtmr3": "0x101112"
         },
-        "certificate": "dummy_certificate"
+        "tos": {
+            "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+            "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+        },
     },
     "status": 0,
-    "codeHash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+    "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
 }
 
 
@@ -281,8 +584,8 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.8,
         status: 'online',
         capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
-        numOperators: 2,
-        modelType: 'GPT-4',
+        num_operators: 2,
+        model_type: 'GPT-4',
         visibility: 'public'
     },
     {
@@ -297,8 +600,8 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.6,
         status: 'offline',
         capabilities: ['Code Generation', 'Code Review', 'Debugging'],
-        modelType: 'GPT-3',
-        numOperators: 2,
+        model_type: 'GPT-3',
+        num_operators: 2,
         visibility: 'public'
     },
     {
@@ -313,8 +616,8 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.9,
         status: 'online',
         capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
-        modelType: 'Stable Diffusion',
-        numOperators: 2,
+        model_type: 'Stable Diffusion',
+        num_operators: 2,
         visibility: 'public'
     },
     {
@@ -329,16 +632,16 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.7,
         status: 'online',
         capabilities: ['Image Analysis', 'Object Detection', 'Image Classification'],
-        modelType: 'Stable Diffusion',
-        numOperators: 2,
+        model_type: 'Stable Diffusion',
+        num_operators: 2,
         visibility: 'public'
     }
-]; 
+];
 
 export const MOCK_MORPHIC_AGENT: Agent = {
     id: 0,
     owner: '',
-    name: "Morphic Agent", 
+    name: "Morphic Agent",
     logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
     labels: ["Chat"],
     description: "A agent deployed to Morphic operator",
@@ -347,7 +650,7 @@ export const MOCK_MORPHIC_AGENT: Agent = {
     rating: 0,
     status: 'offline',
     capabilities: ['text generation'],
-    numOperators: 1,
-    modelType: 'GPT-4',
+    num_operators: 1,
+    model_type: 'GPT-4',
     visibility: 'public'
 };

@@ -38,8 +38,8 @@ interface Agent {
   rating: number;
   status?: 'online' | 'offline';
   capabilities?: string[];
-  modelType?: string;
-  numOperators?: number;
+  model_type?: string;
+  num_operators?: number;
 }
 
 const AgentDetail = () => {
@@ -91,7 +91,7 @@ const AgentDetail = () => {
                 </div>
                 <div className="flex items-center">
                   <Network className="h-4 w-4 mr-2" />
-                  <span>{agent.numOperators} operators</span>
+                  <span>{agent.num_operators} operators</span>
                 </div>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 mr-2 text-yellow-400" />
@@ -99,7 +99,7 @@ const AgentDetail = () => {
                 </div>
                 <div className="flex items-center">
                   <Cpu className="h-4 w-4 mr-2" />
-                  <span>{agent.modelType}</span>
+                  <span>{agent.model_type}</span>
                 </div>
               </div>
             </div>

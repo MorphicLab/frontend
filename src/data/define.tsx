@@ -8,8 +8,8 @@ export interface TOS {
     logo: string;
     website?: string;
     description?: string;
-    operatorTypes: string[];
-    operatorMinimum: number;
+    operator_types: string[];
+    operator_minimum: number;
     creator: {
         address: string;
         name: string;
@@ -19,16 +19,18 @@ export interface TOS {
     vmemory: number;
     disk: number;
     version: string;
-    code: string;
-    codeHash?: string;   // calculated by code locally, corresponding to mrtd
+    code: string;  // docker-compose file contents
+    code_hash?: string;   // calculated by code locally, corresponding to mrtd
     labels: string[];
     dao?: string;
+    status: TOSStatus;  // active, waiting, stopped read from blockchain
     operators?: string[];  // ids of operators
     vms?: string[]; // ids of vm instances
     restaked?: number;
     stakers?: number | string;
     likes?: number | string;
-    status: TOSStatus;
+    cert?: string;      // generated
+    address?: string;   // generated. the address inside TOS vms to sign messages and control balances.
 }
 
 export interface Operator {
@@ -50,10 +52,10 @@ export interface Operator {
     tos_ids?: string[];
     vm_ids?: string[];
     restaked: number;    // calculated by the stakers' staked amount
-    numStakers: number;
-    numTosServing: number;
+    num_stakers: number;
+    num_tos_serving: number;
     reputation: number;
-    codeHash?: string;   // TODO: should be moved to vm next
+    code_hash?: string;   // TODO: should be moved to vm next
 }
 
 export interface Agent {
@@ -68,16 +70,25 @@ export interface Agent {
     rating: number;
     status?: 'online' | 'offline';
     capabilities?: string[];
-    numOperators?: number;
-    memoryRequirement?: string;
-    storageRequirement?: string;
-    daoContract?: string;
-    modelType: string;
+    num_operators?: number;
+    memory_requirement?: string;
+    storage_requirement?: string;
+    dao_contract?: string;
+    model_type: string;
     visibility: string;
-    dockerCompose?: string;
+    docker_compose?: string;
 }
 
-export interface TCBInfo {
+export interface VmQuote {  // now using quote of TDX
+    type: string;  
+    cpu_svn: string; 
+    tcb_hash: string;
+    td_info_hash: string;
+    report_data: string;
+    signature: string;
+};
+
+export interface VmInfo {   // now using TD info of TDX
     rootfs_hash: string;
     mrtd: string;
     rtmr0: string;
@@ -86,10 +97,17 @@ export interface TCBInfo {
     rtmr3: string;
 };
 
-export interface VmReport {
+export interface VmTosInfo { 
+    code_hash: string;   // app-id of dstack event_log
+    ca_cert_hash?: string;   // ca-cert-hash of dstack event_log
+};
+
+
+export interface VmReport {   // now using report of TDX
     app_id: string;
-    tcb: TCBInfo;
-    certificate: string; // TODO: Hex-encoded bytes, should be changed to bytes next
+    quote?: VmQuote;
+    tcb: VmInfo;
+    tos?: VmTosInfo;
 };
 
 export enum VmStatus {
@@ -100,9 +118,10 @@ export enum VmStatus {
 export interface Vm {
     id: string; // Hex-encoded bytes20 (e.g., "0x123...")
     operator: string; // Ethereum address
-    vm_report: VmReport;
+    type: string;
+    report: VmReport;
     status: VmStatus;
-    codeHash?: string;
+    code_hash?: string;
 };
 
 // 标签定义

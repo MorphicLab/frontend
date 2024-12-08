@@ -154,11 +154,11 @@ const OperatorDetail: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-center text-gray-300 mb-4">
                                 <span>Stakers</span>
-                                <span className="text-xl font-bold text-white">{operator.numStakers}</span>
+                                <span className="text-xl font-bold text-white">{operator.num_stakers}</span>
                             </div>
                             <div className="flex justify-between items-center text-gray-300">
                                 <span>TOS Serving</span>
-                                <span className="text-xl font-bold text-white">{operator.numTosServing}</span>
+                                <span className="text-xl font-bold text-white">{operator.num_tos_serving}</span>
                             </div>
                         </div>
 
