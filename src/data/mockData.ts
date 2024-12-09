@@ -640,7 +640,7 @@ export const MOCK_AGENTS: Agent[] = [
 export const MOCK_MORPHIC_AGENT: Agent = {
     id: 0,
     owner: '',
-    name: "Morphic Agent",
+    name: "Morphic_Agent",
     logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
     labels: ["Chat"],
     description: "A agent deployed to Morphic operator",

@@ -4,8 +4,15 @@ const AGENT_PREFIX = 'agent-';
 
 
 // 处理dockerCompose格式的函数
-function formatDockerCompose(content: string): string {
-    return JSON.stringify({ docker_compose_file: content });
+function formatDockerCompose(name :string, content: string): string {
+    return JSON.stringify({ 
+        "manifest_version": 1,
+        name: name,
+        "version": "1.0.0",
+        "features": ["kms", "tproxy"],
+        "runner": "docker-compose",
+        docker_compose_file: content 
+    });
 }
 
 
@@ -14,7 +21,6 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
     if (import.meta.env.VITE_OFF_CHAIN_API_MOCK == true) {
         return true; // for test
     }
-
 
     try {
         const response = await fetch(`/prpc/Teepod.CreateVm?json`, {
@@ -25,7 +31,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
             body: JSON.stringify({
                 name: AGENT_PREFIX + agent.name,
                 image: 'dstack-dev-0.3.0',
-                compose_file: formatDockerCompose(docker_compose),
+                compose_file: formatDockerCompose(agent.name, docker_compose),
                 vcpu: 1,
                 memory: 1024,
                 disk_size: 20,
