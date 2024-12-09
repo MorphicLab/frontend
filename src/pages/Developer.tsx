@@ -94,7 +94,7 @@ const Developer: React.FC = () => {
         );
     }, [allTOSs]);
 
-    const allAgents = useBlockchainStore(state => state.agents);
+    // const allAgents = useOffChainStore(state => state.allAgents);
     const myAgents = useOffChainStore(state => state.myAgents);
 
     // Add form validation state
@@ -1782,7 +1782,7 @@ const Developer: React.FC = () => {
                     <AgentCard
                         key={agent.id}
                         agent={agent}
-                        onClick={() => navigate(`/agent-detail/${agent.id}`, { state: { agent } })}
+                        onClick={() => navigate(`/agent-Chat/${agent.id}`, { state: { agent } })}
                     />
                 ))}
             </div>

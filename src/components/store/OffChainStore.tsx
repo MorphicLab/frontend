@@ -1,11 +1,10 @@
 import { create } from 'zustand';
 import { getAgentListByOwner } from '../../request/operator'; // 导入获取代理列表的接口
 import { Operator } from '../../data/define';
-import { useBlockchainStore } from '../../components/store/store';
 
 // 定义 OffChainStore 状态接口
 interface OffChainStore {
-    agents: any[];
+    allAgents: any[];
     myAgents: any[];
     fetchAgents: (allOperators: Operator[]) => Promise<void>;
     fetchMyAgents: (myOperators: Operator[]) => Promise<void>;
@@ -17,14 +16,30 @@ interface OffChainStore {
 
 // 创建 OffChainStore
 export const useOffChainStore = create<OffChainStore>((set) => ({
-    agents: [],
+    allAgents: [],
     fetchAgents: async (allOperators: Operator[]) => {
-        // TODO：防止循环请求的bug造成大量压力，暂时注释，修复后再补充
+        console.log("fetchAllAgents", allOperators);
+        try {
+            const allAgents = [];
+            for (const operator of allOperators) {
+                const ags = await getAgentListByOwner(operator.domain, operator.port);
+                allAgents.push(...ags);
+            }
+            set({ allAgents });
+            
+        } catch (error) {
+            console.error('failed to get agent list:', error);
+        }
     },
     myAgents: [],
     fetchMyAgents: async (myOperators: Operator[]) => {
+        console.log("fetchMyAgents", myOperators);
         try {
-            const myAgents = await getAgentListByOwner(myOperators[0].domain, myOperators[0].port); 
+            const myAgents = [];
+            for (const operator of myOperators) {
+                const ags = await getAgentListByOwner(operator.domain, operator.port);
+                myAgents.push(...ags);
+            }
             set({ myAgents });
             
         } catch (error) {
@@ -34,6 +49,6 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
 
     initializeStore: async (allOperators: Operator[], myOperators: Operator[]) => {
         await useOffChainStore.getState().fetchMyAgents(myOperators);
-        await useOffChainStore.getState().fetchAgents(allOperators);
+        // await useOffChainStore.getState().fetchAgents(allOperators);
     },
 }));

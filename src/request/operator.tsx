@@ -31,7 +31,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
             body: JSON.stringify({
                 name: AGENT_PREFIX + agent.name,
                 image: 'dstack-dev-0.3.0',
-                compose_file: formatDockerCompose(agent.name, docker_compose),
+                compose_file: formatDockerCompose(AGENT_PREFIX + agent.name, docker_compose),
                 vcpu: 1,
                 memory: 1024,
                 disk_size: 20,
@@ -97,7 +97,7 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
             .map((vm: { id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
                 id: vm.id,
                 owner: '',
-                name: vm.name,
+                name: vm.name.replace('agent-', ''),
                 description: '',
                 readme: '',
                 logo: '',
