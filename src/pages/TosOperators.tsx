@@ -88,20 +88,30 @@ const TosOperators: React.FC = () => {
                         ))}
                     </div>
 
-                    <div className="flex justify-center gap-2 mt-6">
-                        {[1].map(page => (
-                            <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === page
-                                        ? 'bg-morphic-primary text-white'
-                                        : 'bg-gray-800/50 text-morphic-light hover:bg-morphic-primary/20'
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center gap-2 mt-8">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                        currentPage === page
+                                            ? 'bg-morphic-primary text-white'
+                                            : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
                                     }`}
-                            >
-                                {page}
-                            </button>
-                        ))}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Showing entries info */}
+                    <div className="text-gray-400 text-sm text-center mt-4">
+                        Showing {((currentPage - 1) * 6) + 1} to {Math.min(currentPage * 6, currentOperators.length)} of {currentOperators.length} operators
                     </div>
+
                 </motion.div>
 
                 <motion.div

@@ -38,7 +38,7 @@ const OperatorDetail: React.FC = () => {
     if (!operator) return <div>Operator not found</div>;
 
     // Get the TOSs served by this operator
-    const servingTOSs = allTOS.filter(tos => tos.operators?.includes(operator.id));
+    const servingTOSs = allTOS.filter(tos => tos.vm_ids?.[operator?.id]?.length > 0);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">

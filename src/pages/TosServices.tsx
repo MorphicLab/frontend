@@ -26,6 +26,7 @@ const TosServices: React.FC = () => {
         selectedLabels,
         toggleLabel,
         filteredItems: currentTOS,
+        paginatedItems,
         currentPage,
         setCurrentPage,
         totalPages
@@ -83,11 +84,14 @@ const TosServices: React.FC = () => {
                         searchPlaceholder="Search services"
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {currentTOS.map((tos, index) => (
-                            <TOSCard 
-                                key={`${tos.id}-${tos.name}`}  // 使用更独特的 key
-                                tos={tos} 
+                    {/* TOS Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {paginatedItems.map((tos, index) => (
+                            <TOSCard
+                                key={tos.id}
+                                tos={tos}
+                                operators={allOperators}
+                                onClick={() => navigate(`/tos/${tos.id}`)}
                                 index={index} 
                             />
                         ))}
@@ -111,6 +115,11 @@ const TosServices: React.FC = () => {
                             ))}
                         </div>
                     )}
+
+                    {/* Showing entries info */}
+                    <div className="text-gray-400 text-sm text-center mt-4">
+                        Showing {((currentPage - 1) * 6) + 1} to {Math.min(currentPage * 6, currentTOS.length)} of {currentTOS.length} services
+                    </div>
 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}

@@ -166,11 +166,18 @@ const TosDetail: React.FC = () => {
         ? allOperators.filter(op => op.vm_ids?.hasOwnProperty(tos.id))
         : [];
 
-    const totalPages = Math.ceil(tosOperators.length / itemsPerPage);
-    const currentOperators = tosOperators.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const operatorsPerPage = 5;
+
+    // Calculate pagination
+    const indexOfLastOperator = currentPage * operatorsPerPage;
+    const indexOfFirstOperator = indexOfLastOperator - operatorsPerPage;
+    const currentPageOperators = tosOperators.slice(indexOfFirstOperator, indexOfLastOperator);
+    const totalPages = Math.ceil(tosOperators.length / operatorsPerPage);
+
+    // Handle page changes
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
 
     const copyToClipboard = async () => {
         if (tos?.cert) {
@@ -242,7 +249,7 @@ const TosDetail: React.FC = () => {
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Operators</div>
                                     <div className="text-white font-semibold mt-1">
-                                        {Object.keys(tos.vm_ids || {}).length}
+                                    {Object.keys(tos.vm_ids || {}).length} 
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
@@ -252,7 +259,7 @@ const TosDetail: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Total Stakes</div>
+                                    <div className="text-gray-400 text-sm">Total Stakers</div>
                                     <div className="text-white font-semibold mt-1">
                                         {tos.num_stakers}
                                     </div>
@@ -265,23 +272,15 @@ const TosDetail: React.FC = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-gray-800 rounded-xl p-6"
+                            className="bg-gray-800 rounded-xl border border-morphic-primary/20 p-6"
                         >
                             <h2 className="text-xl font-semibold text-white mb-4">Trustlessness</h2>
                             <div className="space-y-4">
                                 {/* Decentralization */}
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Decentralization</div>
-                                    <div className="text-white font-semibold mt-1">
-                                        {tosOperators.length} Operators
-                                    </div>
-                                </div>
-
-                                {/* Verifiability */}
-                                <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Verifiability</div>
                                     <div className="text-white font-mono text-sm mt-1">
-                                        {tos.address || 'Address not available'}
+                                        {tosOperators.length} Operators <span className="text-gray-400 text-sm ml-1">/ {tos.operator_minimum} required</span>
                                     </div>
                                 </div>
 
@@ -307,8 +306,8 @@ const TosDetail: React.FC = () => {
                                     </div>
                                     <div className="relative">
                                         <pre 
-                                            className="font-mono text-sm text-morphic-primary/90 whitespace-pre-wrap break-words 
-                                            overflow-auto max-h-[120px] rounded-lg px-4 py-3 bg-gray-900/30
+                                            className="font-mono text-sm text-white/80 whitespace-pre-wrap break-words 
+                                            overflow-auto max-h-[80px] rounded-lg px-4 py-3 bg-gray-900/30
                                             [&::-webkit-scrollbar]:w-2
                                             [&::-webkit-scrollbar-track]:rounded-r-lg
                                             [&::-webkit-scrollbar-track]:bg-gray-900/20
@@ -324,6 +323,16 @@ const TosDetail: React.FC = () => {
                                         <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-800/30 to-transparent pointer-events-none rounded-b-lg" />
                                     </div>
                                 </div>
+
+                                {/* Verifiability */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm">Verifiability</div>
+                                    <div className="text-white font-mono text-sm mt-1">
+                                        {tos.address || 'Address not available'}
+                                    </div>
+                                </div>
+
+                                
                             </div>
                         </motion.div>
 
@@ -365,9 +374,33 @@ const TosDetail: React.FC = () => {
                             <h2 className="text-xl font-semibold text-white mb-4">Operators</h2>
                             <div className="space-y-2">
                                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
-                                    {currentOperators.map(operator => (
+                                    {currentPageOperators.map(operator => (
                                         <ThinOperatorCard key={operator.id} operator={operator} />
                                     ))}
+                                </div>
+                                
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="flex justify-center gap-2 mt-8">
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                            <button
+                                                key={page}
+                                                onClick={() => setCurrentPage(page)}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                    currentPage === page
+                                                        ? 'bg-morphic-primary text-white'
+                                                        : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                
+                                {/* Showing entries info */}
+                                <div className="text-gray-400 text-sm text-center mt-4">
+                                    Showing {indexOfFirstOperator + 1} to {Math.min(indexOfLastOperator, tosOperators.length)} of {tosOperators.length} operators
                                 </div>
                             </div>
                         </motion.div>
