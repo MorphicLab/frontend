@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check } from 'lucide-react';
+import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check, HelpCircle } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -166,6 +166,10 @@ const TosDetail: React.FC = () => {
         ? allOperators.filter(op => op.vm_ids?.hasOwnProperty(tos.id))
         : [];
 
+    const tosVms = tos?.id 
+        ? allVms.filter(vm => vm.tos_id === tos.id)
+        : [];
+
     const operatorsPerPage = 5;
 
     // Calculate pagination
@@ -278,16 +282,102 @@ const TosDetail: React.FC = () => {
                             <div className="space-y-4">
                                 {/* Decentralization */}
                                 <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Decentralization</div>
+                                    <div className="text-gray-400 text-sm flex items-center">
+                                        Decentralization
+                                        <div className="group relative ml-1">
+                                            <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
+                                                Number of operators currently running this TOS, ensuring decentralized operation and fault tolerance.
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div className="text-white font-mono text-sm mt-1">
-                                        {tosOperators.length} Operators <span className="text-gray-400 text-sm ml-1">/ {tos.operator_minimum} required</span>
+                                        {tosOperators.length} <span className="text-gray-400 text-sm ml-1">(≥{tos.operator_minimum} operators required)</span>
+                                    </div>
+                                </div>
+
+                                {/* Verifiability */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm flex items-center">
+                                        Verifiability
+                                        <div className="group relative ml-1">
+                                            <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
+                                                Types of mechanisms used to ensure verifiable and secure computation.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                        <span className="mr-2">TEE</span>
+                                        <span className="flex items-center space-x-2">
+                                            {Array.from(new Set(tosVms.map(vm => vm.type))).map(label => (
+                                                <span
+                                                    key={label}
+                                                    className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                >
+                                                    <Cpu className="h-3 w-3 mr-1" />
+                                                    {label}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Finality */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm flex items-center">
+                                        Finality
+                                        <div className="group relative ml-1">
+                                            <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
+                                                The contract address of this TOS, ensuring immutable and final deployment on the blockchain.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-white font-mono text-sm mt-1">
+                                        {tos.address || 'Address not available'}
                                     </div>
                                 </div>
 
                                 {/* Confidentiality */}
                                 <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm flex items-center">
+                                        Confidentiality
+                                        <div className="group relative ml-1">
+                                            <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
+                                                Types of mechanisms to ensure confidentiality.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                        <span className="mr-2">TEE</span>
+                                        <span className="flex items-center space-x-2">
+                                            {Array.from(new Set(tosVms.map(vm => vm.type))).map(label => (
+                                                <span
+                                                    key={label}
+                                                    className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                >
+                                                    <Cpu className="h-3 w-3 mr-1" />
+                                                    {label}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Confidentiality */}
+                                {/* <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="flex items-center justify-between mb-2">
-                                        <div className="text-gray-400 text-sm">Confidentiality</div>
+                                        <div className="text-gray-400 text-sm flex items-center">
+                                            Confidentiality
+                                            <div className="group relative ml-1">
+                                                <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                                                <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
+                                                    Privacy measures and encryption mechanisms used to protect sensitive data and computations.
+                                                </div>
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={copyToClipboard}
                                             disabled={!tos.cert}
@@ -322,15 +412,7 @@ const TosDetail: React.FC = () => {
                                         </pre>
                                         <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-800/30 to-transparent pointer-events-none rounded-b-lg" />
                                     </div>
-                                </div>
-
-                                {/* Verifiability */}
-                                <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Verifiability</div>
-                                    <div className="text-white font-mono text-sm mt-1">
-                                        {tos.address || 'Address not available'}
-                                    </div>
-                                </div>
+                                </div> */}
 
                                 
                             </div>

@@ -1838,7 +1838,7 @@ const Developer: React.FC = () => {
                     setOperatorFormState({
                         ...MOCK_MORPHIC_OPERATOR,
                         // Override some fields to make them unique
-                        name: `${MOCK_MORPHIC_OPERATOR.name}_${Math.floor(Math.random() * 1000)}`,
+                        name: `${MOCK_MORPHIC_OPERATOR.name} ${Math.floor(Math.random() * 1000)}`,
                         logo: MOCK_MORPHIC_OPERATOR.logo || DEFAULT_OPERATOR_LOGO,
                         labels: MOCK_MORPHIC_OPERATOR.labels || [],
                         description: MOCK_MORPHIC_OPERATOR.description || '',

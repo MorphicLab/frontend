@@ -37,7 +37,6 @@ export interface TOS {
     restaked?: number;   // calculated from other information
     num_stakers?: number;    // calculated from other information
     likes?: number | string;    // calculated from other information
-    cert?: string;      // generated inside TEE for secure channels
     address?: string;   // generated inside TEE for sign messages and control balances.
 }
 
@@ -109,6 +108,7 @@ export interface Vm {
     report: VmReport;
     status: VmStatus;
     code_hash?: string;       // app-id of dstack event_log
+    cert?: string;
 };
 
 export enum AgentStatus {
@@ -139,5 +139,6 @@ export interface Agent {
 
 // 标签定义
 export const tosLabels = ['DeAI', 'DeFi', 'Compute', 'Storage', 'Oracle'];
-export const operatorLabels = ['TDX', 'SEV', 'H100', 'A100', 'SGX', 'CPU', 'GPU'];
+export const operatorLabels = ['TDX', 'SEV', 'H100', 'Nitro', 'A100', 'SGX', 'CPU', 'GPU'];
+export const vmLabels = ['TDX', 'SEV', 'H100', 'Nitro', 'A100', 'SGX', 'CPU', 'GPU'];
 export const agentLabels = ['Chat', 'Code', 'Image', 'Audio', 'Video'];

@@ -12,7 +12,7 @@ interface VerificationFlowProps {
 
 export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     tos,
-    operators: operatorsList,
+    operators,
     vms,
     onClose
 }) => {
@@ -61,6 +61,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
         const operatorCards = Array.from(container.querySelectorAll('[data-type="operator"]'));
         const intelElements = Array.from(container.querySelectorAll('[data-type="intel"]'));
         const amdElements = Array.from(container.querySelectorAll('[data-type="amd"]'));
+        const amazonElements = Array.from(container.querySelectorAll('[data-type="amazon"]'));
         const ethereumCard = container.querySelector('[data-type="ethereum"]');
 
         if (!tosCard || operatorCards.length === 0 || intelElements.length === 0 || !ethereumCard) {
@@ -128,7 +129,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
         // Draw connections for each operator
         operatorCards.forEach((operatorCard) => {
-            const operatorType = operatorCard.getAttribute('data-operator-type');
+            const vmType = operatorCard.getAttribute('data-vm-type');
 
             // Draw connection for Ethereum
             const ethereumCoords = getRelativeCoords(ethereumCard);
@@ -144,34 +145,33 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                 'ethereum'
             );
 
-            drawCurvedLine(
-                operatorCoords.left,
-                operatorCoords.top + 20,
-                tosCoords.right,
-                tosCoords.top + 20,
-                'ethereum'
-            );
-
-            // Vendor connection for operators
-            if (operatorType === 'TDX') {
-                const intelCard = intelElements[0];
-                const intelCoords = getRelativeCoords(intelCard);
-                const operatorCoords = getRelativeCoords(operatorCard);
-                
+            const tosDecentralizationElem = tosCard.querySelector('[data-field="decentralization"]');
+            if (tosDecentralizationElem) {
+                const tosDecentralizationCoords = getRelativeCoords(tosDecentralizationElem);
                 drawCurvedLine(
-                    intelCoords.left,
-                    intelCoords.top + 20,
-                    operatorCoords.right,
-                    operatorCoords.top + 20
+                    operatorCoords.left,
+                    operatorCoords.top + 20,
+                    tosDecentralizationCoords.right,
+                    tosDecentralizationCoords.top + tosDecentralizationCoords.height / 2,
+                    'ethereum'
                 );
-            } else if (operatorType === 'SEV') {
-                const amdCard = amdElements[0];
-                const amdCoords = getRelativeCoords(amdCard);
+            }
+            
+            // Vendor connection for operators
+            const vendorMapping = {
+                'TDX': intelElements[0],
+                'SEV': amdElements[0],
+                'Nitro': amazonElements[0]
+            };
+
+            if (vendorMapping[vmType]) {
+                const vendorCard = vendorMapping[vmType];
+                const vendorCoords = getRelativeCoords(vendorCard);
                 const operatorCoords = getRelativeCoords(operatorCard);
                 
                 drawCurvedLine(
-                    amdCoords.left,
-                    amdCoords.top + 20,
+                    vendorCoords.left,
+                    vendorCoords.top + 20,
                     operatorCoords.right,
                     operatorCoords.top + 20
                 );
@@ -179,20 +179,20 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
             // Draw other connections
             const codeHashElem = operatorCard.querySelector('[data-field="code-hash"]');
-            const tosCodeHashElem = tosCard.querySelector('[data-field="code-hash"]');
-            if (codeHashElem && tosCodeHashElem) {
+            const tosVerifiabilityElem = tosCard.querySelector('[data-field="verifiability"]');
+            if (codeHashElem && tosVerifiabilityElem) {
                 const codeHashCoords = getRelativeCoords(codeHashElem);
-                const tosCodeHashCoords = getRelativeCoords(tosCodeHashElem);
+                const tosVerifiabilityCoords = getRelativeCoords(tosVerifiabilityElem);
                 drawCurvedLine(
                     codeHashCoords.left,
                     codeHashCoords.top + codeHashCoords.height / 2,
-                    tosCodeHashCoords.right,
-                    tosCodeHashCoords.top + tosCodeHashCoords.height / 2
+                    tosVerifiabilityCoords.right,
+                    tosVerifiabilityCoords.top + tosVerifiabilityCoords.height / 2
                 );
             }
 
-            const caCertElem = operatorCard.querySelector('[data-field="ca-cert"]');
-            const tosCertElem = tosCard.querySelector('[data-field="cert"]');
+            const caCertElem = operatorCard.querySelector('[data-field="cert"]');
+            const tosCertElem = tosCard.querySelector('[data-field="confidentiality"]');
             if (caCertElem && tosCertElem) {
                 const caCertCoords = getRelativeCoords(caCertElem);
                 const tosCertCoords = getRelativeCoords(tosCertElem);
@@ -205,7 +205,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
             }
 
             const reportDataElem = operatorCard.querySelector('[data-field="report-data"]');
-            const tosAddressElem = tosCard.querySelector('[data-field="address"]');
+            const tosAddressElem = tosCard.querySelector('[data-field="finality"]');
             if (reportDataElem && tosAddressElem) {
                 const reportDataCoords = getRelativeCoords(reportDataElem);
                 const tosAddressCoords = getRelativeCoords(tosAddressElem);
@@ -244,7 +244,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
         operatorsContainer.addEventListener('scroll', handleScroll);
         return () => operatorsContainer.removeEventListener('scroll', handleScroll);
-    }, [operatorsList, drawConnections]);
+    }, [operators, drawConnections]);
 
     const layout = {
         containerClass: 'w-full justify-center',
@@ -294,6 +294,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
             display: block;
         }
     `;
+
 
     return (
         <div 
@@ -357,41 +358,6 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     />
                 </div>
                 <div className={`relative h-full flex ${layout.containerClass} ${layout.gap} px-16`}>
-                    {/* Ethereum Endorsement */}
-                    {/* <motion.div
-                        data-type="ethereum"
-                        className={`${layout.trustedEntitiesWidth} space-y-2`}
-                        initial={{ x: -50, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                        <div className="text-lg font-bold text-white space-y-4 py-4 mt-4">Ethereum Endorsement</div>
-                        <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
-                            <div className="h-10 bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 flex items-center px-4">
-                                <span className="text-lg font-bold text-yellow-500">Ethereum Mainnet</span>
-                            </div>
-                            <div className="p-4 space-y-3">
-                                <div>
-                                    <div className="text-sm text-gray-400 mb-1">Smart Contract</div>
-                                    <div data-field="contract" className="text-yellow-500 font-mono bg-yellow-500/10 px-3 py-1.5 rounded-lg text-sm">
-                                        Morphic Registry
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-400 mb-1">Verification Method</div>
-                                    <div data-field="verification" className="text-yellow-500 font-mono bg-yellow-500/10 px-3 py-1.5 rounded-lg text-sm">
-                                        Zero Knowledge Proof
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-400 mb-1">Consensus</div>
-                                    <div data-field="consensus" className="text-yellow-500 font-mono bg-yellow-500/10 px-3 py-1.5 rounded-lg text-sm">
-                                        Proof of Stake
-                                    </div>
-                                </div>
-                            </div>
-                        </div> 
-                    </motion.div> */}
 
                     {/* TOS Card */}
                     <motion.div
@@ -407,24 +373,58 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                             </div>
                             <div className="p-4">
                                 <div className="tos-hash" ref={tosHashRef}>
-                                    <div className="text-sm text-gray-400 mb-1">Code Hash</div>
-                                    <div data-field="code-hash" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                                        {tos.code_hash?.slice(0, 10)}...{tos.code_hash?.slice(-8)}
+                                    <div className="text-sm text-gray-400 mb-1">Decentralization</div>
+                                    <div data-field="decentralization" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
+                                        {operators.length}
                                     </div>
                                 </div>
                                 <div className="mt-3">
-                                    <div className="text-sm text-gray-400 mb-1">Certificate</div>
-                                    <div data-field="cert" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                    <div className="text-sm text-gray-400 mb-1">Verifiability</div>
+                                    <div data-field="verifiability" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
                                         <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                                            {tos.cert || 'Not available'}
+                                        <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                        <span className="mr-2">TEE</span>
+                                        <span className="flex items-center space-x-2">
+                                            {Array.from(new Set(vms.map(vm => vm.type))).map(label => (
+                                                <span
+                                                    key={label}
+                                                    className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                >
+                                                    <Cpu className="h-3 w-3 mr-1" />
+                                                    {label}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
                                         </pre>
                                     </div>
                                 </div>
                                 <div className="mt-3">
-                                    <div className="text-sm text-gray-400 mb-1">Address</div>
-                                    <div data-field="address" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                    <div className="text-sm text-gray-400 mb-1">Finality</div>
+                                    <div data-field="finality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
                                         <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
                                             {tos.address || 'Not available'}
+                                        </pre>
+                                    </div>
+                                </div>
+                                <div className="mt-3">
+                                    <div className="text-sm text-gray-400 mb-1">Confidentiality</div>
+                                    <div data-field="confidentiality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                        <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                        <span className="mr-2">TEE</span>
+                                        <span className="flex items-center space-x-2">
+                                            {Array.from(new Set(vms.map(vm => vm.type))).map(label => (
+                                                <span
+                                                    key={label}
+                                                    className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                >
+                                                    <Cpu className="h-3 w-3 mr-1" />
+                                                    {label}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
                                         </pre>
                                     </div>
                                 </div>
@@ -442,170 +442,181 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     >
                         <div className="text-lg font-bold text-white mb-2 sticky top-0 z-10 space-y-4 py-4  mt-4">Serving Operators</div>
                         <div className="space-y-4 pr-2">
-                            {operatorsList.map((operator, index) => (
-                                <motion.div
-                                    key={operator.id}
-                                    data-type="operator"
-                                    data-operator-type={vms.find(vm => vm.operator_id === operator.id)?.type}
-                                    className="operator-card bg-[#1E3448]/90 rounded-lg overflow-hidden shadow-lg space-y-2"
-                                    initial={{ x: 50, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4 + index * 0.1 }}
-                                >
-                                    <div className="h-9 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-3">
-                                        <span className="text-base font-bold text-white">{operator.name}</span>
-                                    </div>
-                                    <div className="p-2.5 space-y-1">
+                            {operators.map((operator, index) => {
+                                const vm = vms.find(vm => vm.operator_id === operator.id);
+                                const tcbInfo = vm?.report.tcb_info;
+                                return (
+                                    <motion.div
+                                        key={operator.id}
+                                        data-type="operator"
+                                        data-vm-type={vm?.type}
+                                        className="operator-card bg-[#1E3448]/90 rounded-lg overflow-hidden shadow-lg space-y-2"
+                                        initial={{ x: 50, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.4 + index * 0.1 }}
+                                    >
+                                        <div className="h-9 bg-gradient-to-r from-morphic-accent/20 to-morphic-primary/20 flex items-center px-3">
+                                            <span className="text-base font-bold text-white">{operator.name}</span>
+                                        </div>
+                                        <div className="p-2.5 space-y-1">
 
-                                        {/* TCB Info Section */}
-                                        <div className="tcb-section bg-morphic-primary/5 rounded-lg p-3">
-                                            <div 
-                                                className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
-                                                onClick={() => toggleSection(operator.id, 'tcb')}
-                                            >
-                                                <div className="flex-1">VM Info</div>
-                                                <div className="text-morphic-primary">
-                                                    {expandedSections[operator.id]?.tcb ? '▼' : '▶'}
+
+                                            {/* TCB Info Section */}
+                                            <div className="tcb-section bg-morphic-primary/5 rounded-lg p-3">
+                                                <div 
+                                                    className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
+                                                    onClick={() => toggleSection(operator.id, 'tcb')}
+                                                >
+                                                    <div className="flex-1">VM Info</div>
+                                                    <div className="text-morphic-primary">
+                                                        {expandedSections[operator.id]?.tcb ? '▼' : '▶'}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    {tcbInfo && (
+                                                        <>
+                                                            {/* Default visible field */}
+                                                            <div>
+                                                                <div className="text-[11px] text-gray-400">RTMR3</div>
+                                                                <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                    {tcbInfo.rtmr3?.slice(0, 10)}...{tcbInfo.rtmr3?.slice(-8)}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Expandable fields */}
+                                                            {expandedSections[operator.id]?.tcb && (
+                                                                <>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">Rootfs Hash</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {tcbInfo.roots_hash?.slice(0, 10)}...{tcbInfo.roots_hash?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">MRTD</div>
+                                                                        <div data-field="mrtd" className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {tcbInfo.mrtd?.slice(0, 10)}...{tcbInfo.mrtd?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">RTMR0</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {tcbInfo.rtmr0?.slice(0, 10)}...{tcbInfo.rtmr0?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">RTMR1</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {tcbInfo.rtmr1?.slice(0, 10)}...{tcbInfo.rtmr1?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">RTMR2</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {tcbInfo.rtmr2?.slice(0, 10)}...{tcbInfo.rtmr2?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="space-y-1.5">
-                                                {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info && (
-                                                    <>
-                                                        {/* Default visible field */}
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">RTMR3</div>
-                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr3?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr3?.slice(-8)}
-                                                            </div>
-                                                        </div>
 
-                                                        {/* Expandable fields */}
-                                                        {expandedSections[operator.id]?.tcb && (
-                                                            <>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">Rootfs Hash</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.roots_hash?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.roots_hash?.slice(-8)}
-                                                                    </div>
+                                            {/* TOS Info Section */}
+                                            <div className="tos-section bg-morphic-accent/5 rounded-lg p-3">
+                                                <div className="text-xs text-gray-400 mb-2">TOS Info</div>
+                                                <div className="space-y-1.5">
+                                                    {vm?.report.tos_info && (
+                                                        <>
+                                                            <div>
+                                                                <div className="text-[11px] text-gray-400">Code Hash</div>
+                                                                <div data-field="code-hash" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                    {vm.report.tos_info.code_hash?.slice(0, 10)}...{vm.report.tos_info.code_hash?.slice(-8)}
                                                                 </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">MRTD</div>
-                                                                    <div data-field="mrtd" className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.mrtd?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.mrtd?.slice(-8)}
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">RTMR0</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr0?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr0?.slice(-8)}
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">RTMR1</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr1?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr1?.slice(-8)}
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">RTMR2</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr2?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tcb_info?.rtmr2?.slice(-8)}
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* TOS Info Section */}
-                                        <div className="tos-section bg-morphic-accent/5 rounded-lg p-3">
-                                            <div className="text-xs text-gray-400 mb-2">TOS Info</div>
-                                            <div className="space-y-1.5">
-                                                {vms.find(vm => vm.operator_id === operator.id)?.report.tos_info && (
-                                                    <>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">Code Hash</div>
-                                                            <div data-field="code-hash" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator_id === operator.id)?.report.tos_info?.code_hash?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tos_info?.code_hash?.slice(-8)}
                                                             </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">CA-Certificate</div>
-                                                            <div data-field="ca-cert" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator_id === operator.id)?.report.tos_info?.ca_cert_hash?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.tos_info?.ca_cert_hash?.slice(-8)}
+                                                            <div>
+                                                                <div className="text-[11px] text-gray-400">Certificate</div>
+                                                                <div data-field="cert" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                    {vm.cert?.slice(0, 8)}...{vm.cert?.slice(-8)}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Quote Section */}
-                                        <div className="quote-section bg-morphic-accent/5 rounded-lg p-3">
-                                            <div 
-                                                className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
-                                                onClick={() => toggleSection(operator.id, 'quote')}
-                                            >
-                                                <div className="flex-1">Quote</div>
-                                                <div className="text-morphic-primary">
-                                                    {expandedSections[operator.id]?.quote ? '▼' : '▶'}
+                                                            <div>
+                                                                <div className="text-[11px] text-gray-400">CA-Certificate</div>
+                                                                <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                    {vm.report.tos_info.ca_cert_hash?.slice(0, 10)}...{vm.report.tos_info.ca_cert_hash?.slice(-8)}
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="space-y-1.5">
-                                                {vms.find(vm => vm.operator_id === operator.id)?.report.quote && (
-                                                    <>
-                                                        {/* Default visible fields */}
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">TD info hash</div>
-                                                            <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                {vms.find(vm => vm.operator_id === operator.id)?.report.quote?.td_info_hash?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.quote?.td_info_hash?.slice(-8)}
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[11px] text-gray-400">Report data</div>
-                                                            <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
-                                                                {vms.find(vm => vm.operator_id === operator.id)?.report.quote?.report_data?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.quote?.report_data?.slice(-8)}
-                                                            </div>
-                                                        </div>
 
-                                                        {/* Expandable fields */}
-                                                        {expandedSections[operator.id]?.quote && (
-                                                            <>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">Type</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.quote?.type?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.quote?.type?.slice(-8)}
-                                                                    </div>
+                                            {/* Quote Section */}
+                                            <div className="quote-section bg-morphic-accent/5 rounded-lg p-3">
+                                                <div 
+                                                    className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
+                                                    onClick={() => toggleSection(operator.id, 'quote')}
+                                                >
+                                                    <div className="flex-1">Quote</div>
+                                                    <div className="text-morphic-primary">
+                                                        {expandedSections[operator.id]?.quote ? '▼' : '▶'}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    {vm?.report.quote && (
+                                                        <>
+                                                            {/* Default visible fields */}
+                                                            <div>
+                                                                <div className="text-[11px] text-gray-400">TD info hash</div>
+                                                                <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                    {vm.report.quote.td_info_hash?.slice(0, 10)}...{vm.report.quote.td_info_hash?.slice(-8)}
                                                                 </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">Cpu svn</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.quote?.cpu_svn?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.quote?.cpu_svn?.slice(-8)}
-                                                                    </div>
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-[11px] text-gray-400">Report data</div>
+                                                                <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
+                                                                    {vm.report.quote.report_data?.slice(0, 10)}...{vm.report.quote.report_data?.slice(-8)}
                                                                 </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">TCB hash</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.quote?.tcb_hash?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.quote?.tcb_hash?.slice(-8)}
+                                                            </div>
+
+                                                            {/* Expandable fields */}
+                                                            {expandedSections[operator.id]?.quote && (
+                                                                <>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">Type</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {vm.report.quote.type?.slice(0, 10)}...{vm.report.quote.type?.slice(-8)}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-[11px] text-gray-400">Signature</div>
-                                                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                        {vms.find(vm => vm.operator_id === operator.id)?.report.quote?.signature?.slice(0, 10)}...{vms.find(vm => vm.operator_id === operator.id)?.report.quote?.signature?.slice(-8)}
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">Cpu svn</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {vm.report.quote.cpu_svn?.slice(0, 10)}...{vm.report.quote.cpu_svn?.slice(-8)}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </>
-                                                )}
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">TCB hash</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {vm.report.quote.tcb_hash?.slice(0, 10)}...{vm.report.quote.tcb_hash?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[11px] text-gray-400">Signature</div>
+                                                                        <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                                                            {vm.report.quote.signature?.slice(0, 10)}...{vm.report.quote.signature?.slice(-8)}
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    </motion.div>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -653,7 +664,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                     </div>
                                     {/* <div>
                                         <div className="text-sm text-gray-400 mb-1">Verification Method</div>
-                                        <div data-field="verification" className="text-yellow-500 font-mono bg-yellow-500/10 px-2 py-1 rounded text-xs">
+                                        <div data-field="verifiability" className="text-yellow-500 font-mono bg-yellow-500/10 px-2 py-1 rounded text-xs">
                                             Zero Knowledge Proof
                                         </div>
                                     </div> */}
@@ -685,6 +696,20 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                     <div className="text-sm text-gray-400 mb-1">Product</div>
                                     <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                         SEV
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Amazon */}
+                            <div data-type="amazon" className="bg-[#1E3448]/90 rounded-xl overflow-hidden shadow-lg">
+                                <div className="h-10 bg-gradient-to-r from-yellow-500/30 to-yellow-300/30 flex items-center px-4">
+                                    <Cpu className="w-5 h-5 text-morphic-primary mr-2" />
+                                    <span className="text-base font-bold text-white">Amazon</span>
+                                </div>
+                                <div className="p-3">
+                                    <div className="text-sm text-gray-400 mb-1">Product</div>
+                                    <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
+                                        Nitro
                                     </div>
                                 </div>
                             </div>
