@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { 
   Send, 
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'antd';
+import { Agent, AgentStatus } from '../data/define';
 
 interface Message {
   id: string;
@@ -34,19 +35,7 @@ interface Message {
   }[];
 }
 
-interface Agent {
-  id: number;
-  name: string;
-  logo: string;
-  type: string[];
-  introduction: string;
-  users: string;
-  rating: number;
-  status?: 'online' | 'offline';
-  capabilities?: string[];
-  model_type?: string;
-  num_operators?: number;
-}
+
 
 const AgentChat = () => {
   const { id } = useParams();
@@ -57,6 +46,20 @@ const AgentChat = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [chatbotAgentId, setChatbotAgentId] = useState('');
+
+  useEffect(() => {
+    // request agentid for app api
+    if (!chatbotAgentId) {
+      fetch(`http://${agent.operator_domain}:33010/agents`)
+        .then(response => response.json())
+        .then(data => {
+          const randomIndex = Math.floor(Math.random() * data.agents.length);
+          setChatbotAgentId(data.agents[randomIndex].id);
+        })
+        .catch(error => console.error('Error fetching agent ID:', error));
+    }
+  }, [chatbotAgentId]);
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
@@ -67,20 +70,45 @@ const AgentChat = () => {
       content: inputMessage,
       timestamp: new Date()
     };
-    
     setMessages([...messages, newMessage]);
     setInputMessage('');
+
+    console.log();
+    // request app api
+    fetch(`http://66.220.6.113:33010/${chatbotAgentId}/message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: inputMessage,
+        userId: 'user',
+        roomId: 'default-room-07b6bf73-fe56-0327-ad9a-9be8fa688dc3'
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      return response.json();
+    })
+    .then(data => {
+        data.payload.forEach((item: { text: string }, index: number) => {
+          const agentResponse: Message = {
+            id: (Date.now() + index).toString(),
+            type: 'agent',
+            content: item.text,
+            proof: {
+              hash: data.messageHash,
+              signature: data.signature
+            },
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, agentResponse]);
+        });
+    })
+    .catch(error => console.error('Error:', error));
     
-    // 模拟Agent回复
-    setTimeout(() => {
-      const agentResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'agent',
-        content: 'This is a simulated response from the agent.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
   };
 
   const handleFileUpload = (type: 'image' | 'file' | 'audio') => {
@@ -112,7 +140,7 @@ const AgentChat = () => {
                   <div className="flex items-center space-x-3">
                     <h1 className="text-xl font-bold text-white">{agent.name}</h1>
                     <span className={`px-2 py-0.5 rounded-full text-xs ${
-                      agent.status === 'online' 
+                      agent.status === AgentStatus.Offline 
                         ? 'bg-green-500/20 text-green-400' 
                         : 'bg-gray-500/20 text-gray-400'
                     }`}>
@@ -126,7 +154,7 @@ const AgentChat = () => {
                       <span>Verify</span>
                     </button>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">{agent.introduction}</p>
+                  <p className="text-sm text-gray-400 mt-1">{agent.description}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-6 text-gray-400">
@@ -216,7 +244,7 @@ const AgentChat = () => {
                                 <div className="flex-1 h-[1px] bg-gray-700/50"></div>
                               </div>
                               <div className="text-sm font-mono bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 break-all text-morphic-primary/90">
-                                {message.proof?.hash || '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D7a250d5630B4cF539739dF2C5dAcb4c659F2488D'}
+                                {message.proof?.hash || ''}
                               </div>
                             </div>
                             <div>
@@ -226,7 +254,7 @@ const AgentChat = () => {
                                 <div className="flex-1 h-[1px] bg-gray-700/50"></div>
                               </div>
                               <div className="text-sm font-mono bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 break-all text-morphic-primary/90">
-                                {message.proof?.signature || '0x8a340d5630B4cF539739dF2C5dAcb4c659F2488D7a250d5630B4cF539739dF2C5dAcb4c659F2488D8a340d5630B4cF539739dF2C5dAcb4c659F2488D'}
+                                {message.proof?.signature || ''}
                               </div>
                             </div>
                             <div className="mt-2 pt-2 border-t border-gray-700/50 text-xs text-gray-400">

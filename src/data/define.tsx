@@ -135,6 +135,7 @@ export interface Agent {
     model_type: string;
     visibility: string;
     docker_compose?: string;
+    operator_domain?: string;
 }
 
 // 标签定义

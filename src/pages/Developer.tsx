@@ -96,6 +96,9 @@ const Developer: React.FC = () => {
 
     // const allAgents = useOffChainStore(state => state.allAgents);
     const myAgents = useOffChainStore(state => state.myAgents);
+    if (myAgents.length > 0 && myOperators.length > 0) {
+        myAgents[0].operator_domain = myOperators[0].domain; // TODO 待后台可以存储自定义字段后修改
+    }
 
     // Add form validation state
     const [formErrors, setFormErrors] = useState({
