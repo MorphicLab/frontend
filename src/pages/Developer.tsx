@@ -1690,7 +1690,7 @@ const Developer: React.FC = () => {
         const op_ids = myOperators.map(op => op.id);
         const myTOSs: TOS[] = [];
         for (let i = 0; i < op_ids.length; i++) {
-            myTOSs.push(...allTOSs.filter(tos => tos.operators?.includes(op_ids[i])));
+            myTOSs.push(...allTOSs.filter(tos => tos.vm_ids && tos.vm_ids[op_ids[i]] !== undefined));
         }
         return myTOSs;
     };

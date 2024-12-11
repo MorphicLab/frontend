@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check, HelpCircle } from 'lucide-react';
+import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check, HelpCircle, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -64,6 +64,39 @@ const chartOptions = {
         },
     },
 };
+
+// Helper function to generate page numbers array with ellipsis
+function generatePageNumbers(currentPage: number, totalPages: number, maxVisible: number = 5) {
+    if (totalPages <= maxVisible) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const halfVisible = Math.floor(maxVisible / 2);
+    let startPage = Math.max(currentPage - halfVisible, 1);
+    let endPage = Math.min(startPage + maxVisible - 1, totalPages);
+
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(endPage - maxVisible + 1, 1);
+    }
+
+    const pages: (number | string)[] = [];
+
+    if (startPage > 1) {
+        pages.push(1);
+        if (startPage > 2) pages.push('...');
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+    }
+
+    return pages;
+}
 
 const TosDetail: React.FC = () => {
     const { id } = useParams();
@@ -194,6 +227,29 @@ const TosDetail: React.FC = () => {
 
     const handleVmPageChange = (pageNumber: number) => {
         setVmCurrentPage(pageNumber);
+    };
+
+    // Add state for direct page input
+    const [operatorPageInput, setOperatorPageInput] = useState('');
+    const [vmPageInput, setVmPageInput] = useState('');
+
+    // Handle direct page input
+    const handleOperatorPageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setOperatorPageInput(value);
+        const page = parseInt(value);
+        if (page && page > 0 && page <= totalPages) {
+            handlePageChange(page);
+        }
+    };
+
+    const handleVmPageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setVmPageInput(value);
+        const page = parseInt(value);
+        if (page && page > 0 && page <= vmTotalPages) {
+            handleVmPageChange(page);
+        }
     };
 
     const copyToClipboard = async () => {
@@ -439,20 +495,92 @@ const TosDetail: React.FC = () => {
 
                             {/* Pagination */}
                             {vmTotalPages > 1 && (
-                                <div className="flex justify-center space-x-2 mt-6">
-                                    {Array.from({ length: vmTotalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            onClick={() => handleVmPageChange(page)}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                vmCurrentPage === page
-                                                    ? 'bg-morphic-primary text-white'
-                                                    : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
-                                            }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
+                                <div className="flex justify-center items-center space-x-2 mt-6">
+                                    <button
+                                        onClick={() => handleVmPageChange(Math.max(1, vmCurrentPage - 1))}
+                                        disabled={vmCurrentPage === 1}
+                                        className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                                            vmCurrentPage === 1
+                                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                        }`}
+                                        aria-label="Previous page"
+                                    >
+                                        <ChevronLeftIcon className="w-5 h-5" />
+                                    </button>
+
+                                    <div className="flex items-center space-x-2">
+                                        {generatePageNumbers(vmCurrentPage, vmTotalPages).map((page, index) => (
+                                            typeof page === 'number' ? (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => handleVmPageChange(page)}
+                                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                        vmCurrentPage === page
+                                                            ? 'bg-morphic-primary text-white'
+                                                            : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            ) : (
+                                                <span key={index} className="text-gray-400">...</span>
+                                            )
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        onClick={() => handleVmPageChange(Math.min(vmTotalPages, vmCurrentPage + 1))}
+                                        disabled={vmCurrentPage === vmTotalPages}
+                                        className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                                            vmCurrentPage === vmTotalPages
+                                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                        }`}
+                                        aria-label="Next page"
+                                    >
+                                        <ChevronRightIcon className="w-5 h-5" />
+                                    </button>
+
+                                    <div className="flex items-center space-x-2 ml-4">
+                                        <span className="text-gray-400 text-sm">Go</span>
+                                        <div className="number-input-wrapper">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={vmTotalPages}
+                                                value={vmPageInput}
+                                                onChange={handleVmPageInputChange}
+                                                className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                                            />
+                                            <div className="number-controls">
+                                                <button 
+                                                    onClick={() => {
+                                                        const newValue = Math.min(parseInt(vmPageInput || '0') + 1, vmTotalPages);
+                                                        setVmPageInput(newValue.toString());
+                                                        handleVmPageChange(newValue);
+                                                    }}
+                                                    className="increment"
+                                                >
+                                                    <svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M4 0L7.4641 4H0.535898L4 0Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button 
+                                                    onClick={() => {
+                                                        const newValue = Math.max(parseInt(vmPageInput || '0') - 1, 1);
+                                                        setVmPageInput(newValue.toString());
+                                                        handleVmPageChange(newValue);
+                                                    }}
+                                                    className="decrement"
+                                                >
+                                                    <svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M4 4L0.535898 0L7.4641 0L4 4Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -479,20 +607,64 @@ const TosDetail: React.FC = () => {
                                 
                                 {/* Pagination */}
                                 {totalPages > 1 && (
-                                    <div className="flex justify-center gap-2 mt-8">
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                            <button
-                                                key={page}
-                                                onClick={() => handlePageChange(page)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                    currentPage === page
-                                                        ? 'bg-morphic-primary text-white'
-                                                        : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
-                                                }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
+                                    <div className="flex justify-center items-center space-x-2 mt-6">
+                                        <button
+                                            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                            disabled={currentPage === 1}
+                                            className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                                                currentPage === 1
+                                                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                            }`}
+                                            aria-label="Previous page"
+                                        >
+                                            <ChevronLeftIcon className="w-5 h-5" />
+                                        </button>
+
+                                        <div className="flex items-center space-x-2">
+                                            {generatePageNumbers(currentPage, totalPages).map((page, index) => (
+                                                typeof page === 'number' ? (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => handlePageChange(page)}
+                                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                            currentPage === page
+                                                                ? 'bg-morphic-primary text-white'
+                                                                : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                                        }`}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ) : (
+                                                    <span key={index} className="text-gray-400">...</span>
+                                                )
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                                                currentPage === totalPages
+                                                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                            }`}
+                                            aria-label="Next page"
+                                        >
+                                            <ChevronRightIcon className="w-5 h-5" />
+                                        </button>
+
+                                        <div className="flex items-center space-x-2 ml-4">
+                                            <span className="text-gray-400 text-sm">Go</span>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={totalPages}
+                                                value={operatorPageInput}
+                                                onChange={handleOperatorPageInputChange}
+                                                className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                                            />
+                                        </div>
                                     </div>
                                 )}
                                 

@@ -176,9 +176,11 @@ const OperatorDetail: React.FC = () => {
                                         No virtual machines registered yet
                                     </div>
                                 ) : (
-                                    currentVms.map(vm => (
-                                        <ThinVmCard key={vm.id} vm={vm} showOperator={false} />
-                                    ))
+                                    <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
+                                        {currentVms.map(vm => (
+                                            <ThinVmCard key={vm.id} vm={vm} showOperator={false} />
+                                        ))}
+                                    </div>
                                 )}
                             </div>
 
