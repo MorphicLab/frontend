@@ -16,7 +16,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     vms,
     onClose
 }) => {
-    const [expandedSections, setExpandedSections] = useState<{[key: string]: {quote: boolean, tcb: boolean}}>({});
+    const [expandedSections, setExpandedSections] = useState<{ [key: string]: { quote: boolean, tcb: boolean } }>({});
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const operatorsRef = useRef<HTMLDivElement>(null);
@@ -81,7 +81,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
         // Draw curved line with additional effects
         const drawCurvedLine = (startX: number, startY: number, endX: number, endY: number, type: 'ethereum' | 'verification' = 'verification') => {
             const controlX = (startX + endX) / 2;
-            
+
             // Set line style based on type
             if (type === 'ethereum') {
                 ctx.strokeStyle = createGradient(ctx, startX, endX, '#EAB308'); // Yellow for Ethereum
@@ -95,7 +95,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
             ctx.setLineDash([8, 4]);
             ctx.lineDashOffset = -performance.now() / 100;
-            
+
             // Draw glow effect
             ctx.shadowBlur = 8;
             ctx.beginPath();
@@ -156,7 +156,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     'ethereum'
                 );
             }
-            
+
             // Vendor connection for operators
             const vendorMapping = {
                 'TDX': intelElements[0],
@@ -168,7 +168,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                 const vendorCard = vendorMapping[vmType];
                 const vendorCoords = getRelativeCoords(vendorCard);
                 const operatorCoords = getRelativeCoords(operatorCard);
-                
+
                 drawCurvedLine(
                     vendorCoords.left,
                     vendorCoords.top + 20,
@@ -297,7 +297,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50"
             onClick={onClose}
         >
@@ -332,7 +332,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     e.nativeEvent.stopImmediatePropagation();
                 }}
             >
-                <div 
+                <div
                     className="absolute inset-0"
                     style={{
                         position: 'absolute',
@@ -344,7 +344,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                         pointerEvents: 'none',
                     }}
                 >
-                    <canvas 
+                    <canvas
                         ref={canvasRef}
                         style={{
                             position: 'absolute',
@@ -375,32 +375,11 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                 <div className="tos-hash" ref={tosHashRef}>
                                     <div className="text-sm text-gray-400 mb-1">Decentralization</div>
                                     <div data-field="decentralization" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                                        {operators.length}
+                                        {Math.min(operators.length, vms.length)}
                                     </div>
                                 </div>
                                 <div className="mt-3">
                                     <div className="text-sm text-gray-400 mb-1">Verifiability</div>
-                                    <div data-field="verifiability" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
-                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                                        <div className="text-white font-mono text-sm mt-1 flex items-center">
-                                        <span className="mr-2">TEE</span>
-                                        <span className="flex items-center space-x-2">
-                                            {Array.from(new Set(vms.map(vm => vm.type))).map(label => (
-                                                <span
-                                                    key={label}
-                                                    className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
-                                                >
-                                                    <Cpu className="h-3 w-3 mr-1" />
-                                                    {label}
-                                                </span>
-                                            ))}
-                                        </span>
-                                    </div>
-                                        </pre>
-                                    </div>
-                                </div>
-                                <div className="mt-3">
-                                    <div className="text-sm text-gray-400 mb-1">Finality</div>
                                     <div data-field="finality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
                                         <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
                                             {tos.address || 'Not available'}
@@ -408,23 +387,45 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                     </div>
                                 </div>
                                 <div className="mt-3">
+                                    <div className="text-sm text-gray-400 mb-1">Finality</div>
+                                    <div data-field="verifiability" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                            <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                                <span className="mr-2">TEE</span>
+                                                <span className="flex items-center space-x-2">
+                                                    {Array.from(new Set(vms.map(vm => vm.type))).map(label => (
+                                                        <span
+                                                            key={label}
+                                                            className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                        >
+                                                            <Cpu className="h-3 w-3 mr-1" />
+                                                            {label}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            </div>
+                                        </pre>
+                                    </div>
+                                    
+                                </div>
+                                <div className="mt-3">
                                     <div className="text-sm text-gray-400 mb-1">Confidentiality</div>
                                     <div data-field="confidentiality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
                                         <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                                        <div className="text-white font-mono text-sm mt-1 flex items-center">
-                                        <span className="mr-2">TEE</span>
-                                        <span className="flex items-center space-x-2">
-                                            {Array.from(new Set(vms.map(vm => vm.type))).map(label => (
-                                                <span
-                                                    key={label}
-                                                    className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
-                                                >
-                                                    <Cpu className="h-3 w-3 mr-1" />
-                                                    {label}
+                                            <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                                <span className="mr-2">TEE</span>
+                                                <span className="flex items-center space-x-2">
+                                                    {Array.from(new Set(vms.map(vm => vm.type))).map(label => (
+                                                        <span
+                                                            key={label}
+                                                            className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                        >
+                                                            <Cpu className="h-3 w-3 mr-1" />
+                                                            {label}
+                                                        </span>
+                                                    ))}
                                                 </span>
-                                            ))}
-                                        </span>
-                                    </div>
+                                            </div>
                                         </pre>
                                     </div>
                                 </div>
@@ -433,7 +434,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     </motion.div>
 
                     {/* Operators */}
-                    <div 
+                    <div
                         ref={operatorsRef}
                         className={`${layout.operatorsWidth} h-full overflow-y-auto custom-scrollbar hide-scrollbar space-y-2`}
                         initial={{ y: 50, opacity: 0 }}
@@ -463,7 +464,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
                                             {/* TCB Info Section */}
                                             <div className="tcb-section bg-morphic-primary/5 rounded-lg p-3">
-                                                <div 
+                                                <div
                                                     className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
                                                     onClick={() => toggleSection(operator.id, 'tcb')}
                                                 >
@@ -554,7 +555,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
                                             {/* Quote Section */}
                                             <div className="quote-section bg-morphic-accent/5 rounded-lg p-3">
-                                                <div 
+                                                <div
                                                     className="text-xs text-gray-400 mb-2 cursor-pointer flex items-center"
                                                     onClick={() => toggleSection(operator.id, 'quote')}
                                                 >
@@ -621,14 +622,14 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     </div>
 
                     {/* Trusted Entities */}
-                    <motion.div 
+                    <motion.div
                         initial={{ x: 50, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className={layout.trustedEntitiesWidth + ' flex flex-col items-start space-y-2'}  
+                        className={layout.trustedEntitiesWidth + ' flex flex-col items-start space-y-2'}
                     >
                         <div className="text-lg font-bold text-white space-y-4 py-4 mt-4">Decentralized Trust Roots</div>
-                        <div className="space-y-16 w-full">  
+                        <div className="space-y-16 w-full">
                             {/* Ethereum Blockchain */}
                             {/* <div className="bg-[#1E3448] rounded-xl overflow-hidden shadow-lg">
                                 <div className="h-10 bg-gradient-to-r from-yellow-500/30 to-yellow-300/30 flex items-center px-4">
@@ -668,7 +669,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                             Zero Knowledge Proof
                                         </div>
                                     </div> */}
-                                    
+
                                 </div>
                             </div>
 

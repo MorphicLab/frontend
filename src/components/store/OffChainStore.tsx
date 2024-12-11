@@ -49,6 +49,5 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
 
     initializeStore: async (allOperators: Operator[], myOperators: Operator[]) => {
         await useOffChainStore.getState().fetchMyAgents(myOperators);
-        // await useOffChainStore.getState().fetchAgents(allOperators);
     },
 }));

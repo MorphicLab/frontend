@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
     Cpu, 
@@ -10,35 +10,49 @@ import {
 import { MOCK_OPERATORS, MOCK_TOS } from '../data/mockData';
 import PageBackground from '../components/PageBackground';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
-import { useBlockchainStore } from '../components/store/store';
-
+import { ThinVmCard } from '../components/cards/ThinVmCard';
+import { useBlockchainStore } from '../components/store/chainStore';
+import { motion } from 'framer-motion';
 
 const OperatorDetail: React.FC = () => {
     const { id } = useParams();
 
     // Fetch operators when component mounts
-    useEffect(() => {
-        useBlockchainStore.getState().fetchOperators();
-    }, []);
 
-    const registeredOperators = useBlockchainStore(state => state.operators);
-    const registeredTOS = useBlockchainStore(state => state.toss);
-
-    const allOperators = useMemo(() => {
-        return [...MOCK_OPERATORS, ...registeredOperators];
-    }, [registeredOperators]);
+    const allOperators = useBlockchainStore(state => state.operators);
+    const allTOS = useBlockchainStore(state => state.toss);
+    const allVms = useBlockchainStore(state => state.vms);
 
     const operator = allOperators.find(op => op.id === id);
 
+    const [vmCurrentPage, setVmCurrentPage] = useState(1);
+    const vmsPerPage = 5;
+    
+    // Collect all VM IDs from operator.vm_ids
+    const allVmIds = useMemo(() => {
+        if (!operator?.vm_ids) return [];
+        return Object.values(operator.vm_ids).flat();
+    }, [operator?.vm_ids]);
 
-    const allTOS = useMemo(() => {
-        return [...MOCK_TOS, ...registeredTOS];
-    }, [registeredTOS]);
+    // Filter VMs that belong to this operator
+    const operatorVms = useMemo(() => {
+        return allVms.filter(vm => allVmIds.includes(vm.id));
+    }, [allVms, allVmIds]);
 
-    if (!operator) return <div>Operator not found</div>;
+    const indexOfLastVm = vmCurrentPage * vmsPerPage;
+    const indexOfFirstVm = indexOfLastVm - vmsPerPage;
+    const currentVms = operatorVms.slice(indexOfFirstVm, indexOfLastVm);
+    const vmTotalPages = Math.ceil(operatorVms.length / vmsPerPage);
 
     // Get the TOSs served by this operator
-    const servingTOSs = allTOS.filter(tos => tos.vm_ids?.[operator?.id]?.length > 0);
+    const operatorTOSs = useMemo(() => {
+        if (!operator?.vm_ids) return [];
+        return Object.keys(operator.vm_ids).map(tosId => 
+            allTOS.find(tos => tos.id === tosId)
+        ).filter(Boolean);
+    }, [operator?.vm_ids, allTOS]);
+
+    if (!operator) return <div>Operator not found</div>;
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">
@@ -136,11 +150,62 @@ const OperatorDetail: React.FC = () => {
                         <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Serving TOSs</h2>
                             <div className="space-y-2 grid grid-cols-1 lg:grid-cols-1">
-                                {servingTOSs.map(tos => (
+                                {operatorTOSs.map(tos => (
                                     <ThinTOSCard key={tos.id} tos={tos} />
                                 ))}
                             </div>
                         </div>
+
+                        {/* Virtual Machines Section */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-gray-800 rounded-xl p-6"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-semibold text-white flex items-center space-x-2">
+                                    <Cpu className="h-5 w-5 text-morphic-primary" />
+                                    <span>TOS Instances</span>
+                                </h2>
+                            </div>
+
+                            <div className="space-y-4">
+                                {operatorVms.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-400">
+                                        No virtual machines registered yet
+                                    </div>
+                                ) : (
+                                    currentVms.map(vm => (
+                                        <ThinVmCard key={vm.id} vm={vm} showOperator={false} />
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Pagination */}
+                            {vmTotalPages > 1 && (
+                                <div className="flex justify-center space-x-2 mt-6">
+                                    {Array.from({ length: vmTotalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => setVmCurrentPage(page)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                vmCurrentPage === page
+                                                    ? 'bg-morphic-primary text-white'
+                                                    : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Showing entries info */}
+                            <div className="text-gray-400 text-sm text-center mt-4">
+                                Showing {indexOfFirstVm + 1} to {Math.min(indexOfLastVm, operatorVms.length)} of {operatorVms.length} virtual machines
+                            </div>
+                        </motion.div>
                     </div>
 
                     {/* Right Content Area */}

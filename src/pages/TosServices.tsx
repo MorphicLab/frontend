@@ -5,13 +5,11 @@ import PageBackground from '../components/PageBackground';
 import { tosLabels } from '../data/mockData';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
-import { useBlockchainStore } from '../components/store/store';
-
+import { useBlockchainStore } from '../components/store/chainStore';
 
 const TosServices: React.FC = () => {
     const navigate = useNavigate();
 
-    // Fetch operators when component mounts
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
       }, []);
@@ -86,7 +84,7 @@ const TosServices: React.FC = () => {
 
                     {/* TOS Cards Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {paginatedItems.map((tos, index) => (
+                        {currentTOS.map((tos, index) => (
                             <TOSCard
                                 key={tos.id}
                                 tos={tos}

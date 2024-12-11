@@ -11,7 +11,7 @@ import AgentChat from '../pages/AgentChat';
 import AgentDetail from '../pages/AgentDetail';
 import MorphicKMS from '../pages/MorphicKMS';
 import OperatorDetail from '../pages/OperatorDetail';
-
+import VmDetail from '../pages/VmDetail';
 
 const router = createBrowserRouter([
   {
@@ -64,9 +64,13 @@ const router = createBrowserRouter([
       {
         path: '/operator/:id',
         element: <OperatorDetail />
+      },
+      {
+        path: '/vm/:id',
+        element: <VmDetail />
       }
     ]
   }
 ]);
 
-export default router; 
+export default router;

@@ -1,7 +1,8 @@
-import { Agent } from '../data/define';
+import { Agent, AgentStatus } from '../data/define';
+import { DEFAULT_AGENT_LOGO } from '../data/constant.tsx';
+import { MOCK_MORPHIC_AGENT } from '../data/mockData.ts';
 
 const AGENT_PREFIX = 'agent-';
-
 
 // 处理dockerCompose格式的函数
 function formatDockerCompose(name :string, content: string): string {
@@ -69,7 +70,7 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
                 labels: ['mock', 'test'],
                 users: '0',
                 rating: 0,
-                status: 'offline',
+                status: AgentStatus.Offline,
                 model_type: 'GPT-4',
                 memory_requirement: '2GB',
                 storage_requirement: '200GB',
@@ -96,20 +97,20 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
             .filter((vm: { name: string }) => vm.name.startsWith(AGENT_PREFIX)) // 用于区分后台的agent实例
             .map((vm: { id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
                 id: vm.id,
-                owner: '',
+                owner: MOCK_MORPHIC_AGENT.owner,
                 name: vm.name.replace('agent-', ''),
-                description: '',
+                description: MOCK_MORPHIC_AGENT.description,
                 readme: '',
-                logo: '',
-                labels: [],
-                users: '0',
+                logo: MOCK_MORPHIC_AGENT.logo,
+                labels: MOCK_MORPHIC_AGENT.labels,
+                users: 0,
                 rating: 0,
                 status: vm.status,
-                model_type: '',
+                model_type: MOCK_MORPHIC_AGENT.model_type,
                 memory_requirement: `${vm.configuration.memory}MB`,
                 storage_requirement: `${vm.configuration.disk_size}GB`,
-                dao_contract: '',
-                visibility: ''
+                dao_contract: MOCK_MORPHIC_AGENT.dao_contract,
+                visibility: MOCK_MORPHIC_AGENT.visibility,
             }));
         
         return agents;

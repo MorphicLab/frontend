@@ -5,7 +5,7 @@ import PageBackground from '../components/PageBackground';
 import { MOCK_OPERATORS, operatorLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { OperatorCard } from '../components/cards/OperatorCard';
-import { useBlockchainStore } from '../components/store/store';
+import { useBlockchainStore } from '../components/store/chainStore';
 
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
@@ -17,7 +17,12 @@ const TosOperators: React.FC = () => {
 
     // Get registered operators from the store
     const allOperators = useBlockchainStore(state => state.operators);
-
+    const totalRestaked = allOperators.reduce((total, operator) => 
+        total + (operator.restaked || 0), 0
+    );
+    const totalStakers = allOperators.reduce((total, operator) => 
+        total + (operator.num_stakers || 0), 0
+    );
 
     const {
         search,
@@ -54,19 +59,19 @@ const TosOperators: React.FC = () => {
                     <div className="grid grid-cols-3 gap-6 my-16">
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                {MOCK_OPERATORS.length}
+                                {allOperators.length}
                             </div>
                             <div className="text-morphic-light/80">Total Operators</div>
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                230 ETH
+                                {totalRestaked} ETH
                             </div>
                             <div className="text-morphic-light/80">Total Restaked</div>
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                1.8K
+                                {totalStakers}
                             </div>
                             <div className="text-morphic-light/80">Total Stakers</div>
                         </div>

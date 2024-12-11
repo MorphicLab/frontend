@@ -124,7 +124,7 @@ export interface Agent {
     labels: string[];
     description: string;
     readme: string;
-    users: string;
+    users: number;
     rating: number;
     status?: AgentStatus;
     capabilities?: string[];

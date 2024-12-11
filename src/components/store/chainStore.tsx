@@ -4,6 +4,8 @@ import { createContractInstance } from '../../request/vm';
 import { TOS, Operator, Vm, Agent } from '../../data/define';
 import { TosStatus } from '../../data/define';
 import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs } from '../../data/mockData';
+import { DEFAULT_RESTAKE_ETH_AMOUNT } from '../../data/constant';
+
 
 // Define the store state interface
 interface BlockchainStore {
@@ -24,6 +26,22 @@ interface BlockchainStore {
     
     // Initialize store
     initializeStore: () => Promise<void>;
+
+    // Add chart data storage
+    tosChartData: {
+        [tosId: string]: {
+            labels: string[];
+            datasets: {
+                label: string;
+                data: number[];
+                borderColor: string;
+                backgroundColor: string;
+                fill: boolean;
+                tension: number;
+            }[];
+        };
+    };
+    generateTosChartData: (tosId: string) => void;
 }
 
 const DEFAULT_TOS_LOGO = '/images/morphic-logo-sm.png';
@@ -36,6 +54,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     operators: [],
     vms: [],
     agents: [],
+    tosChartData: {},
 
     fetchTOSs: async () => {
         try {
@@ -71,7 +90,6 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     dao: tos.dao || ethers.ZeroAddress,
                     status: Number(tos.status) === 0 ? TosStatus.Waiting : TosStatus.Active,
                     restaked: Number(tos.restaked) || 0,
-                    cert: tos.cert,
                     address: tos.addr
                 });
             }
@@ -185,6 +203,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     if (!tos.vm_ids) tos.vm_ids = {};
                     tos.vm_ids[vm.operator_id] = tos.vm_ids[vm.operator_id] || [];
                     tos.vm_ids[vm.operator_id].push(vm.id);
+                    tos.restaked = tos.restaked || 0 + DEFAULT_RESTAKE_ETH_AMOUNT;
                 }
                 if (operator) {
                     if (!operator.vm_ids) operator.vm_ids = {};
@@ -223,6 +242,30 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         set(state => ({ 
             agents: [...state.agents, agent] 
         }));
+    },
+
+    generateTosChartData: (tosId: string) => {
+        const state = get();
+        if (!state.tosChartData[tosId]) {
+            set((state) => ({
+                tosChartData: {
+                    ...state.tosChartData,
+                    [tosId]: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [
+                            {
+                                label: 'Usage Statistics',
+                                data: Array.from({ length: 6 }, () => Math.random() * 100),
+                                borderColor: 'rgb(70, 220, 225)',
+                                backgroundColor: 'rgba(70, 220, 225, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                            },
+                        ],
+                    },
+                },
+            }));
+        }
     },
 
     initializeStore: async () => {

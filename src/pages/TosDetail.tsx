@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check, HelpCircle } from 'lucide-react';
@@ -17,9 +17,10 @@ import {
 import { MOCK_TOS, MOCK_OPERATORS, MOCK_MORPHIC_AI_VM, MOCK_VMs } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
-import { useBlockchainStore } from '../components/store/store';
+import { useBlockchainStore } from '../components/store/chainStore';
 import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
+import { ThinVmCard } from '../components/cards/ThinVmCard';
 
 ChartJS.register(
     CategoryScale,
@@ -63,26 +64,13 @@ const chartOptions = {
     },
 };
 
-// 生成图表数据
-const generateChartData = (label: string) => ({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-        {
-            label,
-            data: Array.from({ length: 6 }, () => Math.random() * 100),
-            borderColor: 'rgb(70, 220, 225)',
-            backgroundColor: 'rgba(70, 220, 225, 0.1)',
-            fill: true,
-            tension: 0.4,
-        },
-    ],
-});
-
 const TosDetail: React.FC = () => {
     const { id } = useParams();
     const [operatorSearch, setOperatorSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [vmCurrentPage, setVmCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    const vmItemsPerPage = 5;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
     const [showVerification, setShowVerification] = useState(false);
@@ -91,6 +79,8 @@ const TosDetail: React.FC = () => {
     const allTOS = useBlockchainStore(state => state.toss);
     const allOperators = useBlockchainStore(state => state.operators);
     const allVms = useBlockchainStore(state => state.vms);
+    const tosChartData = useBlockchainStore(state => state.tosChartData);
+    const generateTosChartData = useBlockchainStore(state => state.generateTosChartData);
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
@@ -103,6 +93,12 @@ const TosDetail: React.FC = () => {
         );
     }, [allOperators]);
 
+    // Generate chart data for this TOS if it doesn't exist
+    useEffect(() => {
+        if (id) {
+            generateTosChartData(id);
+        }
+    }, [id, generateTosChartData]);
 
     const handleRegisterOperators = async () => {
         if (!tos || !selectedOperators.length) return;
@@ -134,6 +130,7 @@ const TosDetail: React.FC = () => {
                     },
                     status: MOCK_MORPHIC_AI_VM.status,
                     code_hash: tos.code_hash   // should be obtained from report
+                    // TODO: add cert here
                 };
 
                 try {
@@ -178,9 +175,19 @@ const TosDetail: React.FC = () => {
     const currentPageOperators = tosOperators.slice(indexOfFirstOperator, indexOfLastOperator);
     const totalPages = Math.ceil(tosOperators.length / operatorsPerPage);
 
+    // Calculate pagination for VMs
+    const indexOfLastVm = vmCurrentPage * vmItemsPerPage;
+    const indexOfFirstVm = indexOfLastVm - vmItemsPerPage;
+    const currentVms = tosVms.slice(indexOfFirstVm, indexOfLastVm);
+    const vmTotalPages = Math.ceil(tosVms.length / vmItemsPerPage);
+
     // Handle page changes
     const handlePageChange = (pageNumber: number) => {
         setCurrentPage(pageNumber);
+    };
+
+    const handleVmPageChange = (pageNumber: number) => {
+        setVmCurrentPage(pageNumber);
     };
 
     const copyToClipboard = async () => {
@@ -251,21 +258,21 @@ const TosDetail: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Total Operators</div>
+                                    <div className="text-gray-400 text-sm">Required operators</div>
                                     <div className="text-white font-semibold mt-1">
-                                    {Object.keys(tos.vm_ids || {}).length} 
+                                    ≥{tos.operator_minimum} 
+                                    </div>
+                                </div>
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm">Required instances</div>
+                                    <div className="text-white font-semibold mt-1">
+                                        ≥{tos.operator_minimum}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
                                     <div className="text-gray-400 text-sm">Total Restaked</div>
                                     <div className="text-white font-semibold mt-1">
                                         {tos.restaked}
-                                    </div>
-                                </div>
-                                <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Total Stakers</div>
-                                    <div className="text-white font-semibold mt-1">
-                                        {tos.num_stakers}
                                     </div>
                                 </div>
                             </div>
@@ -292,7 +299,7 @@ const TosDetail: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-white font-mono text-sm mt-1">
-                                        {tosOperators.length} <span className="text-gray-400 text-sm ml-1">(≥{tos.operator_minimum} operators required)</span>
+                                        {Math.min(tosOperators.length, tosVms.length)} <span className="text-gray-400 text-sm ml-1"> ({tosOperators.length} active operators, {tosVms.length} active instances)</span>
                                     </div>
                                 </div>
 
@@ -303,7 +310,24 @@ const TosDetail: React.FC = () => {
                                         <div className="group relative ml-1">
                                             <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
                                             <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
-                                                Types of mechanisms used to ensure verifiable and secure computation.
+                                                The address of this TOS, ensuring integrity and correctness of the service.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-white font-mono text-sm mt-1">
+                                        {tos.address || 'Address not available'} <span className="text-gray-400 text-sm ml-1"> (The TOS account shared by shards) </span>
+                                    </div>
+                                    
+                                </div>
+
+                                {/* Finality */}
+                                <div className="bg-gray-700/50 rounded-lg p-4">
+                                    <div className="text-gray-400 text-sm flex items-center">
+                                        Finality
+                                        <div className="group relative ml-1">
+                                            <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
+                                                Types of mechanisms used to ensure finality of the output.
                                             </div>
                                         </div>
                                     </div>
@@ -320,22 +344,6 @@ const TosDetail: React.FC = () => {
                                                 </span>
                                             ))}
                                         </span>
-                                    </div>
-                                </div>
-
-                                {/* Finality */}
-                                <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm flex items-center">
-                                        Finality
-                                        <div className="group relative ml-1">
-                                            <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
-                                                The contract address of this TOS, ensuring immutable and final deployment on the blockchain.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="text-white font-mono text-sm mt-1">
-                                        {tos.address || 'Address not available'}
                                     </div>
                                 </div>
 
@@ -365,56 +373,6 @@ const TosDetail: React.FC = () => {
                                         </span>
                                     </div>
                                 </div>
-
-                                {/* Confidentiality */}
-                                {/* <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="text-gray-400 text-sm flex items-center">
-                                            Confidentiality
-                                            <div className="group relative ml-1">
-                                                <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                                                <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-sm bg-gray-800 rounded-lg shadow-lg">
-                                                    Privacy measures and encryption mechanisms used to protect sensitive data and computations.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={copyToClipboard}
-                                            disabled={!tos.cert}
-                                            className={`p-1.5 rounded-lg transition-all duration-200 ${
-                                                tos.cert 
-                                                    ? 'hover:bg-morphic-primary/10 text-morphic-primary/80 hover:text-morphic-primary' 
-                                                    : 'text-gray-500 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            {isCertCopied ? (
-                                                <Check className="h-4 w-4" />
-                                            ) : (
-                                                <Copy className="h-4 w-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    <div className="relative">
-                                        <pre 
-                                            className="font-mono text-sm text-white/80 whitespace-pre-wrap break-words 
-                                            overflow-auto max-h-[80px] rounded-lg px-4 py-3 bg-gray-900/30
-                                            [&::-webkit-scrollbar]:w-2
-                                            [&::-webkit-scrollbar-track]:rounded-r-lg
-                                            [&::-webkit-scrollbar-track]:bg-gray-900/20
-                                            [&::-webkit-scrollbar-thumb]:bg-morphic-primary/20
-                                            [&::-webkit-scrollbar-thumb]:rounded-full
-                                            [&::-webkit-scrollbar-thumb]:border-2
-                                            [&::-webkit-scrollbar-thumb]:border-transparent
-                                            hover:[&::-webkit-scrollbar-thumb]:bg-morphic-primary/30
-                                            transition-all duration-200"
-                                        >
-                                            {tos.cert || 'Certificate not available'}
-                                        </pre>
-                                        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-800/30 to-transparent pointer-events-none rounded-b-lg" />
-                                    </div>
-                                </div> */}
-
-                                
                             </div>
                         </motion.div>
 
@@ -446,6 +404,58 @@ const TosDetail: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Virtual Machines */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-gray-800 rounded-xl p-6"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-semibold text-white flex items-center space-x-2">
+                                    <span>Instances</span>
+                                </h2>
+                            </div>
+
+                            <div className="space-y-4">
+                                {tosVms.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-400">
+                                        No instances registered yet
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 lg:grid-cols-1 gap-2">
+                                        {currentVms.map(vm => (
+                                            <ThinVmCard key={vm.id} vm={vm} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Pagination */}
+                            {vmTotalPages > 1 && (
+                                <div className="flex justify-center space-x-2 mt-6">
+                                    {Array.from({ length: vmTotalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => handleVmPageChange(page)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                vmCurrentPage === page
+                                                    ? 'bg-morphic-primary text-white'
+                                                    : 'bg-gray-800 text-gray-300 hover:bg-morphic-primary/20'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Showing entries info */}
+                            <div className="text-gray-400 text-sm text-center mt-4">
+                                Showing {indexOfFirstVm + 1} to {Math.min(indexOfLastVm, tosVms.length)} of {tosVms.length} virtual machines
+                            </div>
+                        </motion.div>
+
                         {/* Operators */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -467,7 +477,7 @@ const TosDetail: React.FC = () => {
                                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                             <button
                                                 key={page}
-                                                onClick={() => setCurrentPage(page)}
+                                                onClick={() => handlePageChange(page)}
                                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                                     currentPage === page
                                                         ? 'bg-morphic-primary text-white'
@@ -508,7 +518,7 @@ const TosDetail: React.FC = () => {
                             <h3 className="text-lg font-semibold text-white mb-4">
                                 Restaking & Rewards
                             </h3>
-                            <Line options={chartOptions} data={generateChartData('Value')} />
+                            {id && tosChartData[id] && <Line options={chartOptions} data={tosChartData[id]} />}
                         </motion.div>
 
                         <motion.div
@@ -522,7 +532,7 @@ const TosDetail: React.FC = () => {
                             </h3>
                             <Line
                                 options={chartOptions}
-                                data={generateChartData('Distribution')}
+                                data={tosChartData[id] ? tosChartData[id] : { labels: [], datasets: [] }}
                             />
                         </motion.div>
 
@@ -535,7 +545,7 @@ const TosDetail: React.FC = () => {
                             <h3 className="text-lg font-semibold text-white mb-4">
                                 Operator Growth
                             </h3>
-                            <Line options={chartOptions} data={generateChartData('Operators')} />
+                            <Line options={chartOptions} data={tosChartData[id] ? tosChartData[id] : { labels: [], datasets: [] }} />
                         </motion.div>
                     </div>
                 </div>

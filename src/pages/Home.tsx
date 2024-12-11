@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CloudCog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { parseQuote } from '../tool/quote';
+import { verifyQuote } from '../tool/verifier';
+import { MOCK_QUOTE } from '../data/mockData';
 
 const Home = () => {
   const navigate = useNavigate();
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+
+  
 
   return (
     <div 
@@ -15,7 +21,6 @@ const Home = () => {
         backgroundPosition: 'center',
       }}
     >
-
       <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       
       <motion.div 
@@ -44,7 +49,7 @@ const Home = () => {
         </h1>
         
         <p className="text-xl md:text-1xl text-gray-300 max-w-2xl mx-auto mb-8">
-            Make your service trustless in days, with even lower operation cost
+          Make your service trustless in days, with even lower operation cost
         </p>
         
         <motion.div 
@@ -66,6 +71,7 @@ const Home = () => {
             Learn More
           </button>
         </motion.div>
+        
       </motion.div>
 
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900 to-transparent"></div>

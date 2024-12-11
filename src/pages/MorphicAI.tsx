@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { MOCK_AGENTS, agentLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { AgentCard } from '../components/cards/AgentCard';
-import { useBlockchainStore } from '../components/store/store';
+import { useBlockchainStore } from '../components/store/chainStore';
 import { useEffect } from 'react';
 
 const Product = () => {

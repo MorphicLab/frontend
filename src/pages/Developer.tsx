@@ -33,8 +33,9 @@ import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 import { TOS, Operator, Agent, Vm, TosStatus, VmStatus, AgentStatus } from '../data/define';
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
 import { deployAgent } from '../request/operator'; 
-import { useBlockchainStore } from '../components/store/store';
-import { useOffChainStore } from '../components/store/OffChainStore'
+import { useBlockchainStore } from '../components/store/chainStore';
+import { useOffChainStore } from '../components/store/offchainStore'
+import { DEFAULT_TOS_LOGO, DEFAULT_CREATOR_LOGO, DEFAULT_OPERATOR_LOGO, DEFAULT_OPERATOR_OWNER_LOGO, DEFAULT_AGENT_LOGO } from '../data/constant';
 
 
 // 添加子菜单类型
@@ -54,12 +55,7 @@ declare global {
     }
 }
 
-// 添加默认图片路径常量
-const DEFAULT_TOS_LOGO = '/images/tos-default-logo.png';  // 使用现有的 logo
-const DEFAULT_CREATOR_LOGO = '/images/tos-creator-default-logo.png';  // 使用现有的 logo
-const DEFAULT_OPERATOR_LOGO = '/images/operator-default-logo.png';  // 使用现有的 logo
-const DEFAULT_OPERATOR_OWNER_LOGO = '/images/operator-owner-default-logo.png';  // 使用现有的 logo
-const DEFAULT_AGENT_LOGO = '/images/agent-default-logo.png';  // 使用现有的 logo
+
 
 
 const Developer: React.FC = () => {
@@ -86,6 +82,10 @@ const Developer: React.FC = () => {
         );
     }, [allOperators]);
 
+    const morphicAiOperators = useMemo(() => {
+        return allOperators.filter(op => op.vm_ids && op.vm_ids[MOCK_MORPHIC_AI_TOS.id] !== undefined);
+    }, [allOperators]);
+
     const allTOSs = useBlockchainStore(state => state.toss);
     const myTOSs = useMemo(() => {
         if (!window.ethereum?.selectedAddress) return [];
@@ -96,8 +96,8 @@ const Developer: React.FC = () => {
 
     // const allAgents = useOffChainStore(state => state.allAgents);
     const myAgents = useOffChainStore(state => state.myAgents);
-    if (myAgents.length > 0 && myOperators.length > 0) {
-        myAgents[0].operator_domain = myOperators[0].domain; // TODO 待后台可以存储自定义字段后修改
+    if (myAgents.length > 0 && morphicAiOperators.length > 0) {
+        myAgents[0].operator_domain = morphicAiOperators[0].domain; // TODO 待后台可以存储自定义字段后修改
     }
 
     // Add form validation state
@@ -1846,7 +1846,7 @@ const Developer: React.FC = () => {
                         labels: MOCK_MORPHIC_OPERATOR.labels || [],
                         description: MOCK_MORPHIC_OPERATOR.description || '',
                         owner: {
-                            address: MOCK_MORPHIC_OPERATOR.owner?.address || '',
+                            address: MOCK_MORPHIC_OPERATOR.owner?.address || '',  // Will be overridden by the transantion sender
                             name: MOCK_MORPHIC_OPERATOR.owner?.name || '',
                             logo: MOCK_MORPHIC_OPERATOR.owner?.logo || DEFAULT_OPERATOR_OWNER_LOGO
                         },
@@ -1875,7 +1875,7 @@ const Developer: React.FC = () => {
                         ...MOCK_MORPHIC_AGENT,
                         // Override some fields to make them unique
                         owner: MOCK_MORPHIC_AGENT.owner || '',
-                        name: `${MOCK_MORPHIC_AGENT.name}_${Math.floor(Math.random() * 1000)}`,
+                        name: `${MOCK_MORPHIC_AGENT.name} ${Math.floor(Math.random() * 1000)}`,
                         logo: MOCK_MORPHIC_AGENT.logo || DEFAULT_AGENT_LOGO,
                         labels: MOCK_MORPHIC_AGENT.labels || [],
                         description: MOCK_MORPHIC_AGENT.description || '',

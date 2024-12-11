@@ -270,6 +270,7 @@ WquauEbrVT/874f7x5V3LVKZRc7uTAlVRh2o
 -----END CERTIFICATE-----
 `
 
+
 // Mock 数据
 export const MOCK_TOS: TOS[] = [
     {
@@ -557,7 +558,7 @@ export const MOCK_MORPHIC_OPERATOR: Operator = {
     id: "0x8b230d5820B4cF539739dF2C5dAcb4c659F2488D",
     name: "Morphic Op",
     logo: "/images/morphic-logo-sm.png",
-    labels: ["TDX", "H100"],
+    labels: ["TDX"],
     owner: {
         address: "0x8b230d5820B4cF539739dF2C5dAcb4c659F2488D",
         name: "Morphic",
@@ -577,7 +578,7 @@ export const MOCK_MORPHIC_OPERATOR: Operator = {
 
 export const MOCK_VMs: Vm[] = [
     {
-        "id": "0x1134567890abcdef1234567890abcdef12345678",
+        "id": "1134567890abcdef1234567890abcdef12345678",
         "operator_id": "0x9c340d5820B4cF539739dF2C5dAcb4c659F2488E",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -603,12 +604,12 @@ export const MOCK_VMs: Vm[] = [
                 "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1334567890abcdef1234567890abcdef12345678",
+        "id": "1334567890abcdef1234567890abcdef12345678",
         "type": "SEV",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "operator_id": "0x1c340d5820B4cF539739dF2C5dAcb4c659F2488E",
@@ -634,12 +635,12 @@ export const MOCK_VMs: Vm[] = [
                 "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "34567890abcdef1234567890abcdef1234567814",
         "operator_id": "0x2c340d5820B4cF539739dF2C5dAcb4c659F2488E",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "Nitro",
@@ -665,12 +666,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "567890abcdef1234567890abcdef123456781434",
         "operator_id": "0x2c150d5820B4cF539739dF2C5dAcb4c659F2488E",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -696,12 +697,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "0abcdef1234567890abcdef12345678143456789",
         "operator_id": "0x589a0d5820B4cF539739dF2C5dAcb4c659F2488E",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "SEV",
@@ -727,12 +728,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "f1234567890abcdef12345671434567890abcde8",
         "operator_id": "0x488E2c340d5820B4cF539739dF2C5dAcb4c659F2",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -758,12 +759,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "890abcdef123456781434567890abcdef1234567",
         "operator_id": "0xc659F2488E2c340d5820B4cF539739dF2C5dAcb4",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -789,12 +790,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "0abcdef123456781434567890abcdef123456789",
         "operator_id": "0xC5dAcb4c659F2488E2c340d5820B4cF539739dF2",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -820,12 +821,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "def123456781434567890abcdef1234567890abc",
         "operator_id": "0x739dF2C5dAcb4c659F2488E2c340d5820B4cF539",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -851,12 +852,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "56781434567890abcdef1234567890abcdef1234",
         "operator_id": "0xB4cF539739dF2C5dAcb4c659F2488E2c340d5820",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "TDX",
@@ -882,12 +883,12 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     },
     {
-        "id": "0x1434567890abcdef1234567890abcdef12345678",
+        "id": "123456781434567890abcdef1234567890abcdef",
         "operator_id": "0x820B4cF539739dF2C5dAcb4c659F2488E2c340d5",
         "tos_id": "0xb2596b680d2cd51df0a493701b9e9ae6",
         "type": "SEV",
@@ -913,7 +914,7 @@ export const MOCK_VMs: Vm[] = [
                 "signature": "0x1234567890abcdef1234567890abcdef12345678"
             },
         },
-        "status": 0,
+        "status": VmStatus.Active,
         "cert": mock_cert,
         "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
     }
@@ -946,7 +947,7 @@ export const MOCK_MORPHIC_AI_VM: Vm = {
             "signature": "0x1234567890abcdef1234567890abcdef12345678"
         }, 
     },
-    "status": 0,
+    "status": VmStatus.Active,
     "cert": mock_cert,
     "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
 }
@@ -978,7 +979,7 @@ export const MOCK_MORPHIC_KMS_VM: Vm = {
             "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
         },
     },
-    "status": VmStatus.Waiting,
+    "status": VmStatus.Active,
     "cert": mock_cert,
     "code_hash": "4b0ae039d7a7cadc28ca30d9583667de02080779"   // should be obtained from report
 }
@@ -993,7 +994,7 @@ export const MOCK_AGENTS: Agent[] = [
         labels: ["Chat"],
         description: "An intelligent chatbot powered by advanced AI models",
         readme: "",
-        users: "2.5k",
+        users: 2500,
         rating: 4.8,
         status: AgentStatus.Online,
         capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
@@ -1009,7 +1010,7 @@ export const MOCK_AGENTS: Agent[] = [
         labels: ["Chat", "Code"],
         description: "AI-powered coding assistant for developers",
         readme: "",
-        users: "1.8k",
+        users: 183,
         rating: 4.6,
         status: AgentStatus.Online,
         capabilities: ['Code Generation', 'Code Review', 'Debugging'],
@@ -1025,7 +1026,7 @@ export const MOCK_AGENTS: Agent[] = [
         labels: ["Chat", "Image"],
         description: "Advanced AI image generation and editing",
         readme: "",
-        users: "3.1k",
+        users: 310,
         rating: 4.9,
         status: AgentStatus.Online,
         capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
@@ -1033,37 +1034,40 @@ export const MOCK_AGENTS: Agent[] = [
         num_operators: 2,
         visibility: 'public'
     },
-    {
-        id: 4,
-        owner: '',
-        name: "Image Recognition",
-        logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
-        labels: ["Image"],
-        description: "AI-powered image recognition for various applications",
-        readme: "# Example Markdown Content\n\nThis is a sample markdown content for the readme section.\n\n## Features\n\n* Advanced AI image recognition\n* Object detection and image classification\n* Support for various image formats\n\n## Usage\n\n1. Upload an image to the platform\n2. Select the image recognition model\n3. Get the results in real-time\n\n## Benefits\n\n* Fast and accurate image recognition\n* Supports a wide range of applications\n* Easy to use and integrate",
-        users: "2.3k",
-        rating: 4.7,
-        status: AgentStatus.Online,
-        capabilities: ['Image Analysis', 'Object Detection', 'Image Classification'],
-        model_type: 'Stable Diffusion',
-        num_operators: 2,
-        visibility: 'public'
-    }
+    // {
+    //     id: 4,
+    //     owner: '',
+    //     name: "Image Recognition",
+    //     logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
+    //     labels: ["Image"],
+    //     description: "AI-powered image recognition for various applications",
+    //     readme: "# Example Markdown Content\n\nThis is a sample markdown content for the readme section.\n\n## Features\n\n* Advanced AI image recognition\n* Object detection and image classification\n* Support for various image formats\n\n## Usage\n\n1. Upload an image to the platform\n2. Select the image recognition model\n3. Get the results in real-time\n\n## Benefits\n\n* Fast and accurate image recognition\n* Supports a wide range of applications\n* Easy to use and integrate",
+    //     users: "2.3k",
+    //     rating: 4.7,
+    //     status: AgentStatus.Online,
+    //     capabilities: ['Image Analysis', 'Object Detection', 'Image Classification'],
+    //     model_type: 'Stable Diffusion',
+    //     num_operators: 2,
+    //     visibility: 'public'
+    // }
 ];
 
 export const MOCK_MORPHIC_AGENT: Agent = {
     id: 0,
-    owner: '',
-    name: "Morphic_Agent",
+    owner: '0x90abcdef11234567890abcdef123456782345678',
+    name: "Trustless Agent",
     logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
     labels: ["Chat"],
-    description: "A agent deployed to Morphic operator",
+    description: "A sample Ai16z agent deployed to Morphic AI TOS",
     readme: "",
-    users: "0",
+    users: 0,
     rating: 0,
     status: AgentStatus.Offline,
-    capabilities: ['text generation'],
+    capabilities: ['Text generation'],
     num_operators: 1,
     model_type: 'GPT-4',
     visibility: 'public'
 };
+
+
+export const MOCK_QUOTE = '050002008100000000000000939a7233f79c4ca9940a0db3957f06076a3b57f48d470f1c01bf412a6f9cdb6200000000030088020000050102000000000000000000000000001cc6a17ab799e9a693fac7536be61c12ee1e0fabada82d0c999e08ccee2aa86de77b0870f558c570e7ffe55d6d47fa0400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000e742060000000000dfba221b48a22af8511542ee796603f37382800840dcd978703909bf8e64d4c8a1e9de86e7c9638bfcba422f3886400a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000436e21aa8d13ecee447799ecfcadce387ee7f7ecfc475fb8993de270ebfd71116b8f4c345bf7a25db9737ab15718e49b32fdc598a38b8444e4a8f72ef72fb7ea6f351c0c71e6c6fe2993472844dcf413c73a72fe616f3848835473c5581065c300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000047e7f84b16a9336b087cdadacf435c98dde1487bc159282d52382107e36ff3f0dce0b68905375d1a20fafee58ed745bb2f2f7f304a4590f16d5932788987397205010200000000000000000000000000383c87d3bbb047b2d171eaca95312ede99f258088dc788f6ae2ccf8b6dd848fe8d47629e08b3f6cbd4a00dd47a5a033dcc10000049550430822dcf8affd7833a6399cd8dc6c831362ec61722ade467080affbb3188db1b87b1fad96c94c2beb9fea7ca20494a513aaa5feb9e5e56a8e62d4815a5fbc4aebff5940000831dc7e4c0d2353d055be61b5713d938bc90bf7b9082644ea248803e9b89896163b4706e1d14ec7f1ded032bb4a1abbb2a5eaad470dd22b10600461000000202181a03ff0006000000000000000000000000000000000000000000000000000000000000000000000000000000001500000000000000e700000000000000e5a3a7b5d830c29';
