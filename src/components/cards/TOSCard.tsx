@@ -15,7 +15,7 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ delay: index * 0.1 }}
+            // transition={{ delay: index * 0.1 }}
             className="bg-gray-800 rounded-xl border border-morphic-primary/20 overflow-hidden hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
         >
             <div className="p-6 border-b border-gray-700">
@@ -62,7 +62,7 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center text-gray-400">
                         <Coins className="h-4 w-4 mr-2" />
-                        <span className="text-sm">{tos.restaked} ETH</span>
+                        <span className="text-sm">{tos.restaked || 0} ETH</span>
                     </div>
                     <div className="flex items-center text-gray-400">
                         <Users className="h-4 w-4 mr-2" />
@@ -70,11 +70,11 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                     </div>
                     <div className="flex items-center text-gray-400">
                         <Star className="h-4 w-4 mr-2" />
-                        <span className="text-sm">{tos.num_stakers} Stakers</span>
+                        <span className="text-sm">{tos.num_stakers || 0} Stakers</span>
                     </div>
                     <div className="flex items-center text-gray-400">
                         <ThumbsUp className="h-4 w-4 mr-2" />
-                        <span className="text-sm">{tos.likes} Likes</span>
+                        <span className="text-sm">{tos.likes || 0} Likes</span>
                     </div>
                 </div>
             </div>

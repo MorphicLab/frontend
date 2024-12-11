@@ -7,13 +7,14 @@ import { SearchAndFilter, useSearchAndFilter } from '../components/common/Search
 import { OperatorCard } from '../components/cards/OperatorCard';
 import { useBlockchainStore } from '../components/store/chainStore';
 
+
 const TosOperators: React.FC = () => {
     const navigate = useNavigate();
 
     // Fetch data when component mounts
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-      }, []);
+    }, []);
 
     // Get registered operators from the store
     const allOperators = useBlockchainStore(state => state.operators);

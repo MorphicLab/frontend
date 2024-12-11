@@ -1,11 +1,10 @@
 import { ethers } from 'ethers';
 import { create } from 'zustand';
 import { createContractInstance } from '../../request/vm';
-import { TOS, Operator, Vm, Agent } from '../../data/define';
+import { TOS, Operator, Vm, Agent, VmStatus } from '../../data/define';
 import { TosStatus } from '../../data/define';
 import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs } from '../../data/mockData';
 import { DEFAULT_RESTAKE_ETH_AMOUNT } from '../../data/constant';
-
 
 // Define the store state interface
 interface BlockchainStore {
@@ -13,32 +12,53 @@ interface BlockchainStore {
     operators: Operator[];
     vms: Vm[];
     agents: Agent[];
-    
+    ethPrice: number;  // ETH 价格（美元）
+
     // Fetch methods
     fetchTOSs: () => Promise<void>;
     fetchOperators: () => Promise<void>;
     fetchVms: () => Promise<void>;
-    
-    // Add methods
-    addTOS: (tos: TOS) => void;
-    addOperator: (operator: Operator) => void;
-    addVm: (vm: Vm) => void;
-    
+    fetchEthPrice: () => Promise<void>;
+
     // Initialize store
     initializeStore: () => Promise<void>;
 
     // Add chart data storage
     tosChartData: {
         [tosId: string]: {
-            labels: string[];
-            datasets: {
-                label: string;
-                data: number[];
-                borderColor: string;
-                backgroundColor: string;
-                fill: boolean;
-                tension: number;
-            }[];
+            restaking: {
+                labels: string[];
+                datasets: {
+                    label: string;
+                    data: number[];
+                    borderColor: string;
+                    backgroundColor: string;
+                    fill: boolean;
+                    tension: number;
+                }[];
+            };
+            tokenDistribution: {
+                labels: string[];
+                datasets: {
+                    label: string;
+                    data: number[];
+                    borderColor: string;
+                    backgroundColor: string;
+                    fill: boolean;
+                    tension: number;
+                }[];
+            };
+            operatorGrowth: {
+                labels: string[];
+                datasets: {
+                    label: string;
+                    data: number[];
+                    borderColor: string;
+                    backgroundColor: string;
+                    fill: boolean;
+                    tension: number;
+                }[];
+            };
         };
     };
     generateTosChartData: (tosId: string) => void;
@@ -54,19 +74,22 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     operators: [],
     vms: [],
     agents: [],
+    ethPrice: 2200,  // 默认 ETH 价格
     tosChartData: {},
 
     fetchTOSs: async () => {
         try {
             const contract = await createContractInstance();
-            
+            const state = get();
+
             // Get total number of TOSs
             const totalTOSs = await contract.total_toss();
-            
+
             // Fetch each TOS
             const fetchedTOSs: TOS[] = [];
             for (let i = 0; i < totalTOSs; i++) {
                 const tos = await contract.get_tos_by_index(i);
+
                 fetchedTOSs.push({
                     id: tos.id,
                     name: tos.name || 'Unnamed Service',
@@ -85,17 +108,17 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     vmemory: Number(tos.vmemory),
                     disk: Number(tos.disk),
                     version: tos.version || '0.1',
-                    code: ethers.hexlify(tos.code), // Convert bytes to hex
+                    code: ethers.hexlify(tos.code),
                     code_hash: tos.code_hash,
                     dao: tos.dao || ethers.ZeroAddress,
                     status: Number(tos.status) === 0 ? TosStatus.Waiting : TosStatus.Active,
                     restaked: Number(tos.restaked) || 0,
-                    address: tos.addr
+                    address: tos.addr,
                 });
             }
 
             const allTOS = [...MOCK_TOS, ...fetchedTOSs];
-            
+
             set({ toss: allTOS });
         } catch (error) {
             console.error('Failed to fetch TOSs:', error);
@@ -105,34 +128,33 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     fetchOperators: async () => {
         try {
             const contract = await createContractInstance();
-            
+
             // Get total number of operators
             const totalOperators = await contract.total_operators();
-            
+
             // Fetch each operator
             const fetchedOperators: Operator[] = [];
             for (let i = 0; i < totalOperators; i++) {
                 const op = await contract.get_operator_by_index(i);
                 fetchedOperators.push({
-                        id: op.id,
-                        name: op.name || 'Unnamed Operator',
-                        logo: op.logo || DEFAULT_OPERATOR_LOGO,
-                        labels: op.labels || [],
-                        owner: {
-                            address: op.owner,
-                            name: op.owner_name || 'Unknown',
-                            logo: op.owner_logo || DEFAULT_OPERATOR_OWNER_LOGO
-                        },
-                        location: op.location || '',
-                        domain: op.domain || '',
-                        port: Number(op.port),
-                        // Convert TOS IDs to string array
-                        vm_ids: {},  // TODO: Calculate here
+                    id: op.id,
+                    name: op.name || 'Unnamed Operator',
+                    logo: op.logo || DEFAULT_OPERATOR_LOGO,
+                    labels: op.labels || [],
+                    owner: {
+                        address: op.owner,
+                        name: op.owner_name || 'Unknown',
+                        logo: op.owner_logo || DEFAULT_OPERATOR_OWNER_LOGO
+                    },
+                    location: op.location || '',
+                    domain: op.domain || '',
+                    port: Number(op.port),
+                    // Convert TOS IDs to string array
                 });
             }
 
             const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
-            
+
             set({ operators: allOperators });
         } catch (error) {
             console.error('Failed to fetch operators:', error);
@@ -141,23 +163,17 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
 
     fetchVms: async () => {
         try {
-
-            // Implement VM fetching logic similar to TOSs and Operators
             const contract = await createContractInstance();
-                
-            // Get total number of vms
             const totalVms = await contract.total_vms();
-            
-            // Fetch each vm
+
             const fetchedVms: Vm[] = [];
             for (let i = 0; i < totalVms; i++) {
                 const vm = await contract.get_vm_by_index(i);
-                // Add null checks for vm.report and its nested objects
                 const vmReport = vm?.report || {};
                 const tosInfo = vmReport?.tos_info || {};
                 const tcbInfo = vmReport?.tcb_info || {};
                 const quote = vmReport?.quote || {};
-    
+
                 const new_vm = {
                     id: vm.id,
                     type: vm.type,
@@ -177,42 +193,81 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                             rtmr3: tcbInfo.rtmr3 || '',
                         },
                         quote: {
-                            type: quote.type || '',
-                            cpu_svn: quote.cpu_svn || '',
-                            tcb_hash: quote.tcb_hash || '',
-                            td_info_hash: quote.td_info_hash || '',
-                            report_data: quote.report_data || '',
-                            signature: quote.signature || '',
+                            pubkey: quote.pubkey || '',
+                            address: quote.addr || '',
+                            quote: quote.quote || '',
+                            event_log: quote.event_log || '',
                         }
                     },
-                    status: Number(vm.status),
+                    status: Number(vm.status) as VmStatus,
                     code_hash: vm.code_hash
-                }
-
+                };
                 fetchedVms.push(new_vm);
-
             }
 
             const allVms = [...MOCK_VMs, ...fetchedVms];
+            const allToss = get().toss.map(tos => ({ ...tos }));
+            const allOperators = get().operators.map(op => ({ ...op }));
 
-            for (let i = 0; i < allVms.length; i++) {
-                const vm = allVms[i];
-                const tos = get().toss.find(t => t.id === vm.tos_id);
-                const operator = get().operators.find(op => op.id === vm.operator_id);
-                if (tos) {
-                    if (!tos.vm_ids) tos.vm_ids = {};
-                    tos.vm_ids[vm.operator_id] = tos.vm_ids[vm.operator_id] || [];
-                    tos.vm_ids[vm.operator_id].push(vm.id);
-                    tos.restaked = tos.restaked || 0 + DEFAULT_RESTAKE_ETH_AMOUNT;
-                }
-                if (operator) {
-                    if (!operator.vm_ids) operator.vm_ids = {};
-                    operator.vm_ids[vm.tos_id] = operator.vm_ids[vm.tos_id] || [];
-                    operator.vm_ids[vm.tos_id].push(vm.id);
-                }
-            }
+            // 使用新的映射来构建 vm_ids
+            const tosVmMap: { [tosId: string]: { [operatorId: string]: string[] } } = {};
+            const operatorVmMap: { [operatorId: string]: { [tosId: string]: string[] } } = {};
 
-            set({ vms: allVms });
+            // 首先构建映射
+            allVms.forEach(vm => {
+                // 为 TOS 构建映射
+                if (!tosVmMap[vm.tos_id]) {
+                    tosVmMap[vm.tos_id] = {};
+                }
+                if (!tosVmMap[vm.tos_id][vm.operator_id]) {
+                    tosVmMap[vm.tos_id][vm.operator_id] = [];
+                }
+                tosVmMap[vm.tos_id][vm.operator_id].push(vm.id);
+
+                // 为 Operator 构建映射
+                if (!operatorVmMap[vm.operator_id]) {
+                    operatorVmMap[vm.operator_id] = {};
+                }
+                if (!operatorVmMap[vm.operator_id][vm.tos_id]) {
+                    operatorVmMap[vm.operator_id][vm.tos_id] = [];
+                }
+                operatorVmMap[vm.operator_id][vm.tos_id].push(vm.id);
+            });
+
+            // 更新 TOS 对象
+            allToss.forEach((tos, index) => {
+                // 计算该 TOS 下的所有 VM 数量
+                const vmCount = tosVmMap[tos.id] 
+                    ? Object.values(tosVmMap[tos.id]).reduce((total, vms) => total + vms.length, 0)
+                    : 0;
+                
+                allToss[index] = {
+                    ...tos,
+                    vm_ids: tosVmMap[tos.id] || {},
+                    restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
+                };
+            });
+
+            // 更新 Operator 对象
+            allOperators.forEach((operator, index) => {
+                // 计算该运营商下的所有 VM 数量
+                const vmCount = operatorVmMap[operator.id]
+                    ? Object.values(operatorVmMap[operator.id]).reduce((total, vms) => total + vms.length, 0)
+                    : 0;
+
+                allOperators[index] = {
+                    ...operator,
+                    vm_ids: operatorVmMap[operator.id] || {},
+                    restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
+                };
+            });
+
+            // 一次性更新所有状态
+            set({
+                vms: allVms,
+                toss: allToss,
+                operators: allOperators
+            });
 
         } catch (error) {
             console.error('Failed to fetch vms:', error);
@@ -220,48 +275,60 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     },
 
 
-    addTOS: (tos) => {
-        set(state => ({ 
-            toss: [...state.toss, tos] 
-        }));
-    },
-
-    addOperator: (operator) => {
-        set(state => ({ 
-            operators: [...state.operators, operator] 
-        }));
-    },
-
-    addVm: (vm) => {
-        set(state => ({ 
-            vms: [...state.vms, vm] 
-        }));
-    },
-
-    addAgent: (agent) => {
-        set(state => ({ 
-            agents: [...state.agents, agent] 
-        }));
+    fetchEthPrice: async () => {
+        try {
+            // 使用 CoinGecko API 获取 ETH 价格
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+            const data = await response.json();
+            const price = data.ethereum.usd;
+            set({ ethPrice: price });
+        } catch (error) {
+            console.error('Failed to fetch ETH price:', error);
+        }
     },
 
     generateTosChartData: (tosId: string) => {
         const state = get();
         if (!state.tosChartData[tosId]) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+
             set((state) => ({
                 tosChartData: {
                     ...state.tosChartData,
                     [tosId]: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                        datasets: [
-                            {
-                                label: 'Usage Statistics',
-                                data: Array.from({ length: 6 }, () => Math.random() * 100),
+                        restaking: {
+                            labels: months,
+                            datasets: [{
+                                label: 'Restaking Amount',
+                                data: Array.from({ length: 6 }, () => Math.floor(Math.random() * 60 + 40)),
                                 borderColor: 'rgb(70, 220, 225)',
                                 backgroundColor: 'rgba(70, 220, 225, 0.1)',
                                 fill: true,
                                 tension: 0.4,
-                            },
-                        ],
+                            }],
+                        },
+                        tokenDistribution: {
+                            labels: months,
+                            datasets: [{
+                                label: 'Token Distribution',
+                                data: Array.from({ length: 6 }, () => Math.floor(Math.random() * 30 + 70)),
+                                borderColor: 'rgb(255, 159, 64)',
+                                backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                            }],
+                        },
+                        operatorGrowth: {
+                            labels: months,
+                            datasets: [{
+                                label: 'Active Operators',
+                                data: Array.from({ length: 6 }, () => Math.floor(Math.random() * 50 + 30)),
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                            }],
+                        },
                     },
                 },
             }));
@@ -269,9 +336,14 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     },
 
     initializeStore: async () => {
-        await get().fetchOperators();
-        await get().fetchTOSs();
-        await get().fetchVms();
+        try {
+            await get().fetchEthPrice();  // 先获取 ETH 价格
+            await get().fetchTOSs();
+            await get().fetchOperators();
+            await get().fetchVms();
+        } catch (error) {
+            console.error('Failed to initialize store:', error);
+        }
     },
 }));
 

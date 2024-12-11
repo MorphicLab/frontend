@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageBackground from '../components/PageBackground';
@@ -12,23 +12,28 @@ const TosServices: React.FC = () => {
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-      }, []);
+    }, []);
 
     const allTOS = useBlockchainStore(state => state.toss);
     const allOperators = useBlockchainStore(state => state.operators);
+    const ethPrice = useBlockchainStore(state => state.ethPrice);
 
-    // 使用搜索和过滤 hook
+    // 计算总质押价值（美元）
+    const totalStaked = allTOS.reduce((total, tos) => total + ((tos.restaked || 0) * ethPrice), 0);
+
+    // Search and Filter
     const {
         search,
         setSearch,
         selectedLabels,
         toggleLabel,
-        filteredItems: currentTOS,
-        paginatedItems,
         currentPage,
         setCurrentPage,
-        totalPages
+        totalPages,
+        paginatedItems: currentTOS,
     } = useSearchAndFilter(allTOS);
+
+    console.log('currentTOS:', currentTOS);
 
     return (
         <div className="relative pt-20 min-h-screen">
@@ -67,7 +72,7 @@ const TosServices: React.FC = () => {
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-6 border border-morphic-primary/20">
                             <div className="text-3xl font-bold text-morphic-primary mb-2">
-                                $25,420
+                                ${totalStaked.toLocaleString()}
                             </div>
                             <div className="text-morphic-light/80">Total Value Locked</div>
                         </div>
@@ -88,8 +93,6 @@ const TosServices: React.FC = () => {
                             <TOSCard
                                 key={tos.id}
                                 tos={tos}
-                                operators={allOperators}
-                                onClick={() => navigate(`/tos/${tos.id}`)}
                                 index={index} 
                             />
                         ))}

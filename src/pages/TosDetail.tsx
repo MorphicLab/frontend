@@ -18,7 +18,7 @@ import { MOCK_TOS, MOCK_OPERATORS, MOCK_MORPHIC_AI_VM, MOCK_VMs } from '../data/
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
 import { useBlockchainStore } from '../components/store/chainStore';
-import { useOffChainStore } from '../components/store/OffChainStore';
+import { useOffChainStore } from '../components/store/offChainStore';
 import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';
@@ -524,7 +524,7 @@ const TosDetail: React.FC = () => {
                             <h3 className="text-lg font-semibold text-white mb-4">
                                 Restaking & Rewards
                             </h3>
-                            {id && tosChartData[id] && <Line options={chartOptions} data={tosChartData[id]} />}
+                            {id && tosChartData[id] && <Line options={chartOptions} data={tosChartData[id].restaking} />}
                         </motion.div>
 
                         <motion.div
@@ -538,7 +538,7 @@ const TosDetail: React.FC = () => {
                             </h3>
                             <Line
                                 options={chartOptions}
-                                data={tosChartData[id] ? tosChartData[id] : { labels: [], datasets: [] }}
+                                data={tosChartData[id] ? tosChartData[id].tokenDistribution : { labels: [], datasets: [] }}
                             />
                         </motion.div>
 
@@ -551,7 +551,7 @@ const TosDetail: React.FC = () => {
                             <h3 className="text-lg font-semibold text-white mb-4">
                                 Operator Growth
                             </h3>
-                            <Line options={chartOptions} data={tosChartData[id] ? tosChartData[id] : { labels: [], datasets: [] }} />
+                            <Line options={chartOptions} data={tosChartData[id] ? tosChartData[id].operatorGrowth : { labels: [], datasets: [] }} />
                         </motion.div>
                     </div>
                 </div>
