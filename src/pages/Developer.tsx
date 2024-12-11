@@ -34,7 +34,7 @@ import { TOS, Operator, Agent, Vm, TosStatus, VmStatus, AgentStatus } from '../d
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
 import { deployAgent } from '../request/operator'; 
 import { useBlockchainStore } from '../components/store/chainStore';
-import { useOffChainStore } from '../components/store/offchainStore'
+import { useOffChainStore } from '../components/store/OffChainStore';
 import { DEFAULT_TOS_LOGO, DEFAULT_CREATOR_LOGO, DEFAULT_OPERATOR_LOGO, DEFAULT_OPERATOR_OWNER_LOGO, DEFAULT_AGENT_LOGO } from '../data/constant';
 
 
@@ -1632,7 +1632,7 @@ const Developer: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="space-y-4 mb-6">
+                <div className="max-h-96 overflow-y-auto mb-6">
                     {availableOperators.map(operator => (
                         <div
                             key={operator.id}
@@ -1666,7 +1666,6 @@ const Developer: React.FC = () => {
                         </div>
                     ))}
                 </div>
-
                 <div className="flex justify-end space-x-4">
                     <button
                         onClick={() => setIsDeployModalOpen(false)}
@@ -1875,7 +1874,7 @@ const Developer: React.FC = () => {
                         ...MOCK_MORPHIC_AGENT,
                         // Override some fields to make them unique
                         owner: MOCK_MORPHIC_AGENT.owner || '',
-                        name: `${MOCK_MORPHIC_AGENT.name} ${Math.floor(Math.random() * 1000)}`,
+                        name: `${MOCK_MORPHIC_AGENT.name}_${Math.floor(Math.random() * 1000)}`,
                         logo: MOCK_MORPHIC_AGENT.logo || DEFAULT_AGENT_LOGO,
                         labels: MOCK_MORPHIC_AGENT.labels || [],
                         description: MOCK_MORPHIC_AGENT.description || '',

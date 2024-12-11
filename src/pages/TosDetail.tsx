@@ -18,6 +18,7 @@ import { MOCK_TOS, MOCK_OPERATORS, MOCK_MORPHIC_AI_VM, MOCK_VMs } from '../data/
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/VerificationFlow';
 import { useBlockchainStore } from '../components/store/chainStore';
+import { useOffChainStore } from '../components/store/OffChainStore';
 import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';
@@ -81,9 +82,14 @@ const TosDetail: React.FC = () => {
     const allVms = useBlockchainStore(state => state.vms);
     const tosChartData = useBlockchainStore(state => state.tosChartData);
     const generateTosChartData = useBlockchainStore(state => state.generateTosChartData);
+    const myAgents = useOffChainStore(state => state.myAgents);
+    const allQuotes = useOffChainStore(state => state.quotes);    
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
+    if (tos && allQuotes.length > 0 && myAgents.length > 0) {
+        tos.address = allQuotes[0].address;
+    }
 
     // 获取我的运营商（使用 window.ethereum.selectedAddress）
     const myOperators = useMemo(() => {

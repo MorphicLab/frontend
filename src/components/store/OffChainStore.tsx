@@ -1,13 +1,16 @@
 import { create } from 'zustand';
-import { getAgentListByOwner } from '../../request/operator'; // 导入获取代理列表的接口
-import { Operator } from '../../data/define';
+import { getAgentListByOwner } from '../../request/operator';
+import { getQuoteList } from '../../request/quote';
+import { Operator, Agent, VmQuote } from '../../data/define';
 
 // 定义 OffChainStore 状态接口
 interface OffChainStore {
-    allAgents: any[];
-    myAgents: any[];
+    allAgents: Agent[];
+    myAgents: Agent[];
+    quotes: VmQuote[];
     fetchAgents: (allOperators: Operator[]) => Promise<void>;
     fetchMyAgents: (myOperators: Operator[]) => Promise<void>;
+    fetchQuotes: () => Promise<void>;
 
     initializeStore: (allOperators: Operator[], myOperators: Operator[]) => Promise<void>;
 }
@@ -46,8 +49,20 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
             console.error('failed to get agent list:', error);
         }
     },
+    quotes: [],
+    fetchQuotes: async () => {
+        console.log("fetchAllQuotes");
+        try {
+            const quotes = await getQuoteList();
+            set({ quotes });
+            
+        } catch (error) {
+            console.error('failed to get quote list:', error);
+        }
+    },
 
     initializeStore: async (allOperators: Operator[], myOperators: Operator[]) => {
         await useOffChainStore.getState().fetchMyAgents(myOperators);
+        await useOffChainStore.getState().fetchQuotes();
     },
 }));

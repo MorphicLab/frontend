@@ -51,7 +51,8 @@ const AgentChat = () => {
   useEffect(() => {
     // request agentid for app api
     if (!chatbotAgentId) {
-      fetch(`http://${agent.operator_domain}:33010/agents`)
+      // fetch(`http://${agent.operator_domain}:33010/agents`)
+      fetch(`/agents`)
         .then(response => response.json())
         .then(data => {
           const randomIndex = Math.floor(Math.random() * data.agents.length);

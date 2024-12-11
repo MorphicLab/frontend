@@ -66,13 +66,20 @@ export interface Operator {
 }
 
 
+// export interface VmQuote {  // now using quote of TDX
+//     type: string;  
+//     cpu_svn: string; 
+//     tcb_hash: string;
+//     td_info_hash: string;
+//     report_data: string;
+//     signature: string;
+// };
+
 export interface VmQuote {  // now using quote of TDX
-    type: string;  
-    cpu_svn: string; 
-    tcb_hash: string;
-    td_info_hash: string;
-    report_data: string;
-    signature: string;
+    pubkey: string;  
+    address: string; 
+    quote: string; // TODO: 待解析
+    event_log: string;
 };
 
 export interface VmInfo {   // now using TD info of TDX

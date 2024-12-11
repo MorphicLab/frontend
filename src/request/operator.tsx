@@ -1,4 +1,4 @@
-import { Agent, AgentStatus } from '../data/define';
+import { Agent, AgentStatus, VmQuote } from '../data/define';
 import { DEFAULT_AGENT_LOGO } from '../data/constant.tsx';
 import { MOCK_MORPHIC_AGENT } from '../data/mockData.ts';
 
