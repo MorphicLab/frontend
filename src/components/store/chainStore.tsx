@@ -20,6 +20,12 @@ interface BlockchainStore {
     fetchVms: () => Promise<void>;
     fetchEthPrice: () => Promise<void>;
 
+    // add data
+    addTOS: (tos: TOS) => void;
+    addOperator: (operator: Operator) => void;
+    addVm: (vm: Vm) => void;
+    addAgent: (agent: Agent) => void;
+
     // Initialize store
     initializeStore: () => Promise<void>;
 
@@ -282,6 +288,54 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         });
     },
 
+    addTOS: (newTOS: TOS) => {
+        set((state) => ({
+            toss: [...state.toss, newTOS],
+        }));
+    },
+
+    addOperator: (newOperator: Operator) => {
+        set((state) => ({
+            operators: [...state.operators, newOperator],
+        }));
+    },
+
+    addVm: (newVm: Vm) => {
+        // update toss and operators
+        let allToss = get().toss.map(tos => ({ ...tos }));
+        let allOperators = get().operators.map(op => ({ ...op }));
+
+        const tos = allToss.find(tos => tos.id === newVm.tos_id);
+        const operator = allOperators.find(op => op.id === newVm.operator_id);
+        if (tos && operator) {
+            if (!tos.vm_ids) {
+                tos.vm_ids = {};
+            }
+            if (!operator.vm_ids) {
+                operator.vm_ids = {};
+            }
+            if (!tos.vm_ids[operator.id]) {
+                tos.vm_ids[operator.id] = [];
+            }
+            if (!operator.vm_ids[tos.id]) {
+                operator.vm_ids[tos.id] = [];
+            }
+            tos.vm_ids[operator.id].push(newVm.id);
+            operator.vm_ids[tos.id].push(newVm.id);
+        }
+
+        set((state) => ({
+            toss: allToss,
+            operators: allOperators,
+            vms: [...state.vms, newVm],
+        }));
+    },
+
+    addAgent: (newAgent: Agent) => {
+        set((state) => ({
+            agents: [...state.agents, newAgent],
+        }));
+    },
 
     fetchEthPrice: async () => {
         try {

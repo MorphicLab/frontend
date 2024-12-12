@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageBackground from '../components/PageBackground';
-import { tosLabels } from '../data/mockData';
+import { tosLabels, MOCK_MORPHIC_AI_TOS } from '../data/mockData';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { useBlockchainStore } from '../components/store/chainStore';
@@ -17,6 +17,22 @@ const TosServices: React.FC = () => {
     const allTOS = useBlockchainStore(state => state.toss);
     const allOperators = useBlockchainStore(state => state.operators);
     const ethPrice = useBlockchainStore(state => state.ethPrice);
+    const addTOS = useBlockchainStore(state => state.addTOS);
+
+    // Handle Ctrl+V shortcut
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+                const hasMorphicAI = allTOS.some(tos => tos.name === 'Morphic AI');
+                if (!hasMorphicAI) {
+                    addTOS(MOCK_MORPHIC_AI_TOS);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [allTOS, addTOS]);
 
     // 计算总质押价值（美元）
     const totalStaked = allTOS.reduce((total, tos) => total + ((tos.restaked || 0) * ethPrice), 0);
