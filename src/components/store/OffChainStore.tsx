@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import { getAgentListByOwner } from '../../request/operator';
 import { getQuoteList } from '../../request/quote';
-import { Operator, Agent, VmQuote } from '../../data/define';
+import { Operator, Agent, Vm } from '../../data/define';
 
 // 定义 OffChainStore 状态接口
 interface OffChainStore {
     allAgents: Agent[];
     myAgents: Agent[];
-    quotes: VmQuote[];
+    quotes: Vm[];
     fetchAgents: (allOperators: Operator[]) => Promise<void>;
     fetchMyAgents: (myOperators: Operator[]) => Promise<void>;
     fetchQuotes: () => Promise<void>;

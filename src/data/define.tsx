@@ -65,6 +65,42 @@ export interface Operator {
     reputation?: number;     // calculated from other information
 }
 
+export interface VmTcbInfo {  
+    mr_seam: string;
+    mr_signer_seam: string;
+    tee_tcb_svn: string;
+    seam_attributes: string;
+};
+
+export interface VmTdInfo {
+    td_attributes: string;
+    xfam: string;
+    mr_td: string;
+    mr_config_id: string;
+    mr_owner: string;
+    rt_mr0: string;
+    rt_mr1: string;
+    rt_mr2: string;
+    rt_mr3: string;
+}
+
+export interface VmQuote {
+    tee_type: string; // 129 for TDX, 128 for SGX
+    pce_svn: string;
+    tcb_info_hash: string;
+    td_info_hash: string;
+    report_data: string;
+    signature: string; // TODO: signatrue定义待确定 ecdsa_signature ? qe_report_signature ?
+}
+
+export interface VmReport {
+    tee_type: string; // 129 for TDX, 128 for SGX
+    pce_svn: string;
+    tcb_info_hash: string;
+    td_info_hash: string;
+    report_data: string;
+    mac?: string;
+}
 
 // export interface VmQuote {  // now using quote of TDX
 //     type: string;  
@@ -75,47 +111,46 @@ export interface Operator {
 //     signature: string;
 // };
 
-export interface VmQuote {  // now using quote of TDX
-    pubkey: string;  
-    address: string; 
-    quote: string; // TODO: 待解析
-    event_log: string;
-};
+// export interface VmInfo {   // now using TD info of TDX
+//     roots_hash: string;
+//     mrtd: string;
+//     rtmr0: string;
+//     rtmr1: string;
+//     rtmr2: string;
+//     rtmr3: string;
+// };
 
-export interface VmInfo {   // now using TD info of TDX
-    roots_hash: string;
-    mrtd: string;
-    rtmr0: string;
-    rtmr1: string;
-    rtmr2: string;
-    rtmr3: string;
-};
-
-export interface VmTosInfo { 
-    code_hash: string;   // app-id of dstack event_log
-    ca_cert_hash?: string;   // ca-cert-hash of dstack event_log
-};
+// export interface VmTosInfo { 
+//     code_hash: string;   // app-id of dstack event_log
+//     ca_cert_hash?: string;   // ca-cert-hash of dstack event_log
+// };
 
 export enum VmStatus {
     Waiting = 0,
     Active = 1,
 }
 
-export interface VmReport {   // now using report of TDX
-    tos_info?: VmTosInfo;    // e.g., The TOS Info (code, certificate, address, etc.) of TDX
-    tcb_info: VmInfo;        // e.g., The TD Info of TDX
-    quote?: VmQuote;    // e.g., The signed Quote of TDX
-};
+// export interface VmReport {   // now using report of TDX
+//     tos_info?: VmTosInfo;    // e.g., The TOS Info (code, certificate, address, etc.) of TDX
+//     tcb_info: VmInfo;        // e.g., The TD Info of TDX
+//     quote?: VmQuote;    // e.g., The signed Quote of TDX
+// };
 
 export interface Vm {
-    id: string;    // Hex-encoded bytes20 (e.g., "0x123..."), like the instance id from dstack
-    type: string;
-    tos_id: string;          // TOS ID
-    operator_id: string;      // Operator ID
-    report: VmReport;
-    status: VmStatus;
+    id?: string;    // Hex-encoded bytes20 (e.g., "0x123..."), like the instance id from dstack
+    type?: string;
+    tos_id?: string;          // TOS ID
+    operator_id?: string;      // Operator ID
+    status?: VmStatus;
     code_hash?: string;       // app-id of dstack event_log
+
+    vm_report?: VmReport;
+    vm_quote?: VmQuote;
+
     cert?: string;
+    pubkey?: string;
+    address?: string;
+    event_log?: string;
 };
 
 export enum AgentStatus {

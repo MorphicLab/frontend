@@ -50,8 +50,6 @@ const TosServices: React.FC = () => {
         paginatedItems: currentTOS,
     } = useSearchAndFilter(allTOS);
 
-    console.log('currentTOS:', currentTOS);
-
     return (
         <div className="relative pt-20 min-h-screen">
             <PageBackground />

@@ -1,9 +1,9 @@
-import { VmQuote } from '../data/define';
+import { Vm } from '../data/define';
 import { parseQuote } from '../tool/quote';
 
 
 // 根据用户获取agent列表的接口
-export async function getQuoteList(): Promise<VmQuote[]> {
+export async function getQuoteList(): Promise<Vm[]> {
     console.log("http getQuoteList");
     try {
         const headers = {
@@ -23,8 +23,7 @@ export async function getQuoteList(): Promise<VmQuote[]> {
             {
                 pubkey: data.pubkey,
                 address: data.address,
-                quote: data.quote,
-                event_log: data.event_log
+                event_log: data.event_log,
             }
         ];
 
