@@ -18,7 +18,7 @@ export async function getQuoteList(): Promise<Vm[]> {
             throw new Error(error);
         }
         const data = await response.json();
-        // let q = parseQuote(data.quote);
+        parseQuote(data.quote);
         return [
             {
                 pubkey: data.pubkey,

@@ -1,4 +1,7 @@
-import { bool, _void, str, u32, Enum, Struct, Vector } from "scale-ts"
+import { _void, u16, u32, Struct, Vector, u8 } from "scale-ts"
+
+const ECDSA_SIGNATURE_BYTE_LEN = 64;
+const ECDSA_PUBKEY_BYTE_LEN = 64;
 
 interface Data<T> {
     data: Uint8Array;
@@ -82,8 +85,8 @@ interface AuthDataV3 {
 interface AuthDataV4 {
     ecdsaSignature: Uint8Array;
     ecdsaAttestationKey: Uint8Array;
-    certificationData: CertificationData;
-    qeReportData: QEReportCertificationData;
+    certificationData?: CertificationData;
+    qeReportData?: QEReportCertificationData;
 }
 
 type AuthData = AuthDataV3 | AuthDataV4;
@@ -96,213 +99,84 @@ interface Quote {
 
 export type { Header, TDReport10, TDReport15, EnclaveReport, AuthData, AuthDataV3, AuthDataV4, Quote };
 
-const decodeAuthData = (ver: number, input: Uint8Array): AuthData => {
-    let offset = 0;
-    const view = new DataView(input.buffer);
-
-    // Parse ECDSA signature (64 bytes)
-    const ecdsaSignature = input.slice(offset, offset + 64);
-    offset += 64;
-
-    // Parse ECDSA attestation key (64 bytes)
-    const ecdsaAttestationKey = input.slice(offset, offset + 64);
-    offset += 64;
-
-    // Parse certification data
-    const certType = view.getUint16(offset, true);
-    offset += 2;
-    const certDataSize = view.getUint32(offset, true);
-    offset += 4;
-    const certData = {
-        certType,
-        body: {
-            data: input.slice(offset, offset + certDataSize)
-        }
-    };
-    offset += certDataSize;
-
-    // For version 4, parse QE report data
-    if (ver === 4) {
-        const qeReport = input.slice(offset);
-        offset += qeReport.length;
-        const qeReportSignature = input.slice(offset);
-        offset += qeReportSignature.length;
-        const qeAuthDataSize = view.getUint32(offset, true);
-        offset += 4;
-        const qeAuthData = {
-            data: input.slice(offset, offset + qeAuthDataSize)
-        };
-        offset += qeAuthDataSize;
-        const qeReportCertType = view.getUint16(offset, true);
-        offset += 2;
-        const qeReportCertDataSize = view.getUint32(offset, true);
-        offset += 4;
-        const qeReportCertData = {
-            certType: qeReportCertType,
-            body: {
-                data: input.slice(offset)
-            }
-        };
-
-        return {
-            ecdsaSignature,
-            ecdsaAttestationKey,
-            certificationData: certData,
-            qeReportData: {
-                qeReport,
-                qeReportSignature,
-                qeAuthData,
-                certificationData: qeReportCertData
-            }
-        } as AuthDataV4;
-    }
-
-    // For version 3
-    return {
-        ecdsaSignature,
-        ecdsaAttestationKey,
-        qeReport: input.slice(offset, offset + 384),
-        qeReportSignature: input.slice(offset + 384, offset + 448),
-        qeAuthData: {
-            data: input.slice(offset + 448, offset + 512)
-        },
-        certificationData: certData
-    } as AuthDataV3;
-};
-
-const parseQuote = (quote: string): Quote => {
-    // Convert hex string to Uint8Array
-    const hexToBytes = (hex: string) => {
-        if (hex.length % 2 !== 0) {
-            throw new Error('Hex string must have an even number of characters');
-        }
-        const bytes = new Uint8Array(hex.length / 2);
-        for (let i = 0; i < hex.length; i += 2) {
-            const byte = parseInt(hex.slice(i, i + 2), 16);
-            if (isNaN(byte)) {
-                throw new Error('Invalid hex string');
-            }
-            bytes[i / 2] = byte;
-        }
-        return bytes;
-    };
-
-    // Helper function to convert Uint8Array to hex string for logging
-    const bytesToHex = (bytes: Uint8Array): string => {
-        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-    };
-
+const parseQuote = (quote: string): void => {
     if (!quote) {
         throw new Error('Quote string cannot be empty');
     }
 
-    const quoteBytes = hexToBytes(quote);
-    let offset = 0;
+    const header_decoder = Struct({
+        version: u16,
+        attestationKeyType: u16,
+        teeType: u32,
+        qe_svn: u16,
+        pce_svn: u16,
+        qe_vendor_id: Vector(u8, 16),
+        user_data: Vector(u8, 20),
+      })
 
-    // Parse Header (48 bytes)
+    const decoded_header = header_decoder.dec(quote)
+
     const header: Header = {
-        version: quoteBytes[offset++],
-        attestationKeyType: quoteBytes[offset++],
-        teeType: quoteBytes[offset++],
-        qeSvn: quoteBytes[offset++],
-        pceSvn: quoteBytes[offset++],
-        qeVendorId: quoteBytes.slice(offset, offset + 16),
-        userData: quoteBytes.slice(offset + 16, offset + 20)
+        version: decoded_header.version,
+        attestationKeyType: decoded_header.attestationKeyType,
+        teeType: decoded_header.teeType,
+        qeSvn: decoded_header.qe_svn,
+        pceSvn: decoded_header.pce_svn,
+        qeVendorId: new Uint8Array(decoded_header.qe_vendor_id),
+        userData: new Uint8Array(decoded_header.user_data),
     };
-    offset += 36;  // Skip to end of header (16 + 20)
 
-    // Create DataView for parsing multi-byte integers
-    const view = new DataView(quoteBytes.buffer);
-    
-    // Skip body type and size (6 bytes)
-    offset += 6;
+    const report_decoder = Struct({
+        tee_tcb_svn: Vector(u8, 16),
+        mr_seam: Vector(u8, 48),
+        mr_signer_seam: Vector(u8, 48),
+        seam_attributes: Vector(u8, 8),
+        td_attributes: Vector(u8, 8),
+        xfam: Vector(u8, 8),
+        mr_td: Vector(u8, 48),
+        mr_config_id: Vector(u8, 48),
+        mr_owner: Vector(u8, 48),
+        mr_owner_config: Vector(u8, 48),
+        rt_mr0: Vector(u8, 48),
+        rt_mr1: Vector(u8, 48),
+        rt_mr2: Vector(u8, 48),
+        rt_mr3: Vector(u8, 48),
+        report_data: Vector(u8, 64),
+      })
+    const decoded_report = report_decoder.dec(quote.slice(96))
 
-    // Parse TDReport10 (584 bytes)
     const tdReport: TDReport10 = {
-        teeTcbSvn: quoteBytes.slice(offset, offset + 16),
-        mrSeam: quoteBytes.slice(offset + 16, offset + 48),
-        mrSignerSeam: quoteBytes.slice(offset + 48, offset + 80),
-        seamAttributes: quoteBytes.slice(offset + 80, offset + 96),
-        tdAttributes: quoteBytes.slice(offset + 96, offset + 112),
-        xfam: quoteBytes.slice(offset + 112, offset + 128),
-        mrTd: quoteBytes.slice(offset + 128, offset + 160),
-        mrConfigId: quoteBytes.slice(offset + 160, offset + 192),
-        mrOwner: quoteBytes.slice(offset + 192, offset + 224),
-        mrOwnerConfig: quoteBytes.slice(offset + 224, offset + 256),
-        rtMr0: quoteBytes.slice(offset + 256, offset + 288),
-        rtMr1: quoteBytes.slice(offset + 288, offset + 320),
-        rtMr2: quoteBytes.slice(offset + 320, offset + 352),
-        rtMr3: quoteBytes.slice(offset + 352, offset + 384),
-        reportData: quoteBytes.slice(offset + 384, offset + 416)
-    };
-    offset += 584;
-
-    // Parse ECDSA signature (64 bytes)
-    const ecdsaSignature = quoteBytes.slice(offset, offset + 64);
-    offset += 64;
-
-    // Parse QE authentication data
-    const qeAuthData = quoteBytes.slice(offset, offset + 64);
-    offset += 64;
-
-    // Parse certification data
-    const certType = view.getUint16(offset, true);
-    offset += 2;
-    const certDataSize = view.getUint32(offset, true);
-    offset += 4;
-
-    // Parse certification data body
-    const certData = {
-        certType,
-        body: {
-            data: quoteBytes.slice(offset)  // Take all remaining data as cert data
-        }
+        teeTcbSvn: new Uint8Array(decoded_report.tee_tcb_svn),
+        mrSeam: new Uint8Array(decoded_report.mr_seam),
+        mrSignerSeam: new Uint8Array(decoded_report.mr_signer_seam),
+        seamAttributes: new Uint8Array(decoded_report.seam_attributes),
+        tdAttributes: new Uint8Array(decoded_report.td_attributes),
+        xfam: new Uint8Array(decoded_report.xfam),
+        mrTd: new Uint8Array(decoded_report.mr_td),
+        mrConfigId: new Uint8Array(decoded_report.mr_config_id),
+        mrOwner: new Uint8Array(decoded_report.mr_owner),
+        mrOwnerConfig: new Uint8Array(decoded_report.mr_owner_config),
+        rtMr0: new Uint8Array(decoded_report.rt_mr0),
+        rtMr1: new Uint8Array(decoded_report.rt_mr1),
+        rtMr2: new Uint8Array(decoded_report.rt_mr2),
+        rtMr3: new Uint8Array(decoded_report.rt_mr3),
+        reportData: new Uint8Array(decoded_report.report_data),
     };
 
-    // Create AuthDataV4 structure
+    const auth_data_decoder = Struct({
+        ecdsa_signature: Vector(u8, ECDSA_SIGNATURE_BYTE_LEN),
+        ecdsa_attestation_key: Vector(u8, ECDSA_PUBKEY_BYTE_LEN),
+        // certification_data:
+        // qe_report_data:
+      })
+    const decoded_auth_data = auth_data_decoder.dec(quote.slice(1272));
+    
     const authData: AuthDataV4 = {
-        ecdsaSignature,
-        ecdsaAttestationKey: qeAuthData,
-        certificationData: certData,
-        qeReportData: {
-            qeReport: new Uint8Array(0),
-            qeReportSignature: new Uint8Array(0),
-            qeAuthData: {
-                data: new Uint8Array(0)
-            },
-            certificationData: certData
-        }
-    };
+        ecdsaSignature: new Uint8Array(decoded_auth_data.ecdsa_signature),
+        ecdsaAttestationKey: new Uint8Array(decoded_auth_data.ecdsa_attestation_key),  
+    }
 
-    // Log parsed data for verification
-    console.log('Parsed Quote:', {
-        header: {
-            version: header.version,
-            attestationKeyType: header.attestationKeyType,
-            teeType: header.teeType,
-            qeSvn: header.qeSvn,
-            pceSvn: header.pceSvn,
-            qeVendorId: bytesToHex(header.qeVendorId),
-            userData: bytesToHex(header.userData)
-        },
-        tdReport: {
-            mrTd: bytesToHex(tdReport.mrTd),
-            mrConfigId: bytesToHex(tdReport.mrConfigId),
-            reportData: bytesToHex(tdReport.reportData)
-        },
-        authData: {
-            ecdsaSignature: bytesToHex(ecdsaSignature),
-            ecdsaAttestationKey: bytesToHex(qeAuthData),
-            certType: certType.toString(16),
-            certDataSize
-        }
-    });
-
-    return {
-        header,
-        report: tdReport,
-        authData
-    };
+    // TODO: return quote(header, tdRerport, authData)
 };
 
 export { parseQuote };
