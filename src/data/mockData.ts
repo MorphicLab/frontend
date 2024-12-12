@@ -59,7 +59,7 @@ export const MOCK_MORPHIC_AI_TOS: TOS = {
         name: 'Morphic Labs',
         logo: '/images/morphic-logo-sm.png'
     },
-    operator_minimum: 1,
+    operator_minimum: 10,
     dao: '',
     vcpus: 1,
     vmemory: 1,

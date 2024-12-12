@@ -289,6 +289,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     },
 
     addTOS: (newTOS: TOS) => {
+        MOCK_TOS.push(newTOS);
         set((state) => ({
             toss: [...state.toss, newTOS],
         }));
@@ -301,6 +302,8 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     },
 
     addVm: (newVm: Vm) => {
+        MOCK_VMs.push(newVm);
+
         // update toss and operators
         let allToss = get().toss.map(tos => ({ ...tos }));
         let allOperators = get().operators.map(op => ({ ...op }));

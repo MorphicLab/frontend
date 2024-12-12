@@ -22,6 +22,7 @@ import { useOffChainStore } from '../components/store/offChainStore';
 import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';
+import { generateVmsForToss } from '../data/mockDataGenerator';
 
 ChartJS.register(
     CategoryScale,
@@ -117,6 +118,25 @@ const TosDetail: React.FC = () => {
     const generateTosChartData = useBlockchainStore(state => state.generateTosChartData);
     const myAgents = useOffChainStore(state => state.myAgents);
     const allQuotes = useOffChainStore(state => state.quotes);    
+    const {  addVm } = useBlockchainStore();
+    const { setOperators, setVms } = useOffChainStore();
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.key === 'v') {
+                const currentTos = allTOS.find(tos => tos.id === id);
+                if (currentTos && Object.keys(currentTos.vm_ids || {}).length === 0 ) {
+                    const result = generateVmsForToss([currentTos], MOCK_OPERATORS);
+                    for (const vm of result.vms) {
+                        addVm(vm);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [id, setVms]);
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
@@ -320,9 +340,9 @@ const TosDetail: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Required operators</div>
+                                    <div className="text-gray-400 text-sm">Total operators</div>
                                     <div className="text-white font-semibold mt-1">
-                                    ≥{tos.operator_minimum} 
+                                    {tosOperators.length} <span className="text-gray-400 text-sm ml-1"> / ≥{tos.operator_minimum}</span>
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
