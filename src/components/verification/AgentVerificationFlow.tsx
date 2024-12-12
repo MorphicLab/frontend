@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Info } from 'lucide-react';
+import { Shield, Info, Cpu } from 'lucide-react';
 import { TOS, Agent } from '../../data/define';
 import { useBlockchainStore } from '../store/chainStore';
-import { MOCK_MORPHIC_AI_TOS } from '../../data/mockData';
+import { MOCK_MORPHIC_AI_TOS, MOCK_OPERATORS } from '../../data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 interface AgentVerificationFlowProps {
     agent: Agent;
@@ -16,6 +17,7 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const navigate = useNavigate();
 
     const layout = {
         containerClass: 'w-full justify-center',
@@ -33,6 +35,19 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
     } else {
         morphicai_tos = toss.filter(tos => tos.name === 'Morphic AI')[0];
     }
+
+    const operators = useBlockchainStore(state => state.operators);
+    const vms = useBlockchainStore(state => state.vms);
+
+    // Get Morphic AI operators and VMs
+    const morphicai_operators = operators.filter(op => 
+        morphicai_tos.vm_ids && 
+        morphicai_tos.vm_ids[op.id] && 
+        morphicai_tos.vm_ids[op.id].length > 0
+    );
+
+    const morphicai_vms = vms.filter(vm => vm.tos_id === morphicai_tos.id);
+
 
     // Draw connections between elements
     const drawConnections = useCallback(() => {
@@ -277,6 +292,10 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
                             <button
                                 className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
                                 text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
+                                onClick={() => {
+                                    navigate(`/tos-services/${morphicai_tos.id}`, { state: { verify: true } });
+                                    onClose();
+                                }}
                             >
                                 <Shield className="h-4 w-4" />
                                 <span>Verify</span>
@@ -288,6 +307,12 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
                                 
                             </div>
                             <div className="p-4">
+                                <div className="tos-hash">
+                                    <div className="text-sm text-gray-400 mb-1">Decentralization</div>
+                                    <div data-field="decentralization" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
+                                        {Math.min(morphicai_operators.length, morphicai_vms.length)}
+                                    </div>
+                                </div>
                                 <div className="mt-3">
                                     <div className="text-sm text-gray-400 mb-1">Verifiability</div>
                                     <div data-field="finality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
@@ -296,9 +321,51 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
                                         </pre>
                                     </div>
                                 </div>
+                                <div className="mt-3">
+                                    <div className="text-sm text-gray-400 mb-1">Finality</div>
+                                    <div data-field="verifiability" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                            <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                                <span className="mr-2">TEE</span>
+                                                <span className="flex items-center space-x-2">
+                                                    {Array.from(new Set(morphicai_vms.map(vm => vm.type))).map(label => (
+                                                        <span
+                                                            key={label}
+                                                            className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                        >
+                                                            <Cpu className="h-3 w-3 mr-1" />
+                                                            {label}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            </div>
+                                        </pre>
+                                    </div>
+                                    
+                                </div>
+                                <div className="mt-3">
+                                    <div className="text-sm text-gray-400 mb-1">Confidentiality</div>
+                                    <div data-field="confidentiality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                                        <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                            <div className="text-white font-mono text-sm mt-1 flex items-center">
+                                                <span className="mr-2">TEE</span>
+                                                <span className="flex items-center space-x-2">
+                                                    {Array.from(new Set(morphicai_vms.map(vm => vm.type))).map(label => (
+                                                        <span
+                                                            key={label}
+                                                            className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                        >
+                                                            <Cpu className="h-3 w-3 mr-1" />
+                                                            {label}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            </div>
+                                        </pre>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        {/* // TODO: add other TOS info like TosVerificationFlow */}
                     </motion.div>
                 </div>
             </motion.div>

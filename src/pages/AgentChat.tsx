@@ -19,6 +19,8 @@ import { motion } from 'framer-motion';
 import { Tooltip } from 'antd';
 import { Agent, AgentStatus } from '../data/define';
 import { AgentVerificationFlow } from '../components/verification/AgentVerificationFlow';
+import { useBlockchainStore } from '../components/store/chainStore';
+import { MOCK_MORPHIC_AI_TOS } from '../data/mockData';
 
 interface Message {
   id: string;
@@ -47,6 +49,7 @@ const AgentChat = () => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [chatbotAgentId, setChatbotAgentId] = useState('');
   const [showVerification, setShowVerification] = useState(false);
+  
 
   useEffect(() => {
     // request agentid for app api
@@ -61,6 +64,23 @@ const AgentChat = () => {
         .catch(error => console.error('Error fetching agent ID:', error));
     }
   }, [chatbotAgentId]);
+
+    let morphicai_tos: TOS;
+    const toss = useBlockchainStore(state => state.toss);
+    if (!toss || toss.filter(tos => tos.name === 'Morphic AI').length === 0) {
+        morphicai_tos = MOCK_MORPHIC_AI_TOS;
+    } else {
+        morphicai_tos = toss.filter(tos => tos.name === 'Morphic AI')[0];
+    }
+
+    const operators = useBlockchainStore(state => state.operators);
+
+    // Get Morphic AI operators and VMs
+    const morphicai_operators = operators.filter(op => 
+        morphicai_tos.vm_ids && 
+        morphicai_tos.vm_ids[op.id] && 
+        morphicai_tos.vm_ids[op.id].length > 0
+    );
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
@@ -166,7 +186,7 @@ const AgentChat = () => {
                 </div>
                 <div className="flex items-center">
                   <Network className="h-4 w-4 mr-2" />
-                  <span>{agent.num_operators} operators</span>
+                  <span>{morphicai_operators.length} operators</span>
                 </div>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 mr-2 text-yellow-400" />

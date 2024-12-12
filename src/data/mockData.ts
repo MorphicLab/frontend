@@ -71,6 +71,7 @@ export const MOCK_MORPHIC_AI_TOS: TOS = {
     likes: 0,
     status: TosStatus.Waiting,
     code_hash: "9c220d5630B4cF539739dF2C5dAcb4c659F2488D",
+    address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
 }
 
 export const MOCK_OPERATORS = generateMockOperators(61);

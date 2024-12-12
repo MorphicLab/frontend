@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ExternalLink, Cpu, X, Shield, Copy, Check, HelpCircle, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
@@ -101,6 +101,7 @@ function generatePageNumbers(currentPage: number, totalPages: number, maxVisible
 
 const TosDetail: React.FC = () => {
     const { id } = useParams();
+    const location = useLocation();
     const [operatorSearch, setOperatorSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [vmCurrentPage, setVmCurrentPage] = useState(1);
@@ -137,6 +138,7 @@ const TosDetail: React.FC = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [id, setVms]);
+
 
     // 从所有 TOS 中查找当前 TOS
     const tos = allTOS.find(t => t.id === id);
@@ -279,6 +281,12 @@ const TosDetail: React.FC = () => {
             setTimeout(() => setIsCertCopied(false), 2000);
         }
     };
+
+    useEffect(() => {
+        if (location.state?.verify) {
+            setShowVerification(true);
+        }
+    }, [location.state]);
 
     if (!tos) return <div>TOS not found</div>;
 
@@ -773,7 +781,7 @@ const TosDetail: React.FC = () => {
                                                 {operator.labels.map(label => (
                                                     <span
                                                         key={label}
-                                                        className="px-2 py-1 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
+                                                        className="px-2 py-0.5 bg-morphic-primary/20 text-morphic-primary text-xs rounded-full flex items-center"
                                                     >
                                                         <Cpu className="h-3 w-3 mr-1" />
                                                         {label}

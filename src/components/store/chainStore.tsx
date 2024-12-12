@@ -305,33 +305,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         MOCK_VMs.push(newVm);
 
         // update toss and operators
-        let allToss = get().toss.map(tos => ({ ...tos }));
-        let allOperators = get().operators.map(op => ({ ...op }));
-
-        const tos = allToss.find(tos => tos.id === newVm.tos_id);
-        const operator = allOperators.find(op => op.id === newVm.operator_id);
-        if (tos && operator) {
-            if (!tos.vm_ids) {
-                tos.vm_ids = {};
-            }
-            if (!operator.vm_ids) {
-                operator.vm_ids = {};
-            }
-            if (!tos.vm_ids[operator.id]) {
-                tos.vm_ids[operator.id] = [];
-            }
-            if (!operator.vm_ids[tos.id]) {
-                operator.vm_ids[tos.id] = [];
-            }
-            tos.vm_ids[operator.id].push(newVm.id);
-            operator.vm_ids[tos.id].push(newVm.id);
-        }
-
-        set((state) => ({
-            toss: allToss,
-            operators: allOperators,
-            vms: [...state.vms, newVm],
-        }));
+        get().fetchVms();
     },
 
     addAgent: (newAgent: Agent) => {
