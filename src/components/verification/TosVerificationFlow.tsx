@@ -296,6 +296,27 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     `;
 
 
+    // Get 5 nearest operators based on current hybrid position
+    const getNearestOperators = (allOperators: Operator[], currentPosition: number) => {
+        // Sort operators based on their position in the list
+        // This is a simplified distance calculation, you can modify it based on your needs
+        const sortedOperators = [...allOperators].sort((a, b) => {
+            const indexA = allOperators.indexOf(a);
+            const indexB = allOperators.indexOf(b);
+            return Math.abs(indexA - currentPosition) - Math.abs(indexB - currentPosition);
+        });
+
+        // Return only the 5 nearest operators
+        return sortedOperators.slice(0, 5);
+    };
+
+    // Get current hybrid position (for demo, using the middle of the list)
+    const currentPosition = Math.floor(operators.length / 2);
+    
+    // Get the 5 nearest operators
+    // TODO: This should be updated based on the current hybrid position
+    const nearestOperators = getNearestOperators(operators, currentPosition);
+
     return (
         <div
             className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50"
@@ -443,7 +464,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                     >
                         <div className="text-lg font-bold text-white mb-2 sticky top-0 z-10 space-y-4 py-4  mt-4">Serving Operators</div>
                         <div className="space-y-4 pr-2">
-                            {operators.map((operator, index) => {
+                            {nearestOperators.map((operator, index) => {
                                 const vm = vms.find(vm => vm.operator_id === operator.id);
                                 const tcbInfo = vm?.report.tcb_info;
                                 return (
@@ -571,18 +592,18 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">TD info hash</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {vm.report.quote.td_info_hash?.slice(0, 10)}...{vm.report.quote.td_info_hash?.slice(-8)}
+                                                                    {vm.report.quote.quote?.slice(0, 10)}...{vm.report.quote.quote?.slice(-8)}
                                                                 </div>
                                                             </div>
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">Report data</div>
                                                                 <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
-                                                                    {vm.report.quote.report_data?.slice(0, 10)}...{vm.report.quote.report_data?.slice(-8)}
+                                                                    {vm.report.quote.pubkey?.slice(0, 10)}...{vm.report.quote.pubkey?.slice(-8)}
                                                                 </div>
                                                             </div>
 
                                                             {/* Expandable fields */}
-                                                            {expandedSections[operator.id]?.quote && (
+                                                            {/* {expandedSections[operator.id]?.quote && (
                                                                 <>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">Type</div>
@@ -609,7 +630,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                                         </div>
                                                                     </div>
                                                                 </>
-                                                            )}
+                                                            )} */}
                                                         </>
                                                     )}
                                                 </div>

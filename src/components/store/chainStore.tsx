@@ -78,6 +78,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     tosChartData: {},
 
     fetchTOSs: async () => {
+        const fetchedTOSs: TOS[] = [];
         try {
             const contract = await createContractInstance();
             const state = get();
@@ -86,7 +87,6 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
             const totalTOSs = await contract.total_toss();
 
             // Fetch each TOS
-            const fetchedTOSs: TOS[] = [];
             for (let i = 0; i < totalTOSs; i++) {
                 const tos = await contract.get_tos_by_index(i);
 
@@ -117,23 +117,27 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                 });
             }
 
-            const allTOS = [...MOCK_TOS, ...fetchedTOSs];
 
-            set({ toss: allTOS });
         } catch (error) {
             console.error('Failed to fetch TOSs:', error);
         }
+
+        const allTOS = [...MOCK_TOS, ...fetchedTOSs];
+        set({ toss: allTOS });
+
     },
 
     fetchOperators: async () => {
+        const fetchedOperators: Operator[] = [];
+
         try {
             const contract = await createContractInstance();
 
             // Get total number of operators
             const totalOperators = await contract.total_operators();
 
+
             // Fetch each operator
-            const fetchedOperators: Operator[] = [];
             for (let i = 0; i < totalOperators; i++) {
                 const op = await contract.get_operator_by_index(i);
                 fetchedOperators.push({
@@ -153,20 +157,24 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                 });
             }
 
-            const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
 
-            set({ operators: allOperators });
         } catch (error) {
             console.error('Failed to fetch operators:', error);
         }
+        const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
+
+        set({ operators: allOperators });
     },
 
     fetchVms: async () => {
+        const allToss = get().toss.map(tos => ({ ...tos }));
+        const allOperators = get().operators.map(op => ({ ...op }));
+        const fetchedVms: Vm[] = [];
+
         try {
             const contract = await createContractInstance();
             const totalVms = await contract.total_vms();
 
-            const fetchedVms: Vm[] = [];
             for (let i = 0; i < totalVms; i++) {
                 const vm = await contract.get_vm_by_index(i);
                 const vmReport = vm?.report || {};
@@ -205,73 +213,73 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                 fetchedVms.push(new_vm);
             }
 
-            const allVms = [...MOCK_VMs, ...fetchedVms];
-            const allToss = get().toss.map(tos => ({ ...tos }));
-            const allOperators = get().operators.map(op => ({ ...op }));
-
-            // 使用新的映射来构建 vm_ids
-            const tosVmMap: { [tosId: string]: { [operatorId: string]: string[] } } = {};
-            const operatorVmMap: { [operatorId: string]: { [tosId: string]: string[] } } = {};
-
-            // 首先构建映射
-            allVms.forEach(vm => {
-                // 为 TOS 构建映射
-                if (!tosVmMap[vm.tos_id]) {
-                    tosVmMap[vm.tos_id] = {};
-                }
-                if (!tosVmMap[vm.tos_id][vm.operator_id]) {
-                    tosVmMap[vm.tos_id][vm.operator_id] = [];
-                }
-                tosVmMap[vm.tos_id][vm.operator_id].push(vm.id);
-
-                // 为 Operator 构建映射
-                if (!operatorVmMap[vm.operator_id]) {
-                    operatorVmMap[vm.operator_id] = {};
-                }
-                if (!operatorVmMap[vm.operator_id][vm.tos_id]) {
-                    operatorVmMap[vm.operator_id][vm.tos_id] = [];
-                }
-                operatorVmMap[vm.operator_id][vm.tos_id].push(vm.id);
-            });
-
-            // 更新 TOS 对象
-            allToss.forEach((tos, index) => {
-                // 计算该 TOS 下的所有 VM 数量
-                const vmCount = tosVmMap[tos.id] 
-                    ? Object.values(tosVmMap[tos.id]).reduce((total, vms) => total + vms.length, 0)
-                    : 0;
-                
-                allToss[index] = {
-                    ...tos,
-                    vm_ids: tosVmMap[tos.id] || {},
-                    restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
-                };
-            });
-
-            // 更新 Operator 对象
-            allOperators.forEach((operator, index) => {
-                // 计算该运营商下的所有 VM 数量
-                const vmCount = operatorVmMap[operator.id]
-                    ? Object.values(operatorVmMap[operator.id]).reduce((total, vms) => total + vms.length, 0)
-                    : 0;
-
-                allOperators[index] = {
-                    ...operator,
-                    vm_ids: operatorVmMap[operator.id] || {},
-                    restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
-                };
-            });
-
-            // 一次性更新所有状态
-            set({
-                vms: allVms,
-                toss: allToss,
-                operators: allOperators
-            });
-
         } catch (error) {
+
             console.error('Failed to fetch vms:', error);
         }
+
+        let allVms = [] as Vm[];
+        allVms = [...MOCK_VMs, ...fetchedVms];
+
+        // 使用新的映射来构建 vm_ids
+        const tosVmMap: { [tosId: string]: { [operatorId: string]: string[] } } = {};
+        const operatorVmMap: { [operatorId: string]: { [tosId: string]: string[] } } = {};
+
+        // 首先构建映射
+        allVms.forEach(vm => {
+            // 为 TOS 构建映射
+            if (!tosVmMap[vm.tos_id]) {
+                tosVmMap[vm.tos_id] = {};
+            }
+            if (!tosVmMap[vm.tos_id][vm.operator_id]) {
+                tosVmMap[vm.tos_id][vm.operator_id] = [];
+            }
+            tosVmMap[vm.tos_id][vm.operator_id].push(vm.id);
+
+            // 为 Operator 构建映射
+            if (!operatorVmMap[vm.operator_id]) {
+                operatorVmMap[vm.operator_id] = {};
+            }
+            if (!operatorVmMap[vm.operator_id][vm.tos_id]) {
+                operatorVmMap[vm.operator_id][vm.tos_id] = [];
+            }
+            operatorVmMap[vm.operator_id][vm.tos_id].push(vm.id);
+        });
+
+        // 更新 TOS 对象
+        allToss.forEach((tos, index) => {
+            // 计算该 TOS 下的所有 VM 数量
+            const vmCount = tosVmMap[tos.id]
+                ? Object.values(tosVmMap[tos.id]).reduce((total, vms) => total + vms.length, 0)
+                : 0;
+
+            allToss[index] = {
+                ...tos,
+                vm_ids: tosVmMap[tos.id] || {},
+                restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
+            };
+        });
+
+        // 更新 Operator 对象
+        allOperators.forEach((operator, index) => {
+            // 计算该运营商下的所有 VM 数量
+            const vmCount = operatorVmMap[operator.id]
+                ? Object.values(operatorVmMap[operator.id]).reduce((total, vms) => total + vms.length, 0)
+                : 0;
+
+            allOperators[index] = {
+                ...operator,
+                vm_ids: operatorVmMap[operator.id] || {},
+                restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
+            };
+        });
+
+        // 一次性更新所有状态
+        set({
+            vms: allVms,
+            toss: allToss,
+            operators: allOperators
+        });
     },
 
 

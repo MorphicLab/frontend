@@ -16,7 +16,7 @@ import {
 } from 'chart.js';
 import { MOCK_TOS, MOCK_OPERATORS, MOCK_MORPHIC_AI_VM, MOCK_VMs } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
-import { VerificationFlow } from '../components/verification/VerificationFlow';
+import { VerificationFlow } from '../components/verification/TosVerificationFlow';
 import { useBlockchainStore } from '../components/store/chainStore';
 import { useOffChainStore } from '../components/store/offChainStore';
 import { hexlify } from 'ethers';
@@ -326,9 +326,9 @@ const TosDetail: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
-                                    <div className="text-gray-400 text-sm">Required instances</div>
+                                    <div className="text-gray-400 text-sm">Total instances</div>
                                     <div className="text-white font-semibold mt-1">
-                                        ≥{tos.operator_minimum}
+                                        {tosVms.length}
                                     </div>
                                 </div>
                                 <div className="bg-gray-700/50 rounded-lg p-4">
@@ -553,32 +553,6 @@ const TosDetail: React.FC = () => {
                                                 onChange={handleVmPageInputChange}
                                                 className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
                                             />
-                                            <div className="number-controls">
-                                                <button 
-                                                    onClick={() => {
-                                                        const newValue = Math.min(parseInt(vmPageInput || '0') + 1, vmTotalPages);
-                                                        setVmPageInput(newValue.toString());
-                                                        handleVmPageChange(newValue);
-                                                    }}
-                                                    className="increment"
-                                                >
-                                                    <svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M4 0L7.4641 4H0.535898L4 0Z" fill="currentColor"/>
-                                                    </svg>
-                                                </button>
-                                                <button 
-                                                    onClick={() => {
-                                                        const newValue = Math.max(parseInt(vmPageInput || '0') - 1, 1);
-                                                        setVmPageInput(newValue.toString());
-                                                        handleVmPageChange(newValue);
-                                                    }}
-                                                    className="decrement"
-                                                >
-                                                    <svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M4 4L0.535898 0L7.4641 0L4 4Z" fill="currentColor"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>

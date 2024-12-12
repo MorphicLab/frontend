@@ -18,6 +18,7 @@ import {
 import { motion } from 'framer-motion';
 import { Tooltip } from 'antd';
 import { Agent, AgentStatus } from '../data/define';
+import { AgentVerificationFlow } from '../components/verification/AgentVerificationFlow';
 
 interface Message {
   id: string;
@@ -35,8 +36,6 @@ interface Message {
   }[];
 }
 
-
-
 const AgentChat = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -47,6 +46,7 @@ const AgentChat = () => {
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [chatbotAgentId, setChatbotAgentId] = useState('');
+  const [showVerification, setShowVerification] = useState(false);
 
   useEffect(() => {
     // request agentid for app api
@@ -142,14 +142,15 @@ const AgentChat = () => {
                     <h1 className="text-xl font-bold text-white">{agent.name}</h1>
                     <span className={`px-2 py-0.5 rounded-full text-xs ${
                       agent.status === AgentStatus.Offline 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-gray-500/20 text-gray-400'
+                        ? 'bg-gray-500/20 text-gray-400'
+                        : 'bg-green-500/20 text-green-400' 
                     }`}>
-                      {agent.status}
+                      {AgentStatus[agent.status]?.toLowerCase()}
                     </span>
                     <button 
                       className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
                         text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
+                      onClick={() => setShowVerification(true)}
                     >
                       <Shield className="h-4 w-4" />
                       <span>Verify</span>
@@ -346,6 +347,13 @@ const AgentChat = () => {
           />
         </div>
       </div>
+      {/* Verification Flow */}
+      {showVerification && (
+        <AgentVerificationFlow
+          agent={agent}
+          onClose={() => setShowVerification(false)}
+        />
+      )}
     </div>
   );
 };
