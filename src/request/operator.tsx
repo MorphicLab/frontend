@@ -1,5 +1,4 @@
 import { Agent, AgentStatus, VmQuote } from '../data/define';
-import { DEFAULT_AGENT_LOGO } from '../data/constant.tsx';
 import { MOCK_MORPHIC_AGENT } from '../data/mockData.ts';
 
 const AGENT_PREFIX = 'agent-';
@@ -31,7 +30,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
             },
             body: JSON.stringify({
                 name: AGENT_PREFIX + agent.name,
-                image: 'dstack-dev-0.3.0',
+                image: 'dstack-dev-0.3.2',
                 compose_file: formatDockerCompose(AGENT_PREFIX + agent.name, docker_compose),
                 vcpu: 1,
                 memory: 1024,
