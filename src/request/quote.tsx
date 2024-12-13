@@ -17,12 +17,17 @@ export async function getQuoteList(): Promise<Vm[]> {
             throw new Error(error);
         }
         const data = await response.json();
-        parseQuoteToJson(data.quote);
+        const quoteString = parseQuoteToJson(data.quote);
+        console.log("quoteString:", quoteString);
         return [
             {
                 pubkey: data.pubkey,
                 address: data.address,
                 event_log: data.event_log,
+                quote: quoteString,
+                id: '',
+                type: '',
+                roots_hash: ''
             }
         ];
 

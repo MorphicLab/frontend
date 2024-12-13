@@ -1,4 +1,3 @@
-import {  QuoteString } from "../tool/quote";
 
 // 定义状态类型
 export enum TosStatus {
@@ -110,6 +109,27 @@ export interface VmReport {
 export enum VmStatus {
     Waiting = 0,
     Active = 1,
+}
+
+// Interface for hex encoded Quote fields
+export interface QuoteString {
+    header: {
+        version: string;
+        attestationKeyType: string;
+        teeType: string;
+        qeVendorId: string;
+        userData: string;
+    };
+    report: {};
+    authData: {
+        ecdsaSignature: string;
+        ecdsaAttestationKey: string;
+        certification: string;
+        qeReport: string;
+        qeReportSignature: string;
+        qeAuthData: string;
+        certification_data: string;
+    };
 }
 
 
