@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageBackground from '../components/PageBackground';
 import { tosLabels, MOCK_MORPHIC_AI_TOS, MOCK_OPERATORS } from '../data/mockData';
-import { generateVmsForToss } from '../data/mockDataGenerator';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { useBlockchainStore } from '../components/store/chainStore';
@@ -19,6 +18,7 @@ const TosServices: React.FC = () => {
     const allOperators = useBlockchainStore(state => state.operators);
     const ethPrice = useBlockchainStore(state => state.ethPrice);
     const addTOS = useBlockchainStore(state => state.addTOS);
+
 
     // Handle Ctrl+V shortcut
     useEffect(() => {

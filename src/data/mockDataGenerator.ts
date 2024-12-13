@@ -1,4 +1,5 @@
 import { Operator, TOS, Vm, VmStatus } from './define';
+import { mockQuote } from '../tool/quote';
 
 // Function to generate mock operators
 function generateMockOperators(count: number): Operator[] {
@@ -101,29 +102,17 @@ function generateRandomCertificate(): string {
     return lines.join('\n');
 }
 
-// Helper function to generate VM report data
-function generateVmReportData() {
-    return {
-        tos_info: {
-            code_hash: generateRandomHex(64),
-            ca_cert_hash: generateRandomHex(64)
-        },
-        tcb_info: {
-            roots_hash: generateRandomHex(64),
-            mrtd: generateRandomHex(64),
-            rtmr0: generateRandomHex(32),
-            rtmr1: generateRandomHex(32),
-            rtmr2: generateRandomHex(32),
-            rtmr3: generateRandomHex(32)
-        },
-        quote: {
-            pubkey: `0x${generateRandomHex(40)}`,
-            address: `0x${generateRandomHex(40)}`,
-            quote: generateRandomHex(128),
-            event_log: generateRandomHex(256)
-        }
-    };
-}
+// // Helper function to generate VM report data
+// function generateVmReportData() {
+//     return {
+//         tee_type: '129', // 129 for TDX, 128 for SGX
+//         pce_svn: generateRandomHex(6),
+//         tcb_info_hash: generateRandomHex(64),
+//         td_info_hash: generateRandomHex(64),
+//         report_data: generateRandomHex(64),
+//         mac: generateRandomHex(32),
+//     };
+// }
 
 // Function to generate VMs for all TOSs
 function generateVmsForToss(toss: TOS[], operators: Operator[]): { vms: Vm[] } {
@@ -134,23 +123,28 @@ function generateVmsForToss(toss: TOS[], operators: Operator[]): { vms: Vm[] } {
             .filter(op => tos.vm_types.some(type => op.labels.includes(type)))
             .slice(0, Math.max(tos.operator_minimum, Math.floor(Math.random() * 5) + tos.operator_minimum));
 
+        const code_hash = generateRandomHex(64);
         selectedOperators.forEach(op => {
             const numVms = Math.floor(Math.random() * 2) + 1; // 1-2 VMs per operator
 
             for (let i = 0; i < numVms; i++) {
                 const vmType = tos.vm_types[Math.floor(Math.random() * tos.vm_types.length)];
                 const vmId = generateBytes20Id();
-                const vmReport = generateVmReportData()
 
                 vms.push({
                     id: vmId,
+                    type: vmType,
                     operator_id: op.id,
                     tos_id: tos.id,
-                    type: vmType,
-                    report: vmReport,
-                    code_hash: vmReport.tos_info.code_hash,
+                    quote: mockQuote,
+                    code_hash: code_hash,
                     cert: generateRandomCertificate(),
                     status: VmStatus.Active,
+                    roots_hash: generateRandomHex(64),
+                    ca_cert_hash: generateRandomHex(64),
+                    pubkey: generateRandomHex(64),
+                    address: generateRandomHex(42),
+                    event_log: generateRandomHex(64)
                 });
             }
         });
@@ -160,4 +154,4 @@ function generateVmsForToss(toss: TOS[], operators: Operator[]): { vms: Vm[] } {
 }
 
 // Export functions for use in mockData.ts
-export { generateMockOperators, generateVmsForToss };
+export { generateMockOperators, generateVmsForToss, generateRandomHex };

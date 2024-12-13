@@ -1,5 +1,5 @@
 import { Vm } from '../data/define';
-import { parseQuote } from '../tool/quote';
+import { parseQuoteToJson } from '../tool/quote';
 
 
 // 根据用户获取agent列表的接口
@@ -18,7 +18,7 @@ export async function getQuoteList(): Promise<Vm[]> {
             throw new Error(error);
         }
         const data = await response.json();
-        parseQuote(data.quote);
+        parseQuoteToJson(data.quote);
         return [
             {
                 pubkey: data.pubkey,

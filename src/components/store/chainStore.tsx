@@ -3,8 +3,9 @@ import { create } from 'zustand';
 import { createContractInstance } from '../../request/vm';
 import { TOS, Operator, Vm, Agent, VmStatus } from '../../data/define';
 import { TosStatus } from '../../data/define';
-import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs } from '../../data/mockData';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs, MOCK_AGENTS, MOCK_MORPHIC_AI_VM, MOCK_MORPHIC_AI_TOS } from '../../data/mockData';
 import { DEFAULT_RESTAKE_ETH_AMOUNT } from '../../data/constant';
+import { mockQuote } from '../../tool/quote';
 
 // Define the store state interface
 interface BlockchainStore {
@@ -18,6 +19,7 @@ interface BlockchainStore {
     fetchTOSs: () => Promise<void>;
     fetchOperators: () => Promise<void>;
     fetchVms: () => Promise<void>;
+    fetchAgents: () => Promise<void>;
     fetchEthPrice: () => Promise<void>;
 
     // add data
@@ -85,17 +87,13 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
 
     fetchTOSs: async () => {
         const fetchedTOSs: TOS[] = [];
+
         try {
             const contract = await createContractInstance();
-            const state = get();
-
-            // Get total number of TOSs
             const totalTOSs = await contract.total_toss();
 
-            // Fetch each TOS
             for (let i = 0; i < totalTOSs; i++) {
                 const tos = await contract.get_tos_by_index(i);
-
                 fetchedTOSs.push({
                     id: tos.id,
                     name: tos.name || 'Unnamed Service',
@@ -119,56 +117,47 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     dao: tos.dao || ethers.ZeroAddress,
                     status: Number(tos.status) === 0 ? TosStatus.Waiting : TosStatus.Active,
                     restaked: Number(tos.restaked) || 0,
-                    address: tos.addr,
+                    address: tos.name === 'Morphic AI' ? MOCK_MORPHIC_AI_TOS.address : tos.addr,
                 });
             }
-
-
         } catch (error) {
-            console.error('Failed to fetch TOSs:', error);
+            console.warn('Failed to fetch TOSs from chain:', error);
         }
 
         const allTOS = [...MOCK_TOS, ...fetchedTOSs];
         set({ toss: allTOS });
-
     },
 
     fetchOperators: async () => {
         const fetchedOperators: Operator[] = [];
-
         try {
             const contract = await createContractInstance();
-
-            // Get total number of operators
             const totalOperators = await contract.total_operators();
 
-
-            // Fetch each operator
             for (let i = 0; i < totalOperators; i++) {
-                const op = await contract.get_operator_by_index(i);
+                const operator = await contract.get_operator_by_index(i);
                 fetchedOperators.push({
-                    id: op.id,
-                    name: op.name || 'Unnamed Operator',
-                    logo: op.logo || DEFAULT_OPERATOR_LOGO,
-                    labels: op.labels || [],
+                    id: operator.id,
+                    name: operator.name || 'Unnamed Operator',
+                    logo: operator.logo || DEFAULT_OPERATOR_LOGO,
+                    description: operator.description || 'No description available',
+                    labels: operator.labels || [],
+                    location: operator.location || '',
+                    domain: operator.domain || '',
+                    port: Number(operator.port) || 0,
                     owner: {
-                        address: op.owner,
-                        name: op.owner_name || 'Unknown',
-                        logo: op.owner_logo || DEFAULT_OPERATOR_OWNER_LOGO
+                        address: operator.owner,
+                        name: operator.owner_name || 'Unknown',
+                        logo: operator.owner_logo || DEFAULT_OPERATOR_OWNER_LOGO
                     },
-                    location: op.location || '',
-                    domain: op.domain || '',
-                    port: Number(op.port),
-                    // Convert TOS IDs to string array
+                    restaked: Number(operator.restaked) || 0,
                 });
             }
-
-
         } catch (error) {
-            console.error('Failed to fetch operators:', error);
+            console.warn('Failed to fetch operators from chain:', error);
         }
-        const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
 
+        const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
         set({ operators: allOperators });
     },
 
@@ -183,38 +172,18 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
 
             for (let i = 0; i < totalVms; i++) {
                 const vm = await contract.get_vm_by_index(i);
-                const vmReport = vm?.report || {};
-                const tosInfo = vmReport?.tos_info || {};
-                const tcbInfo = vmReport?.tcb_info || {};
-                const quote = vmReport?.quote || {};
 
                 const new_vm = {
                     id: vm.id,
-                    type: vm.type,
+                    type: vm.vm_type,
                     tos_id: vm.tos_id,
                     operator_id: vm.operator_id,
-                    report: {
-                        tos_info: {
-                            code_hash: tosInfo.code_hash || '',
-                            ca_cert_hash: tosInfo.ca_cert_hash || '',
-                        },
-                        tcb_info: {
-                            roots_hash: tcbInfo.roots_hash || '',
-                            mrtd: tcbInfo.mrtd || '',
-                            rtmr0: tcbInfo.rtmr0 || '',
-                            rtmr1: tcbInfo.rtmr1 || '',
-                            rtmr2: tcbInfo.rtmr2 || '',
-                            rtmr3: tcbInfo.rtmr3 || '',
-                        },
-                        quote: {
-                            pubkey: quote.pubkey || '',
-                            address: quote.addr || '',
-                            quote: quote.quote || '',
-                            event_log: quote.event_log || '',
-                        }
-                    },
+                    quote: mockQuote,
                     status: Number(vm.status) as VmStatus,
-                    code_hash: vm.code_hash
+                    code_hash: vm.code_hash,
+                    roots_hash: MOCK_MORPHIC_AI_VM.roots_hash,
+                    cert: MOCK_MORPHIC_AI_VM.cert,
+                    ca_cert_hash: MOCK_MORPHIC_AI_VM.ca_cert_hash,
                 };
                 fetchedVms.push(new_vm);
             }
@@ -232,24 +201,26 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         const operatorVmMap: { [operatorId: string]: { [tosId: string]: string[] } } = {};
 
         // 首先构建映射
-        allVms.forEach(vm => {
-            // 为 TOS 构建映射
-            if (!tosVmMap[vm.tos_id]) {
-                tosVmMap[vm.tos_id] = {};
-            }
-            if (!tosVmMap[vm.tos_id][vm.operator_id]) {
-                tosVmMap[vm.tos_id][vm.operator_id] = [];
-            }
-            tosVmMap[vm.tos_id][vm.operator_id].push(vm.id);
+        allVms.forEach(vm =>  {
+            if (vm.operator_id !== undefined && vm.tos_id !== undefined) {
+                // 为 TOS 构建映射
+                if (!tosVmMap[vm.tos_id]) {
+                    tosVmMap[vm.tos_id] = {};
+                }
+                if (!tosVmMap[vm.tos_id][vm.operator_id]) {
+                    tosVmMap[vm.tos_id][vm.operator_id] = [];
+                }
+                tosVmMap[vm.tos_id][vm.operator_id].push(vm.id);
 
             // 为 Operator 构建映射
-            if (!operatorVmMap[vm.operator_id]) {
-                operatorVmMap[vm.operator_id] = {};
+                if (!operatorVmMap[vm.operator_id]) {
+                    operatorVmMap[vm.operator_id] = {};
+                }
+                if (!operatorVmMap[vm.operator_id][vm.tos_id]) {
+                    operatorVmMap[vm.operator_id][vm.tos_id] = [];
+                }
+                operatorVmMap[vm.operator_id][vm.tos_id].push(vm.id);
             }
-            if (!operatorVmMap[vm.operator_id][vm.tos_id]) {
-                operatorVmMap[vm.operator_id][vm.tos_id] = [];
-            }
-            operatorVmMap[vm.operator_id][vm.tos_id].push(vm.id);
         });
 
         // 更新 TOS 对象
@@ -261,6 +232,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
 
             allToss[index] = {
                 ...tos,
+                status: vmCount < tos.operator_minimum ? TosStatus.Waiting : TosStatus.Active,
                 vm_ids: tosVmMap[tos.id] || {},
                 restaked: vmCount * DEFAULT_RESTAKE_ETH_AMOUNT
             };
@@ -288,6 +260,15 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         });
     },
 
+    fetchAgents: async () => {
+        const fetchedAgents: Agent[] = [];
+        // TODO: fetch agents from Morphic AI backend
+        let allAgents = [];
+        allAgents = [...MOCK_AGENTS, ...fetchedAgents];
+        
+        set({ agents: allAgents });
+    },
+
     addTOS: (newTOS: TOS) => {
         MOCK_TOS.push(newTOS);
         set((state) => ({
@@ -309,21 +290,31 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     },
 
     addAgent: (newAgent: Agent) => {
-        set((state) => ({
-            agents: [...state.agents, newAgent],
-        }));
+        MOCK_AGENTS.push(newAgent);
+
+        get().fetchAgents();
     },
 
     fetchEthPrice: async () => {
-        try {
-            // 使用 CoinGecko API 获取 ETH 价格
-            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-            const data = await response.json();
-            const price = data.ethereum.usd;
-            set({ ethPrice: price });
-        } catch (error) {
-            console.error('Failed to fetch ETH price:', error);
-        }
+        let price = 2200;
+        // try {
+        //     // 使用 CoinGecko API 获取 ETH 价格
+        //     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd', {
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Cache-Control': 'no-cache'
+        //         },
+        //     });
+        //     if (!response.ok) {
+        //         throw new Error(`HTTP error! status: ${response.status}`);
+        //     }
+        //     const data = await response.json();
+        //     price = data.ethereum?.usd || price;
+        // } catch (error) {
+        //     console.warn('Using default ETH price due to fetch error:', error);
+        // }
+
+        set({ ethPrice: price });
     },
 
     generateTosChartData: (tosId: string) => {
@@ -380,6 +371,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
             await get().fetchTOSs();
             await get().fetchOperators();
             await get().fetchVms();
+            await get().fetchAgents();
         } catch (error) {
             console.error('Failed to initialize store:', error);
         }

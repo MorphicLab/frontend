@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import PageBackground from '../components/PageBackground';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_AGENTS, agentLabels } from '../data/mockData';
+import {  agentLabels } from '../data/mockData';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { AgentCard } from '../components/cards/AgentCard';
 import { useBlockchainStore } from '../components/store/chainStore';
@@ -18,6 +18,8 @@ const Product = () => {
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
       }, []);
+
+    const allAgents = useBlockchainStore(state => state.agents);
 
     const features = [
         {
@@ -43,7 +45,7 @@ const Product = () => {
         selectedLabels,
         toggleLabel,
         filteredItems: filteredAgents
-    } = useSearchAndFilter(MOCK_AGENTS, undefined);
+    } = useSearchAndFilter(allAgents);
 
     return (
         <div className="pt-20 min-h-screen bg-gray-900">

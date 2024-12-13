@@ -26,11 +26,11 @@ const VM_ABI = [
     // Operator related functions
     "function total_operators() public view returns (uint256)",
     "function get_operator_by_index(uint256 index) view returns (tuple(address id, string name, string logo, string[] labels, string description, address owner, string owner_name, string owner_logo, string location, string domain, uint64 port))",
-    "function register_vm_to_tos(bytes16 tos_id, tuple(bytes20 id, string vm_type, bytes16 tos_id, address operator_id, tuple(tuple(string code_hash, string ca_cert_hash) tos_info, tuple(string roots_hash, string mrtd, string rtmr0, string rtmr1, string rtmr2, string rtmr3) tcb_info, tuple(string type, string cpu_svn, string tcb_hash, string td_info_hash, string report_data, string signature) quote) report, uint8 status, string code_hash) vm)",
+    "function register_vm_to_tos(bytes16 tos_id, tuple(bytes20 id, string vm_type, bytes16 tos_id, address operator_id, uint8 status, string code_hash) vm)",
     "function register_operator(string memory name, string memory logo, string[] memory labels, string memory description, address owner, string memory owner_name, string memory owner_logo, string memory location, string memory domain, uint64 port) external",
     // Vm related functions
     "function total_vms() public view returns (uint256)",
-    "function get_vm_by_index(uint256 index) view returns (tuple(bytes20 id, string type, bytes16 tos_id, address operator_id, tuple(tuple(string code_hash, string ca_cert_hash) tos_info, tuple(string roots_hash, string mrtd, string rtmr0, string rtmr1, string rtmr2, string rtmr3) tcb_info, tuple(string type, string cpu_svn, string tcb_hash, string td_info_hash, string report_data, string signature) quote) report, uint8 status, string code_hash))"
+    "function get_vm_by_index(uint256 index) view returns (tuple(bytes20 id, string vm_type, bytes16 tos_id, address operator_id, uint8 status, string code_hash))"
 ];
 
 

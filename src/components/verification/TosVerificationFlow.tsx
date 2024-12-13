@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TOS, Operator, Vm } from '../../data/mockData';
 import { Users, Coins, Star, MapPin, Cpu } from 'lucide-react';
+import { TDReport10 } from '../../tool/quote';
 
 interface VerificationFlowProps {
     tos: TOS;
@@ -21,7 +22,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const operatorsRef = useRef<HTMLDivElement>(null);
     const tosHashRef = useRef<HTMLDivElement>(null);
-    const [isDrawing, setIsDrawing] = useState(false);
+    // const [isDrawing, setIsDrawing] = useState(false);
 
     const toggleSection = (operatorId: string, section: 'quote' | 'tcb') => {
         setExpandedSections(prev => ({
@@ -466,7 +467,9 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                         <div className="space-y-4 pr-2">
                             {nearestOperators.map((operator, index) => {
                                 const vm = vms.find(vm => vm.operator_id === operator.id);
-                                const tcbInfo = vm?.report.tcb_info;
+
+                                // TODO: now we assume the vm reporrt is a TD report, should be decoded according to TD type next
+                                const quote_report = vm?.quote?.report as TDReport10;
                                 return (
                                     <motion.div
                                         key={operator.id}
@@ -495,47 +498,47 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    {tcbInfo && (
+                                                    {quote_report && (
                                                         <>
                                                             {/* Default visible field */}
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">RTMR3</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {tcbInfo.rtmr3?.slice(0, 10)}...{tcbInfo.rtmr3?.slice(-8)}
+                                                                    {quote_report.rtMr3?.slice(0, 10)}...{quote_report.rtMr3?.slice(-8)}
                                                                 </div>
                                                             </div>
 
                                                             {/* Expandable fields */}
                                                             {expandedSections[operator.id]?.tcb && (
                                                                 <>
-                                                                    <div>
+                                                                    {/* <div>
                                                                         <div className="text-[11px] text-gray-400">Rootfs Hash</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                             {tcbInfo.roots_hash?.slice(0, 10)}...{tcbInfo.roots_hash?.slice(-8)}
                                                                         </div>
-                                                                    </div>
+                                                                    </div> */}
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">MRTD</div>
                                                                         <div data-field="mrtd" className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {tcbInfo.mrtd?.slice(0, 10)}...{tcbInfo.mrtd?.slice(-8)}
+                                                                            {quote_report.mrTd?.slice(0, 10)}...{quote_report.mrTd?.slice(-8)}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR0</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {tcbInfo.rtmr0?.slice(0, 10)}...{tcbInfo.rtmr0?.slice(-8)}
+                                                                            {quote_report.rtMr0?.slice(0, 10)}...{quote_report.rtMr0?.slice(-8)}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR1</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {tcbInfo.rtmr1?.slice(0, 10)}...{tcbInfo.rtmr1?.slice(-8)}
+                                                                            {quote_report.rtMr1?.slice(0, 10)}...{quote_report.rtMr1?.slice(-8)}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR2</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {tcbInfo.rtmr2?.slice(0, 10)}...{tcbInfo.rtmr2?.slice(-8)}
+                                                                            {quote_report.rtMr2?.slice(0, 10)}...{quote_report.rtMr2?.slice(-8)}
                                                                         </div>
                                                                     </div>
                                                                 </>
@@ -549,12 +552,12 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                             <div className="tos-section bg-morphic-accent/5 rounded-lg p-3">
                                                 <div className="text-xs text-gray-400 mb-2">TOS Info</div>
                                                 <div className="space-y-1.5">
-                                                    {vm?.report.tos_info && (
+                                                    {vm && (
                                                         <>
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">Code Hash</div>
                                                                 <div data-field="code-hash" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {vm.report.tos_info.code_hash?.slice(0, 10)}...{vm.report.tos_info.code_hash?.slice(-8)}
+                                                                    {vm.code_hash?.slice(0, 10)}...{vm.code_hash?.slice(-8)}
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -566,7 +569,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">CA-Certificate</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {vm.report.tos_info.ca_cert_hash?.slice(0, 10)}...{vm.report.tos_info.ca_cert_hash?.slice(-8)}
+                                                                    {vm.ca_cert_hash?.slice(0, 10)}...{vm.ca_cert_hash?.slice(-8)}
                                                                 </div>
                                                             </div>
                                                         </>
@@ -586,19 +589,19 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    {vm?.report.quote && (
+                                                    {vm?.quote && (
                                                         <>
                                                             {/* Default visible fields */}
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">TD info hash</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {vm.report.quote.quote?.slice(0, 10)}...{vm.report.quote.quote?.slice(-8)}
+                                                                    {quote_report.mrTd.slice(0, 10)}...{quote_report.mrTd.slice(-8)}
                                                                 </div>
                                                             </div>
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">Report data</div>
                                                                 <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
-                                                                    {vm.report.quote.pubkey?.slice(0, 10)}...{vm.report.quote.pubkey?.slice(-8)}
+                                                                    {quote_report.reportData?.slice(0, 10)}...{quote_report.reportData?.slice(-8)}
                                                                 </div>
                                                             </div>
 

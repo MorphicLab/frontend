@@ -19,7 +19,6 @@ import { TOSCard } from '../components/cards/TOSCard';
 import { AgentCard } from '../components/cards/AgentCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import {
-    MOCK_TOS,
     tosLabels,
     operatorLabels,
     agentLabels,
@@ -36,7 +35,8 @@ import { deployAgent } from '../request/operator';
 import { useBlockchainStore } from '../components/store/chainStore';
 import { useOffChainStore } from '../components/store/offChainStore';
 import { DEFAULT_TOS_LOGO, DEFAULT_CREATOR_LOGO, DEFAULT_OPERATOR_LOGO, DEFAULT_OPERATOR_OWNER_LOGO, DEFAULT_AGENT_LOGO } from '../data/constant';
-
+import { MOCK_AGENTS } from '../data/mockBackup';
+import { getMorphicAiTos, getMorphicAiOperators, getMorphicAiVms } from '../tool/morphic';
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
@@ -66,13 +66,15 @@ const Developer: React.FC = () => {
     const [tosSubMenu, setTosSubMenu] = useState<TOSSubMenu>('my-tos');
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
+    const addAgent = useBlockchainStore(state => state.addAgent);
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-        const myOperators = [MOCK_MORPHIC_OPERATOR];
-        useOffChainStore.getState().initializeStore(allOperators, myOperators);
+        // const myOperators = [MOCK_MORPHIC_OPERATOR];
+        // useOffChainStore.getState().initializeStore(allOperators, myOperators);
       }, []);
-    
+
+    const allTOSs = useBlockchainStore(state => state.toss);
     const allOperators = useBlockchainStore(state => state.operators);
 
     const myOperators = useMemo(() => {
@@ -82,11 +84,11 @@ const Developer: React.FC = () => {
         );
     }, [allOperators]);
 
-    const morphicAiOperators = useMemo(() => {
-        return allOperators.filter(op => op.vm_ids && op.vm_ids[MOCK_MORPHIC_AI_TOS.id] !== undefined);
-    }, [allOperators]);
 
-    const allTOSs = useBlockchainStore(state => state.toss);
+    // Get Morphic AI TOS, operators and VMs
+    const morphicaiTos: TOS = getMorphicAiTos(allTOSs);
+    const morphicaiOperators: Operator[] = getMorphicAiOperators(morphicaiTos, allOperators);
+
     const myTOSs = useMemo(() => {
         if (!window.ethereum?.selectedAddress) return [];
         return allTOSs.filter(tos => 
@@ -96,8 +98,8 @@ const Developer: React.FC = () => {
 
     // const allAgents = useOffChainStore(state => state.allAgents);
     const myAgents = useOffChainStore(state => state.myAgents);
-    if (myAgents.length > 0 && morphicAiOperators.length > 0) {
-        myAgents[0].operator_domain = morphicAiOperators[0].domain; // TODO 待后台可以存储自定义字段后修改
+    if (myAgents.length > 0 && morphicaiOperators.length > 0) {
+        myAgents[0].operator_domain = morphicaiOperators[0].domain; // TODO 待后台可以存储自定义字段后修改
     }
 
     // Add form validation state
@@ -164,21 +166,17 @@ const Developer: React.FC = () => {
         domain: false
     });
 
-    const availableOperators = useMemo(() => {
-        const registeredOperators = useBlockchainStore.getState().operators;
-        return [...registeredOperators];
-    }, []);
 
     // 添加 agent form state
     const [agentFormState, setAgentFormState] = useState<Agent>({
-        id: 0,
+        id: '',
         owner: '',
         name: '',
         logo: DEFAULT_TOS_LOGO,
         labels: [] as string[],
         description: '',
         readme: '',
-        users: '0',
+        users: 0,
         rating: 0,
         status: AgentStatus.Offline,
         model_type: '',
@@ -230,7 +228,7 @@ const Developer: React.FC = () => {
             const dockerComposeBytes = new Uint8Array(dockerComposeData);
     
             console.log('Tos info: ', tosFormState);
-            // 发送交易
+            
             const tx = await contract.create_tos(
                 tosFormState.name,
                 tosFormState.logo,
@@ -358,12 +356,6 @@ const Developer: React.FC = () => {
             // Rethrow or handle the error as needed
             throw error;
         }
-
-        // // Update local state with the provided TOS ID
-        // setOperatorFormState(prev => ({
-        //     ...prev,
-        //     tos_ids: tosId === "0x" + "0".repeat(32) ? [] : [tosId],
-        // }));
 
         // Navigate to my-operator page
         setOperatorSubMenu('my-operator');
@@ -1432,10 +1424,10 @@ const Developer: React.FC = () => {
                                                     value={agentFormState.memory_requirement}
                                                     onChange={(e) => handleAgentInputChange('memory_requirement', e.target.value)}
                                                 >
+                                                    <option value={'1G'}>1G</option>
                                                     <option value={'2G'}>2G</option>
                                                     <option value={'4G'}>4G</option>
-                                                    <option value={'16G'}>16G</option>
-                                                    <option value={'32G'}>32G</option>
+                                                    <option value={'8G'}>8G</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -1447,9 +1439,9 @@ const Developer: React.FC = () => {
                                                     value={agentFormState.storage_requirement}
                                                     onChange={(e) => handleAgentInputChange('storage_requirement', e.target.value)}
                                                 >
+                                                    <option value={'10G'}>10G</option>
                                                     <option value={'20G'}>20G</option>
                                                     <option value={'50G'}>50G</option>
-                                                    <option value={'100G'}>100G</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1551,6 +1543,8 @@ const Developer: React.FC = () => {
             return;
         }
 
+
+
         try {
             // 从operators中找到完整的operator对象
             const operator = allOperators.find(op => op.id === selectedOperator);
@@ -1565,7 +1559,7 @@ const Developer: React.FC = () => {
 
             // 准备agent部署数据
             const agentData: Agent = {
-                id: Date.now(), 
+                id: agentFormState.id, 
                 owner: window.ethereum?.selectedAddress || '',
                 name: agentFormState.name,
                 description: agentFormState.description,
@@ -1574,7 +1568,7 @@ const Developer: React.FC = () => {
                 model_type: agentFormState.model_type,
                 logo: '/images/agent-default-logo.png',
                 labels: [],
-                users: '0',
+                users: 0,
                 rating: 0,
                 status: AgentStatus.Offline,
                 memory_requirement: agentFormState.memory_requirement,
@@ -1582,26 +1576,29 @@ const Developer: React.FC = () => {
                 dao_contract: agentFormState.dao_contract || undefined,
                 docker_compose: docker_compose,
             };
-    
-            // 调用deployAgent接口
-            const response = await deployAgent(
-                agentData,
-                operator.domain,
-                operator.port,
-                docker_compose || '',
-            );
 
-            if (response) {
-                console.log('Agent deployed successfully:', response);
+            addAgent(agentData);
+            console.log('Agent deployed successfully:');
+    
+            // // 调用deployAgent接口
+            // const response = await deployAgent(
+            //     agentData,
+            //     operator.domain,
+            //     operator.port,
+            //     docker_compose || '',
+            // );
+
+            // if (response) {
+            //     console.log('Agent deployed successfully:', response);
                 
-                // 显示成功提示
-                alert('Agent deployed successfully!');
+            //     // 显示成功提示
+            //     alert('Agent deployed successfully!');
                 
-                // 可选:刷新agent列表
-                // refreshAgentList();
-            } else {
-                alert('Failed to deploy agent!');
-            }
+            //     // 可选:刷新agent列表
+            //     // refreshAgentList();
+            // } else {
+            //     alert('Failed to deploy agent!');
+            // }
             
         } catch (error: any) {
             console.error('failed to deploy agent:', error);
@@ -1633,7 +1630,7 @@ const Developer: React.FC = () => {
                 </div>
 
                 <div className="max-h-96 overflow-y-auto mb-6">
-                    {availableOperators.map(operator => (
+                    {morphicaiOperators.map(operator => (
                         <div
                             key={operator.id}
                             onClick={() => setSelectedOperator(operator.id)}

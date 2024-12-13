@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Info, Cpu } from 'lucide-react';
-import { TOS, Agent } from '../../data/define';
+import { TOS, Agent, Operator, Vm } from '../../data/define';
 import { useBlockchainStore } from '../store/chainStore';
 import { MOCK_MORPHIC_AI_TOS, MOCK_OPERATORS } from '../../data/mockData';
 import { useNavigate } from 'react-router-dom';
+import { getMorphicAiTos, getMorphicAiOperators, getMorphicAiVms } from '../../tool/morphic';
 
 interface AgentVerificationFlowProps {
     agent: Agent;
@@ -28,26 +29,14 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
         gap: 'gap-48'
     };
 
-    let morphicai_tos: TOS;
     const toss = useBlockchainStore(state => state.toss);
-    if (!toss || toss.filter(tos => tos.name === 'Morphic AI').length === 0) {
-        morphicai_tos = MOCK_MORPHIC_AI_TOS;
-    } else {
-        morphicai_tos = toss.filter(tos => tos.name === 'Morphic AI')[0];
-    }
-
     const operators = useBlockchainStore(state => state.operators);
     const vms = useBlockchainStore(state => state.vms);
 
-    // Get Morphic AI operators and VMs
-    const morphicai_operators = operators.filter(op => 
-        morphicai_tos.vm_ids && 
-        morphicai_tos.vm_ids[op.id] && 
-        morphicai_tos.vm_ids[op.id].length > 0
-    );
-
-    const morphicai_vms = vms.filter(vm => vm.tos_id === morphicai_tos.id);
-
+    // Get Morphic AI TOS, operators and VMs
+    const morphicai_tos: TOS = getMorphicAiTos(toss);
+    const morphicai_operators: Operator[] = getMorphicAiOperators(morphicai_tos, operators);
+    const morphicai_vms = getMorphicAiVms(morphicai_tos, vms);
 
     // Draw connections between elements
     const drawConnections = useCallback(() => {
@@ -136,12 +125,13 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
         // Draw connection between agent ID and TOS verifiability
         const agentIdCoords = getRelativeCoords(agentIdField);
         const tosVerifiabilityCoords = getRelativeCoords(tosVerifiabilityField);
+        const agentCardCoords = getRelativeCoords(agentCard);
 
         drawCurvedLine(
             tosVerifiabilityCoords.left,
             tosVerifiabilityCoords.top + tosVerifiabilityCoords.height / 2,
-            agentIdCoords.right,
-            agentIdCoords.top + agentIdCoords.height / 2,
+            agentCardCoords.right,
+            agentCardCoords.top + 20,
         );
 
         requestAnimationFrame(() => drawConnections());
@@ -273,7 +263,15 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
                                 <div>
                                     <div className="text-sm text-gray-400 mb-1">Agent ID</div>
                                     <div data-field="agent-id" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                                        {agent.id}
+                                        {agent.id.slice(0, 6)}...{agent.id.slice(-6)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 space-y-4">
+                                <div>
+                                    <div className="text-sm text-gray-400 mb-1">Agent Code</div>
+                                    <div data-field="agent-code" className="hash-value text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-sm">
+                                        {agent?.code_hash?.slice(0, 6)}...{agent?.code_hash?.slice(-6)}
                                     </div>
                                 </div>
                             </div>
@@ -317,7 +315,7 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
                                     <div className="text-sm text-gray-400 mb-1">Verifiability</div>
                                     <div data-field="finality" className="text-morphic-primary font-mono bg-morphic-primary/10 px-3 py-1.5 rounded-lg text-xs">
                                         <pre className="whitespace-pre-wrap break-all text-xs overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                                            {morphicai_tos.address || 'Not available'}
+                                            {(morphicai_tos.address?.slice(0, 10) + '...' + (morphicai_tos.address?.slice(-10)) || 'Not available')}
                                         </pre>
                                     </div>
                                 </div>

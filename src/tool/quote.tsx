@@ -1,4 +1,4 @@
-import { _void, u16, u32, Struct, Vector, u8 } from "scale-ts"
+import { u16, u32, Struct, Vector, u8 } from "scale-ts"
 
 const ECDSA_SIGNATURE_BYTE_LEN = 64;
 const ECDSA_PUBKEY_BYTE_LEN = 64;
@@ -97,9 +97,30 @@ interface Quote {
     authData: AuthData;
 }
 
+// Interface for hex encoded Quote fields
+export interface QuoteString {
+    header: {
+        version: string;
+        attestationKeyType: string;
+        teeType: string;
+        qeVendorId: string;
+        userData: string;
+    };
+    report: {};
+    authData: {
+        ecdsaSignature: string;
+        ecdsaAttestationKey: string;
+        certification: string;
+        qeReport: string;
+        qeReportSignature: string;
+        qeAuthData: string;
+        certification_data: string;
+    };
+}
+
 export type { Header, TDReport10, TDReport15, EnclaveReport, AuthData, AuthDataV3, AuthDataV4, Quote };
 
-const parseQuote = (quote: string): void => {
+const parseQuote = (quote: string): Quote => {
     if (!quote) {
         throw new Error('Quote string cannot be empty');
     }
@@ -176,7 +197,98 @@ const parseQuote = (quote: string): void => {
         ecdsaAttestationKey: new Uint8Array(decoded_auth_data.ecdsa_attestation_key),  
     }
 
-    // TODO: return quote(header, tdRerport, authData)
+    return { header: header, report: tdReport, authData: authData };
 };
 
-export { parseQuote };
+// Helper function to convert Uint8Array to hex string
+function arrayToHex(array: number[] | Uint8Array): string {
+    const uint8Array = array instanceof Uint8Array ? array : new Uint8Array(array);
+    return Array.from(uint8Array)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+}
+
+// Helper function to convert Uint8Array to string
+function arrayToString(array: number[] | Uint8Array): string {
+    const uint8Array = array instanceof Uint8Array ? array : new Uint8Array(array);
+    return String.fromCharCode(...uint8Array);
+}
+
+
+// Convert Quote object to hex string format
+const parseQuoteToJson = (quotestr: string): QuoteString => {
+    const quote = parseQuote(quotestr);
+    const getReportData = (report: EnclaveReport | TDReport10 | TDReport15) => {
+        if ('mrEnclave' in report) {
+            // EnclaveReport
+            return {
+                cpuSvn: arrayToHex(report.cpuSvn),
+                miscSelect: report.miscSelect,
+                reserved1: arrayToHex(report.reserved1),
+                attributes: arrayToHex(report.attributes),
+                mrEnclave: arrayToHex(report.mrEnclave),
+                reserved2: arrayToHex(report.reserved2),
+                mrSigner: arrayToHex(report.mrSigner),
+                reserved3: arrayToHex(report.reserved3),
+                isvProdId: report.isvProdId,
+                isvSvn: report.isvSvn,
+                reserved4: arrayToHex(report.reserved4),
+                reportData: arrayToHex(report.reportData),
+            };
+        } else if ('mrTd' in report) {
+            // TDReport10
+            return {
+                teeTcbSvn: arrayToHex(report.teeTcbSvn),
+                mrSeam: arrayToHex(report.mrSeam),
+                mrSignerSeam: arrayToHex(report.mrSignerSeam),
+                seamAttributes: arrayToHex(report.seamAttributes),
+                tdAttributes: arrayToHex(report.tdAttributes),
+                xfam: arrayToHex(report.xfam),
+                mrTd: arrayToHex(report.mrTd),
+                mrConfigId: arrayToHex(report.mrConfigId),
+                mrOwner: arrayToHex(report.mrOwner),
+                mrOwnerConfig: arrayToHex(report.mrOwnerConfig),
+                rtMr0: arrayToHex(report.rtMr0),
+                rtMr1: arrayToHex(report.rtMr1),
+                rtMr2: arrayToHex(report.rtMr2),
+                rtMr3: arrayToHex(report.rtMr3),
+                reportData: arrayToHex(report.reportData),
+            }
+        } else {
+            // TDReport15
+            return {
+                base: getReportData(report.base),
+                teeTcbSvn2: arrayToHex(report.teeTcbSvn2),
+                mrServiceTd: arrayToHex(report.mrServiceTd),
+            }
+        }
+    };
+
+    return {
+        header: {
+            version: arrayToHex([quote.header.version]),
+            attestationKeyType: arrayToHex([quote.header.attestationKeyType]),
+            teeType: arrayToHex([quote.header.teeType]),
+            qeVendorId: arrayToHex(quote.header.qeVendorId),
+            userData: arrayToHex(quote.header.userData),
+        },
+        report: getReportData(quote.report),
+        authData: {
+            ecdsaSignature: arrayToHex(quote.authData.ecdsaSignature),
+            ecdsaAttestationKey: arrayToHex(quote.authData.ecdsaAttestationKey),
+            certification: '', // Add empty string for certification
+            qeReport: '', // Add empty string for qeReport
+            qeReportSignature: '', // Add empty string for qeReportSignature
+            qeAuthData: '', // Add empty string for qeAuthData
+            certification_data: '', // Add empty string for certification_data
+        }
+    };
+};
+
+export const MOCK_QUOTE = '050002008100000000000000939a7233f79c4ca9940a0db3957f06076a3b57f48d470f1c01bf412a6f9cdb6200000000030088020000050102000000000000000000000000001cc6a17ab799e9a693fac7536be61c12ee1e0fabada82d0c999e08ccee2aa86de77b0870f558c570e7ffe55d6d47fa0400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000e742060000000000dfba221b48a22af8511542ee796603f37382800840dcd978703909bf8e64d4c8a1e9de86e7c9638bfcba422f3886400a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000436e21aa8d13ecee447799ecfcadce387ee7f7ecfc475fb8993de270ebfd71116b8f4c345bf7a25db9737ab15718e49b32fdc598a38b8444e4a8f72ef72fb7ea6f351c0c71e6c6fe2993472844dcf413c73a72fe616f3848835473c5581065c300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000047e7f84b16a9336b087cdadacf435c98dde1487bc159282d52382107e36ff3f0dce0b68905375d1a20fafee58ed745bb2f2f7f304a4590f16d5932788987397205010200000000000000000000000000383c87d3bbb047b2d171eaca95312ede99f258088dc788f6ae2ccf8b6dd848fe8d47629e08b3f6cbd4a00dd47a5a033dcc10000049550430822dcf8affd7833a6399cd8dc6c831362ec61722ade467080affbb3188db1b87b1fad96c94c2beb9fea7ca20494a513aaa5feb9e5e56a8e62d4815a5fbc4aebff5940000831dc7e4c0d2353d055be61b5713d938bc90bf7b9082644ea248803e9b89896163b4706e1d14ec7f1ded032bb4a1abbb2a5eaad470dd22b10600461000000202181a03ff0006000000000000000000000000000000000000000000000000000000000000000000000000000000001500000000000000e700000000000000e5a3a7b5d830c29';
+
+export const mockQuote = parseQuoteToJson(MOCK_QUOTE);
+
+console.log("mock_quote", mockQuote);
+
+export { parseQuoteToJson };

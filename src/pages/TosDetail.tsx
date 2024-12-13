@@ -14,7 +14,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { MOCK_TOS, MOCK_OPERATORS, MOCK_MORPHIC_AI_VM, MOCK_VMs } from '../data/mockData';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/TosVerificationFlow';
 import { useBlockchainStore } from '../components/store/chainStore';
@@ -23,6 +23,7 @@ import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';
 import { generateVmsForToss } from '../data/mockDataGenerator';
+import { VmStatus } from '../data/define';
 
 ChartJS.register(
     CategoryScale,
@@ -119,14 +120,14 @@ const TosDetail: React.FC = () => {
     const generateTosChartData = useBlockchainStore(state => state.generateTosChartData);
     const myAgents = useOffChainStore(state => state.myAgents);
     const allQuotes = useOffChainStore(state => state.quotes);    
-    const {  addVm } = useBlockchainStore();
     const { setOperators, setVms } = useOffChainStore();
+    const addVm = useBlockchainStore(state => state.addVm);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.ctrlKey && event.key === 'v') {
                 const currentTos = allTOS.find(tos => tos.id === id);
-                if (currentTos && Object.keys(currentTos.vm_ids || {}).length === 0 ) {
+                if (currentTos && Object.keys(currentTos.vm_ids || {}).length < currentTos.operator_minimum ) {
                     const result = generateVmsForToss([currentTos], MOCK_OPERATORS);
                     for (const vm of result.vms) {
                         addVm(vm);
@@ -137,7 +138,9 @@ const TosDetail: React.FC = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [id, setVms]);
+    }, [id, addVm, allTOS]);
+
+
 
 
     // 从所有 TOS 中查找当前 TOS
@@ -170,26 +173,17 @@ const TosDetail: React.FC = () => {
 
             // Register each selected operator to the TOS
             for (const operatorId of selectedOperators) {
-                // Create a vm for this operator, using the MOCK_MORPHIC_AI_VM as a template
-                
                 // Generate a proper bytes20 ID using Web Crypto API
                 const randomBytes = new Uint8Array(20);
                 crypto.getRandomValues(randomBytes);
 
+                // Generate a real VM and register it here
                 const vm = { 
                     id: hexlify(randomBytes),
-                    vm_type: MOCK_MORPHIC_AI_VM.type,
+                    vm_type: 'TDX',
                     tos_id: tos.id,
                     operator_id: operatorId,
-                    report: {
-                        tos_info: {
-                            code_hash: tos.code_hash,
-                            ca_cert_hash: MOCK_MORPHIC_AI_VM.report.tos_info?.ca_cert_hash
-                        },
-                        tcb_info: MOCK_MORPHIC_AI_VM.report.tcb_info,
-                        quote: MOCK_MORPHIC_AI_VM.report.quote
-                    },
-                    status: MOCK_MORPHIC_AI_VM.status,
+                    status: VmStatus.Active,   // should be set by the contract in th future
                     code_hash: tos.code_hash   // should be obtained from report
                     // TODO: add cert here
                 };

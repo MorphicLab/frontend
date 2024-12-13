@@ -1,3 +1,5 @@
+import {  QuoteString } from "../tool/quote";
+
 // 定义状态类型
 export enum TosStatus {
     Waiting = 0,
@@ -78,6 +80,7 @@ export interface VmTdInfo {
     mr_td: string;
     mr_config_id: string;
     mr_owner: string;
+    mr_owner_config: string;
     rt_mr0: string;
     rt_mr1: string;
     rt_mr2: string;
@@ -102,52 +105,29 @@ export interface VmReport {
     mac?: string;
 }
 
-// export interface VmQuote {  // now using quote of TDX
-//     type: string;  
-//     cpu_svn: string; 
-//     tcb_hash: string;
-//     td_info_hash: string;
-//     report_data: string;
-//     signature: string;
-// };
 
-// export interface VmInfo {   // now using TD info of TDX
-//     roots_hash: string;
-//     mrtd: string;
-//     rtmr0: string;
-//     rtmr1: string;
-//     rtmr2: string;
-//     rtmr3: string;
-// };
-
-// export interface VmTosInfo { 
-//     code_hash: string;   // app-id of dstack event_log
-//     ca_cert_hash?: string;   // ca-cert-hash of dstack event_log
-// };
 
 export enum VmStatus {
     Waiting = 0,
     Active = 1,
 }
 
-// export interface VmReport {   // now using report of TDX
-//     tos_info?: VmTosInfo;    // e.g., The TOS Info (code, certificate, address, etc.) of TDX
-//     tcb_info: VmInfo;        // e.g., The TD Info of TDX
-//     quote?: VmQuote;    // e.g., The signed Quote of TDX
-// };
 
 export interface Vm {
-    id?: string;    // Hex-encoded bytes20 (e.g., "0x123..."), like the instance id from dstack
-    type?: string;
+    id: string;    // Hex-encoded bytes20 (e.g., "0x123..."), like the instance id from dstack
+    type: string;
     tos_id?: string;          // TOS ID
     operator_id?: string;      // Operator ID
     status?: VmStatus;
+
+
+    // 先简化问题，不考虑TEE类型，quote格式可能有多个的情况。
+    quote?: QuoteString;
+
     code_hash?: string;       // app-id of dstack event_log
-
-    vm_report?: VmReport;
-    vm_quote?: VmQuote;
-
+    roots_hash: string;
     cert?: string;
+    ca_cert_hash?: string;   // ca-cert-hash of dstack event_log
     pubkey?: string;
     address?: string;
     event_log?: string;
@@ -159,7 +139,7 @@ export enum AgentStatus {
 }
 
 export interface Agent {
-    id: number;
+    id: string;
     owner: string;
     name: string;
     logo: string;
@@ -178,6 +158,7 @@ export interface Agent {
     visibility: string;
     docker_compose?: string;
     operator_domain?: string;
+    code_hash?: string;
 }
 
 // 标签定义

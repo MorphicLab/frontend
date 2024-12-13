@@ -1,3 +1,4 @@
+import { mockQuote } from '../tool/quote';
 import {
     TosStatus,
     TOS,
@@ -13,7 +14,7 @@ import {
 
 export type { TosStatus, TOS, Operator, Agent, Vm };
 export { tosLabels, operatorLabels, agentLabels };
-import { generateMockOperators, generateVmsForToss } from './mockDataGenerator';
+import { generateMockOperators, generateVmsForToss, generateRandomHex } from './mockDataGenerator';
 
 // Mock 数据
 export const MOCK_TOS: TOS[] = [
@@ -41,7 +42,7 @@ export const MOCK_TOS: TOS[] = [
         likes: 512,
         status: TosStatus.Active,
         vm_ids: {},
-        code_hash: "4b0ae039d7a7cadc28ca30d9583667de02080779",
+        code_hash: "5b38e33a6487958b72c3c12a938eaa5e3fd4510c51aeeab58c7d5ecee41d7c436489d6c8e4f92f160b7cad34207b00c1",
         address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
     },
     // ... 可以添加更多 TOS 数据
@@ -70,7 +71,7 @@ export const MOCK_MORPHIC_AI_TOS: TOS = {
     num_stakers: 0,
     likes: 0,
     status: TosStatus.Waiting,
-    code_hash: "9c220d5630B4cF539739dF2C5dAcb4c659F2488D",
+    code_hash: "c68518a0ebb42136c12b2275164f8c72f25fa9a34392228687ed6e9caeb9c0f1dbd895e9cf475121c029dc47e70e91fd",
     address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
 }
 
@@ -78,6 +79,7 @@ export const MOCK_OPERATORS = generateMockOperators(61);
 
 const { vms } = generateVmsForToss(MOCK_TOS, MOCK_OPERATORS);
 export const MOCK_VMs = vms;
+
 
 export const MOCK_MORPHIC_OPERATOR: Operator = {
     id: "0x8b230d5820B4cF539739dF2C5dAcb4c659F2488D",
@@ -310,41 +312,24 @@ WquauEbrVT/874f7x5V3LVKZRc7uTAlVRh2o
 -----END CERTIFICATE-----
 `
 
+
 export const MOCK_MORPHIC_AI_VM: Vm = {
     "id": "",   // Randomly generated when use the template
+    "type": "TDX",
     "operator_id": "",   // Filled when use the template
     "tos_id": "",   // Filled when use the template
-    "type": "TDX",
-    "report": {
-        "tos_info": {
-            "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-            "ca_cert_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
-        },
-        "tcb_info": {
-            "roots_hash": "0xabc123",
-            "mrtd": "c68518a0ebb42136c12b2275164f8c72f25fa9a34392228687ed6e9caeb9c0f1dbd895e9cf475121c029dc47e70e91fd",
-            "rtmr0": "274c2344116db7c663470693b5ba62b8621eac28cb41d2f816ddf188f9f423f900a1c44d32386fd3c993dc814e62af9d",
-            "rtmr1": "e24f66fa69638e4ba2e065d87b8b2040f99b1921c00a53fcaa54ade7f11e24d8c0cdeb11c2c81fa56d3e20fdd9b437f3",
-            "rtmr2": "6e7f9827cb3c9b3c567e1a2c513cf5de3eff074683bf6035c522f02c54b382ae7abeee4763b276068dc26670c928978e",
-            "rtmr3": "808f25efbb07a8dbf882a28de4fd1094b26ac343d7377a9a8bc04b4865041d23f0a35896966669829d7841ed1e4b4624"
-        },
-        "quote": {
-            "type": "0x1234567890abcdef1234567890abcdef12345678",
-            "cpu_svn": "0x1234567890abcdef1234567890abcdef12345678",
-            "tcb_hash": "0x1234567890abcdef1234567890abcdef12345678",
-            "td_info_hash": "0x1234567890abcdef1234567890abcdef12345678",
-            "report_data": "0202191b03ff0006000000000000000000000000000000000000000000000000000000000000000000000000000000001500000000000000e700000000000000e5a3a7b5d830c2953b98534c6c59a3a34fdc34e933f7f5898f0a85cf08846bca0000000000000000000000000000000000000000000000000000000000000000dc9e2a7c6f948f17474e34a7fc43ed030f7c1563f1babddf6340c82e0e54a8c500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000503bbfe5befa55a13e21747c3859f0b618a050312a0340e980187eea232356d60000000000000000000000000000000000000000000000000000000000000000",
-            "signature": "2fb536dc65ff3270c0c66b31a7d9b4041aef409f0245685b98b2bba98f8bb60f8f5e7a9787ff881c5050059bf87298c9fa94492b555976bd6e75e7b0b71226d0"
-        }, 
-    },
     "status": VmStatus.Active,
-    "cert": mock_cert,
-    "code_hash": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"   // should be obtained from report
+
+    "quote": mockQuote,
+
+    "roots_hash": "6e7f9827cb3c9b3c567e1a2c513cf5de3eff074683bf6035c522f02c54b382ae7abeee4763b276068dc26670c928978e",   // should be obtained from quote
+    "ca_cert_hash": "808f25efbb07a8dbf882a28de4fd1094b26ac343d7377a9a8bc04b4865041d23f0a35896966669829d7841ed1e4b4624",   // should be obtained from quote
+    "cert": mock_cert,   // should be obtained from quote
 }
 
 export const MOCK_AGENTS: Agent[] = [
     {
-        id: 1,
+        id: '7ad9a9be8fa688dc307b6bf73fe56032',
         owner: '',
         name: "ChatBot Agent",
         logo: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop",
@@ -355,12 +340,12 @@ export const MOCK_AGENTS: Agent[] = [
         rating: 4.8,
         status: AgentStatus.Online,
         capabilities: ['Text Generation', 'Image Understanding', 'Voice Processing'],
-        num_operators: 2,
         model_type: 'GPT-4',
-        visibility: 'public'
+        visibility: 'public',
+        code_hash: generateRandomHex(64),
     },
     {
-        id: 2,
+        id: '307b6bf73fe5603be8fa688dc27ad9a9',
         owner: '',
         name: "Code Assistant",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s",
@@ -372,11 +357,11 @@ export const MOCK_AGENTS: Agent[] = [
         status: AgentStatus.Online,
         capabilities: ['Code Generation', 'Code Review', 'Debugging'],
         model_type: 'GPT-3',
-        num_operators: 2,
+        code_hash: generateRandomHex(64),
         visibility: 'public'
     },
     {
-        id: 3,
+        id: 'be8fa688dc307b6bf73fe560327ad9a9',
         owner: '',
         name: "Image Generator",
         logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7rhk82CINydd8t9ASEi1twWHCUXVddaOSPw&s",
@@ -388,13 +373,13 @@ export const MOCK_AGENTS: Agent[] = [
         status: AgentStatus.Online,
         capabilities: ['Image Generation', 'Image Editing', 'Image Understanding'],
         model_type: 'Stable Diffusion',
-        num_operators: 2,
-        visibility: 'public'
+        visibility: 'public',
+        code_hash: generateRandomHex(64),
     },
 ];
 
 export const MOCK_MORPHIC_AGENT: Agent = {
-    id: 0,
+    id: '07b6bf73fe560327ad9a9be8fa688dc3',
     owner: '0x90abcdef11234567890abcdef123456782345678',
     name: "Trustless_Agent",
     logo: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop",
@@ -410,4 +395,3 @@ export const MOCK_MORPHIC_AGENT: Agent = {
     visibility: 'public'
 };
 
-export const MOCK_QUOTE = '050002008100000000000000939a7233f79c4ca9940a0db3957f06076a3b57f48d470f1c01bf412a6f9cdb6200000000030088020000050102000000000000000000000000001cc6a17ab799e9a693fac7536be61c12ee1e0fabada82d0c999e08ccee2aa86de77b0870f558c570e7ffe55d6d47fa0400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000e742060000000000dfba221b48a22af8511542ee796603f37382800840dcd978703909bf8e64d4c8a1e9de86e7c9638bfcba422f3886400a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000436e21aa8d13ecee447799ecfcadce387ee7f7ecfc475fb8993de270ebfd71116b8f4c345bf7a25db9737ab15718e49b32fdc598a38b8444e4a8f72ef72fb7ea6f351c0c71e6c6fe2993472844dcf413c73a72fe616f3848835473c5581065c300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000047e7f84b16a9336b087cdadacf435c98dde1487bc159282d52382107e36ff3f0dce0b68905375d1a20fafee58ed745bb2f2f7f304a4590f16d5932788987397205010200000000000000000000000000383c87d3bbb047b2d171eaca95312ede99f258088dc788f6ae2ccf8b6dd848fe8d47629e08b3f6cbd4a00dd47a5a033dcc10000049550430822dcf8affd7833a6399cd8dc6c831362ec61722ade467080affbb3188db1b87b1fad96c94c2beb9fea7ca20494a513aaa5feb9e5e56a8e62d4815a5fbc4aebff5940000831dc7e4c0d2353d055be61b5713d938bc90bf7b9082644ea248803e9b89896163b4706e1d14ec7f1ded032bb4a1abbb2a5eaad470dd22b10600461000000202181a03ff0006000000000000000000000000000000000000000000000000000000000000000000000000000000001500000000000000e700000000000000e5a3a7b5d830c29';
