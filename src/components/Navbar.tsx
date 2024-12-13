@@ -138,7 +138,7 @@ const Navbar = () => {
           <div className="w-48">
             <Link to="/" className="flex items-center">
               <img
-                className="h-8 w-auto"
+                className="h-8 w-auto object-contain bg-transparent"
                 src="/images/morphic-logo-sm.png"
                 alt="Morphic"
               />

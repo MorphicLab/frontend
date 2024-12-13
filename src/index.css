@@ -100,3 +100,30 @@ input[type="number"] {
 .number-input-wrapper input[type="number"] {
   padding-right: 24px;
 }
+
+/* Reset image borders and backgrounds */
+img {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+/* Remove any potential border artifacts */
+*::before,
+*::after {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure transparent images render correctly */
+img {
+  isolation: isolate;
+}
+
+.transparent-image {
+  mix-blend-mode: normal;
+  isolation: isolate;
+  background-color: transparent;
+}

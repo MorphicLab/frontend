@@ -17,10 +17,13 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'antd';
-import { Agent, AgentStatus } from '../data/define';
+import { TOS, Agent, AgentStatus } from '../data/define';
 import { AgentVerificationFlow } from '../components/verification/AgentVerificationFlow';
 import { useBlockchainStore } from '../components/store/chainStore';
 import { MOCK_MORPHIC_AI_TOS } from '../data/mockData';
+
+const isMock = import.meta.env.VITE_MOCK === 'true';
+
 
 interface Message {
   id: string;
@@ -68,7 +71,7 @@ const AgentChat = () => {
     let morphicai_tos: TOS;
     const toss = useBlockchainStore(state => state.toss);
     if (!toss || toss.filter(tos => tos.name === 'Morphic AI').length === 0) {
-        morphicai_tos = MOCK_MORPHIC_AI_TOS;
+        morphicai_tos = isMock ? MOCK_MORPHIC_AI_TOS: null;
     } else {
         morphicai_tos = toss.filter(tos => tos.name === 'Morphic AI')[0];
     }

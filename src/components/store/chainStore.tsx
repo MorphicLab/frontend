@@ -3,9 +3,11 @@ import { create } from 'zustand';
 import { createContractInstance } from '../../request/vm';
 import { TOS, Operator, Vm, Agent, VmStatus } from '../../data/define';
 import { TosStatus } from '../../data/define';
-import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs, MOCK_AGENTS, MOCK_MORPHIC_AI_VM, MOCK_MORPHIC_AI_TOS } from '../../data/mockData';
 import { DEFAULT_RESTAKE_ETH_AMOUNT } from '../../data/constant';
 import { mockQuote } from '../../tool/quote';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs, MOCK_AGENTS, MOCK_MORPHIC_AI_VM, MOCK_MORPHIC_AI_TOS } from '../../data/mockData';    
+
+const isMock = import.meta.env.VITE_MOCK === 'true';
 
 // Define the store state interface
 interface BlockchainStore {
@@ -117,14 +119,17 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     dao: tos.dao || ethers.ZeroAddress,
                     status: Number(tos.status) === 0 ? TosStatus.Waiting : TosStatus.Active,
                     restaked: Number(tos.restaked) || 0,
-                    address: tos.name === 'Morphic AI' ? MOCK_MORPHIC_AI_TOS.address : tos.addr,
+                    address: (tos.name === 'Morphic AI' && isMock )? MOCK_MORPHIC_AI_TOS.address : tos.addr,
                 });
             }
         } catch (error) {
             console.warn('Failed to fetch TOSs from chain:', error);
         }
-
-        const allTOS = [...MOCK_TOS, ...fetchedTOSs];
+        console.log('isMock: ', isMock);
+        let allTOS = [ ...fetchedTOSs];
+        if (isMock) {
+            allTOS= [...allTOS, ...MOCK_TOS];
+        }
         set({ toss: allTOS });
     },
 
@@ -157,7 +162,11 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
             console.warn('Failed to fetch operators from chain:', error);
         }
 
-        const allOperators = [...MOCK_OPERATORS, ...fetchedOperators];
+        let allOperators = [ ...fetchedOperators];
+        if (isMock) {
+            allOperators= [...allOperators, ...MOCK_OPERATORS];
+        }
+
         set({ operators: allOperators });
     },
 
@@ -181,9 +190,9 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                     quote: mockQuote,
                     status: Number(vm.status) as VmStatus,
                     code_hash: vm.code_hash,
-                    roots_hash: MOCK_MORPHIC_AI_VM.roots_hash,
-                    cert: MOCK_MORPHIC_AI_VM.cert,
-                    ca_cert_hash: MOCK_MORPHIC_AI_VM.ca_cert_hash,
+                    roots_hash: isMock ? MOCK_MORPHIC_AI_VM.roots_hash : vm.roots_hash,
+                    cert: isMock ? MOCK_MORPHIC_AI_VM.cert : vm.cert,
+                    ca_cert_hash: isMock ? MOCK_MORPHIC_AI_VM.ca_cert_hash : vm.ca_cert_hash,
                 };
                 fetchedVms.push(new_vm);
             }
@@ -193,8 +202,10 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
             console.error('Failed to fetch vms:', error);
         }
 
-        let allVms = [] as Vm[];
-        allVms = [...MOCK_VMs, ...fetchedVms];
+        let allVms = [ ...fetchedVms];
+        if (isMock) {
+            allVms= [...allVms, ...MOCK_VMs];
+        }
 
         // 使用新的映射来构建 vm_ids
         const tosVmMap: { [tosId: string]: { [operatorId: string]: string[] } } = {};
@@ -263,17 +274,21 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     fetchAgents: async () => {
         const fetchedAgents: Agent[] = [];
         // TODO: fetch agents from Morphic AI backend
-        let allAgents = [];
-        allAgents = [...MOCK_AGENTS, ...fetchedAgents];
-        
+
+
+        let allAgents: Agent[] = [];
+        if (isMock) {
+            allAgents = [...MOCK_AGENTS, ...fetchedAgents];
+        } 
+
         set({ agents: allAgents });
     },
 
     addTOS: (newTOS: TOS) => {
-        MOCK_TOS.push(newTOS);
-        set((state) => ({
-            toss: [...state.toss, newTOS],
-        }));
+        if (isMock) {
+            MOCK_TOS.push(newTOS);
+        }
+        get().fetchTOSs();
     },
 
     addOperator: (newOperator: Operator) => {
@@ -283,36 +298,39 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
     },
 
     addVm: (newVm: Vm) => {
-        MOCK_VMs.push(newVm);
+        if (isMock) {
+            MOCK_VMs.push(newVm);
+        }
 
         // update toss and operators
         get().fetchVms();
     },
 
     addAgent: (newAgent: Agent) => {
-        MOCK_AGENTS.push(newAgent);
-
+        if (isMock) {
+            MOCK_AGENTS.push(newAgent);
+        }
         get().fetchAgents();
     },
 
     fetchEthPrice: async () => {
         let price = 2200;
-        // try {
-        //     // 使用 CoinGecko API 获取 ETH 价格
-        //     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd', {
-        //         headers: {
-        //             'Accept': 'application/json',
-        //             'Cache-Control': 'no-cache'
-        //         },
-        //     });
-        //     if (!response.ok) {
-        //         throw new Error(`HTTP error! status: ${response.status}`);
-        //     }
-        //     const data = await response.json();
-        //     price = data.ethereum?.usd || price;
-        // } catch (error) {
-        //     console.warn('Using default ETH price due to fetch error:', error);
-        // }
+        try {
+            // 使用 CoinGecko API 获取 ETH 价格
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            price = data.ethereum?.usd || price;
+        } catch (error) {
+            console.warn('Using default ETH price due to fetch error:', error);
+        }
 
         set({ ethPrice: price });
     },

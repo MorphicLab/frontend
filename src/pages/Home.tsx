@@ -1,16 +1,8 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CloudCog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { parseQuote } from '../tool/quote';
-import { verifyQuote } from '../tool/verifier';
-import { MOCK_QUOTE } from '../data/mockData';
 
 const Home = () => {
   const navigate = useNavigate();
-  const [verificationResult, setVerificationResult] = useState<any>(null);
-
-  
 
   return (
     <div 
@@ -29,20 +21,37 @@ const Home = () => {
         transition={{ duration: 0.8 }}
         className="relative z-10 text-center px-4"
       >
-        <motion.div
-          animate={{ 
-            scale: [1, 1.02, 1],
-            rotate: [0, 1, -1, 0]
-          }}
-          transition={{ 
-            duration: 4,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          className="inline-block mb-6"
-        >
-          <img src="/images/morphic-logo-sm.png" className="h-32 w-32" alt="Morphic" />
-        </motion.div>
+        <div className="relative w-32 h-32 mx-auto mb-6">
+          <motion.div
+            animate={{ 
+              scale: [1, 1.02, 1],
+              rotate: [0, 1, -1, 0]
+            }}
+            transition={{ 
+              duration: 4,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+            className="w-full h-full"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <img 
+              src="/images/morphic-logo-sm.png" 
+              alt="Morphic"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 0 transparent)',
+                WebkitFilter: 'drop-shadow(0 0 0 transparent)',
+              }}
+            />
+          </motion.div>
+        </div>
         
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-morphic-primary to-morphic-accent bg-clip-text text-transparent">
           Trustlessness as a Service
@@ -71,7 +80,6 @@ const Home = () => {
             Learn More
           </button>
         </motion.div>
-        
       </motion.div>
 
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900 to-transparent"></div>

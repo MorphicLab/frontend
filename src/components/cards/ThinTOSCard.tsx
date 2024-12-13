@@ -18,7 +18,7 @@ export const ThinTOSCard: React.FC<ThinTOSCardProps> = ({ tos }) => (
                     <img
                         src={tos.logo}
                         alt={tos.name}
-                        className="w-8 h-8 rounded-lg"
+                        className="w-8 h-8 rounded-lg object-contain bg-transparent"
                     />
                     <span className="text-white font-medium">{tos.name}</span>
                     <div className="flex items-center space-x-2">

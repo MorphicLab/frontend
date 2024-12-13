@@ -1577,28 +1577,30 @@ const Developer: React.FC = () => {
                 docker_compose: docker_compose,
             };
 
-            addAgent(agentData);
-            console.log('Agent deployed successfully:');
+            if (import.meta.env.VITE_MOCK === 'true') {
+                addAgent(agentData);
+                console.log('Agent deployed successfully:');
+            }
     
-            // // 调用deployAgent接口
-            // const response = await deployAgent(
-            //     agentData,
-            //     operator.domain,
-            //     operator.port,
-            //     docker_compose || '',
-            // );
+            // 调用deployAgent接口
+            const response = await deployAgent(
+                agentData,
+                operator.domain,
+                operator.port,
+                docker_compose || '',
+            );
 
-            // if (response) {
-            //     console.log('Agent deployed successfully:', response);
+            if (response) {
+                console.log('Agent deployed successfully:', response);
                 
-            //     // 显示成功提示
-            //     alert('Agent deployed successfully!');
+                // 显示成功提示
+                alert('Agent deployed successfully!');
                 
-            //     // 可选:刷新agent列表
-            //     // refreshAgentList();
-            // } else {
-            //     alert('Failed to deploy agent!');
-            // }
+                // 可选:刷新agent列表
+                // refreshAgentList();
+            } else {
+                alert('Failed to deploy agent!');
+            }
             
         } catch (error: any) {
             console.error('failed to deploy agent:', error);

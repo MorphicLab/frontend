@@ -23,7 +23,7 @@ export const TOSCard: React.FC<TOSCardProps> = ({ tos, index = 0 }) => (
                     <img
                         src={tos.logo}
                         alt={tos.name}
-                        className="w-12 h-12 rounded-lg"
+                        className="w-12 h-12 rounded-lg object-contain bg-transparent"
                     />
                     <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${

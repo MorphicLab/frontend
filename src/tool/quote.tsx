@@ -289,6 +289,5 @@ export const MOCK_QUOTE = '050002008100000000000000939a7233f79c4ca9940a0db3957f0
 
 export const mockQuote = parseQuoteToJson(MOCK_QUOTE);
 
-console.log("mock_quote", mockQuote);
 
 export { parseQuoteToJson };
