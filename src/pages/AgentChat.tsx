@@ -52,12 +52,13 @@ const AgentChat = () => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [chatbotAgentId, setChatbotAgentId] = useState('');
   const [showVerification, setShowVerification] = useState(false);
-  
+
 
   useEffect(() => {
     // request agentid for app api
     if (!chatbotAgentId) {
-      // fetch(`http://${agent.operator_domain}:33010/agents`)
+      // TODO: // https://0bd6985aadb150a147b5a592bc41f311b065c713-3000.app.kvin.wang:33005/agents
+      // fetch(`https://${agent.instance_id}-${docker_port}.app.kvin.wang:${agent.operator_instance_port}/agents`)
       fetch(`/agents`)
         .then(response => response.json())
         .then(data => {

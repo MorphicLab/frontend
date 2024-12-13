@@ -4,7 +4,6 @@ import { parseQuoteToJson } from '../tool/quote';
 
 // 根据用户获取agent列表的接口
 export async function getQuoteList(): Promise<Vm[]> {
-    console.log("http getQuoteList");
     try {
         const headers = {
             'Content-Type': 'application/json',

@@ -140,6 +140,7 @@ export enum AgentStatus {
 
 export interface Agent {
     id: string;
+    instance_id?: string;
     owner: string;
     name: string;
     logo: string;
@@ -158,6 +159,7 @@ export interface Agent {
     visibility: string;
     docker_compose?: string;
     operator_domain?: string;
+    operator_port?: number;
     code_hash?: string;
 }
 

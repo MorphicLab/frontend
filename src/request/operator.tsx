@@ -9,7 +9,7 @@ function formatDockerCompose(name :string, content: string): string {
         "manifest_version": 1,
         name: name,
         "version": "1.0.0",
-        "features": ["kms", "tproxy"],
+        "features": ["kms", "tproxy-net"],
         "runner": "docker-compose",
         docker_compose_file: content 
     });
@@ -60,14 +60,14 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
     if (import.meta.env.VITE_OFF_CHAIN_API_MOCK == 'true') {
         return [
             {
-                id: 1,
+                id: '1',
                 owner: window.ethereum?.selectedAddress || '',
                 name: 'Mock Agent 1',
                 description: 'This is a mock agent for testing purposes.',
                 readme: '',
                 logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s',
                 labels: ['mock', 'test'],
-                users: '0',
+                users: 0,
                 rating: 0,
                 status: AgentStatus.Offline,
                 model_type: 'GPT-4',
@@ -94,8 +94,9 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
         const data = await response.json();
         const agents = data.vms
             .filter((vm: { name: string }) => vm.name.startsWith(AGENT_PREFIX)) // 用于区分后台的agent实例
-            .map((vm: { id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
+            .map((vm: { id: string; instance_id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
                 id: vm.id,
+                instance_id: vm.instance_id,
                 owner: MOCK_MORPHIC_AGENT.owner,
                 name: vm.name.replace('agent-', ''),
                 description: MOCK_MORPHIC_AGENT.description,

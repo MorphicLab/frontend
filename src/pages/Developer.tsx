@@ -57,7 +57,6 @@ declare global {
 
 
 
-
 const Developer: React.FC = () => {
     const location = useLocation();
     const activeTab = location.state?.activeTab || 'dashboard';
@@ -68,11 +67,12 @@ const Developer: React.FC = () => {
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
     const addAgent = useBlockchainStore(state => state.addAgent);
 
+
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
         // const myOperators = [MOCK_MORPHIC_OPERATOR];
-        // useOffChainStore.getState().initializeStore(allOperators, myOperators);
       }, []);
+
 
     const allTOSs = useBlockchainStore(state => state.toss);
     const allOperators = useBlockchainStore(state => state.operators);
@@ -83,6 +83,11 @@ const Developer: React.FC = () => {
             op.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
         );
     }, [allOperators]);
+
+    useEffect(() => {
+        // update off_chain_store only when operators change
+        useOffChainStore.getState().initializeStore(allOperators, myOperators);
+    }, [allOperators, myOperators]);
 
 
     // Get Morphic AI TOS, operators and VMs
@@ -100,6 +105,7 @@ const Developer: React.FC = () => {
     const myAgents = useOffChainStore(state => state.myAgents);
     if (myAgents.length > 0 && morphicaiOperators.length > 0) {
         myAgents[0].operator_domain = morphicaiOperators[0].domain; // TODO 待后台可以存储自定义字段后修改
+        myAgents[0].operator_port = morphicaiOperators[0].port;
     }
 
     // Add form validation state
@@ -257,6 +263,8 @@ const Developer: React.FC = () => {
             alert('TOS registered successfully');
             setTosSubMenu('my-tos');
     
+            // refresh tos list
+            useBlockchainStore.getState().initializeStore();
         } catch (error: any) {
             console.error('Failed to register TOS:', error);
             alert(`Registration failed: ${error.message || 'Unknown error'}`);
@@ -357,6 +365,9 @@ const Developer: React.FC = () => {
             throw error;
         }
 
+        // refresh operator list
+        useBlockchainStore.getState().initializeStore();
+        
         // Navigate to my-operator page
         setOperatorSubMenu('my-operator');
         alert('Operator registered successfully');
@@ -1596,8 +1607,9 @@ const Developer: React.FC = () => {
                 // 显示成功提示
                 alert('Agent deployed successfully!');
                 
-                // 可选:刷新agent列表
-                // refreshAgentList();
+                // refresh agent list
+                useOffChainStore.getState().initializeStore(allOperators, myOperators);
+                setAgentSubMenu('my-agent');
             } else {
                 alert('Failed to deploy agent!');
             }

@@ -21,7 +21,6 @@ interface OffChainStore {
 export const useOffChainStore = create<OffChainStore>((set) => ({
     allAgents: [],
     fetchAgents: async (allOperators: Operator[]) => {
-        console.log("fetchAllAgents", allOperators);
         try {
             const allAgents = [];
             for (const operator of allOperators) {
@@ -36,7 +35,6 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
     },
     myAgents: [],
     fetchMyAgents: async (myOperators: Operator[]) => {
-        console.log("fetchMyAgents", myOperators);
         try {
             const myAgents = [];
             for (const operator of myOperators) {
@@ -51,7 +49,6 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
     },
     quotes: [],
     fetchQuotes: async () => {
-        console.log("fetchAllQuotes");
         try {
             const quotes = await getQuoteList();
             set({ quotes });
