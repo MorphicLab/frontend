@@ -31,12 +31,14 @@ import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { ThinTOSCard } from '../components/cards/ThinTOSCard';
 import { TOS, Operator, Agent, Vm, TosStatus, VmStatus, AgentStatus } from '../data/define';
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
-import { deployAgent } from '../request/operator'; 
+import { deployAgent } from '../request/operator';
 import { useBlockchainStore } from '../components/store/chainStore';
 import { useOffChainStore } from '../components/store/offChainStore';
 import { DEFAULT_TOS_LOGO, DEFAULT_CREATOR_LOGO, DEFAULT_OPERATOR_LOGO, DEFAULT_OPERATOR_OWNER_LOGO, DEFAULT_AGENT_LOGO } from '../data/constant';
 import { MOCK_AGENTS } from '../data/mockBackup';
-import { getMorphicAiTos, getMorphicAiOperators, getMorphicAiVms } from '../tool/morphic';
+import { getMorphicAiTos, getMorphicAiOperators } from '../tool/morphic';
+import { a, code } from 'framer-motion/client';
+import { generateRandomHex } from '../data/mockDataGenerator';
 
 // 添加子菜单类型
 type TOSSubMenu = 'my-tos' | 'new-tos';
@@ -65,39 +67,44 @@ const Developer: React.FC = () => {
     const [tosSubMenu, setTosSubMenu] = useState<TOSSubMenu>('my-tos');
     const [operatorSubMenu, setOperatorSubMenu] = useState<OperatorSubMenu>('my-operator');
     const [agentSubMenu, setAgentSubMenu] = useState<AgentSubMenu>('my-agent');
-    const addAgent = useBlockchainStore(state => state.addAgent);
-
+    const addTos = useBlockchainStore(state => state.addTos);
+    const registerTos = useBlockchainStore(state => state.registerTos);
+    const addOperator = useBlockchainStore(state => state.addOperator);
+    const registerOperator = useBlockchainStore(state => state.registerOperator);
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-        // const myOperators = [MOCK_MORPHIC_OPERATOR];
-      }, []);
+        useOffChainStore.getState().initializeStore(morphicaiOperators, myMorphicAiOperators);
+    }, []);
 
 
-    const allTOSs = useBlockchainStore(state => state.toss);
-    const allOperators = useBlockchainStore(state => state.operators);
+    const { toss: allTOSs, operators: allOperators } = useBlockchainStore.getState();
+    const selectedAddress = window.ethereum?.selectedAddress.toLowerCase();
 
     const myOperators = useMemo(() => {
-        if (!window.ethereum?.selectedAddress) return [];
-        return allOperators.filter(op => 
-            op.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+        if (!selectedAddress) return [];
+        return allOperators.filter(op =>
+            op.owner.address.toLowerCase() === selectedAddress
         );
     }, [allOperators]);
 
-    useEffect(() => {
-        // update off_chain_store only when operators change
-        useOffChainStore.getState().initializeStore(allOperators, myOperators);
-    }, [allOperators, myOperators]);
 
-
-    // Get Morphic AI TOS, operators and VMs
     const morphicaiTos: TOS = getMorphicAiTos(allTOSs);
     const morphicaiOperators: Operator[] = getMorphicAiOperators(morphicaiTos, allOperators);
 
+    const myMorphicAiOperators = useMemo(() => {
+        if (!selectedAddress) return [];
+        return myOperators.filter(op =>
+            op.owner.address.toLowerCase() === selectedAddress
+        );
+    }, [morphicaiOperators]);
+
+
+    // Get Morphic AI TOS, operators and VMs
     const myTOSs = useMemo(() => {
-        if (!window.ethereum?.selectedAddress) return [];
-        return allTOSs.filter(tos => 
-            tos.creator.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+        if (!selectedAddress) return [];
+        return allTOSs.filter(tos =>
+            tos.creator.address.toLowerCase() === selectedAddress
         );
     }, [allTOSs]);
 
@@ -120,7 +127,7 @@ const Developer: React.FC = () => {
     const [tosFormState, setTosFormState] = useState<TOS>({
         id: '',
         name: '',
-        logo: DEFAULT_TOS_LOGO,
+        logo: '',
         description: '',
         vm_types: [],
         creator: {
@@ -151,13 +158,13 @@ const Developer: React.FC = () => {
         {
             id: '',
             name: '',
-            logo: DEFAULT_OPERATOR_LOGO,
+            logo: '',
             labels: [],
             description: '',
             owner: {
                 address: '',
                 name: '',
-                logo: DEFAULT_OPERATOR_OWNER_LOGO  // 使用常量
+                logo: ''  // 使用常量
             },
             location: '',
             domain: '',
@@ -218,57 +225,27 @@ const Developer: React.FC = () => {
             description: !tosFormState.description?.trim(),
             docker_compose: !tosFile
         };
-        
+
         setFormErrors(errors);
-    
+
         if (errors.name || errors.description || errors.docker_compose) {
             return;
         }
-    
-        try {
-            // Get contract instance
-            const contract = await createContractInstance();
-            
-            // 准备 docker-compose 数据
-            const dockerComposeData = tosFile ? await tosFile.arrayBuffer() : new ArrayBuffer(0);
-            const dockerComposeBytes = new Uint8Array(dockerComposeData);
-    
-            console.log('Tos info: ', tosFormState);
-            
-            const tx = await contract.create_tos(
-                tosFormState.name,
-                tosFormState.logo,
-                tosFormState.website,
-                tosFormState.description,
-                tosFormState.labels,
-                tosFormState.vm_types,
-                tosFormState.operator_minimum,
-                tosFormState.creator.name,
-                tosFormState.creator.logo,
-                tosFormState.vcpus,
-                tosFormState.vmemory,
-                tosFormState.disk,
-                tosFormState.version,
-                dockerComposeBytes,
-                tosFormState.dao || ethers.ZeroAddress,
-            );
-    
-            console.log('Transaction sent:', tx.hash);
-    
-            // 等待交易确认
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
-            console.log('Transaction logs:', receipt.logs);
-    
-            alert('TOS registered successfully');
-            setTosSubMenu('my-tos');
-    
-            // refresh tos list
-            useBlockchainStore.getState().initializeStore();
-        } catch (error: any) {
-            console.error('Failed to register TOS:', error);
-            alert(`Registration failed: ${error.message || 'Unknown error'}`);
+
+        // 准备 docker-compose 数据
+        const dockerComposeData = tosFile ? await tosFile.arrayBuffer() : new ArrayBuffer(0);
+        const dockerComposeBytes = new Uint8Array(dockerComposeData);
+
+        const newTos: TOS = { ...tosFormState };
+
+        if (import.meta.env.VITE_ON_CHAIN_API_MOCK === 'true') {
+            addTos(newTos);
+        } else {
+            await registerTos(newTos, dockerComposeBytes);
         }
+        
+
+        setTosSubMenu('my-tos');
     };
 
     // 处理表单输入变化
@@ -293,7 +270,7 @@ const Developer: React.FC = () => {
                 [field]: value
             }));
         }
-        
+
         // 清除对应字段的错误状态
         if (field === 'name' || field === 'description') {
             setFormErrors(prev => ({
@@ -317,57 +294,12 @@ const Developer: React.FC = () => {
             return;
         }
 
-        try {
-            // Get contract instance
-            const contract = await createContractInstance();
-
-            console.log('Operator info:', operatorFormState);
-
-
-            // First, log all parameters before registration
-            console.log('Operator info: ', operatorFormState);
-
-
-            // First register the operator
-            const tx = await contract.register_operator(
-                operatorFormState.name,
-                operatorFormState.logo || DEFAULT_OPERATOR_LOGO,
-                operatorFormState.labels,
-                operatorFormState.description,
-                contract?.runner?.address, // Use connected wallet as owner
-                operatorFormState.owner.name || '',
-                operatorFormState.owner.logo || DEFAULT_OPERATOR_OWNER_LOGO,
-                operatorFormState.location || '',
-                operatorFormState.domain || '',
-                Number(operatorFormState.port), // Ensure numeric
-            );
-            
-            // Wait for transaction to be mined
-            const receipt = await tx.wait();
-            console.log('Operator Registration Transaction Receipt:', receipt);
-        } catch (error) {
-            console.error('Detailed Registration Error:', error);
-            // More detailed error logging
-            if (error instanceof Error) {
-                console.error('Error Name:', error.name);
-                console.error('Error Message:', error.message);
-                
-                // If it's an ethers error, log additional details
-                if ('reason' in error) {
-                    console.error('Ethers Error Reason:', (error as any).reason);
-                }
-                if ('code' in error) {
-                    console.error('Error Code:', (error as any).code);
-                }
-            }
-            
-            // Rethrow or handle the error as needed
-            throw error;
+        if (import.meta.env.VITE_ON_CHAIN_API_MOCK === 'true') {
+            addOperator(operatorFormState);
+        } else {
+            await registerOperator(operatorFormState);
         }
 
-        // refresh operator list
-        useBlockchainStore.getState().initializeStore();
-        
         // Navigate to my-operator page
         setOperatorSubMenu('my-operator');
         alert('Operator registered successfully');
@@ -667,9 +599,8 @@ const Developer: React.FC = () => {
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
-                                                        formErrors.name ? 'border-red-500' : 'border-gray-600'
-                                                    }`}
+                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${formErrors.name ? 'border-red-500' : 'border-gray-600'
+                                                        }`}
                                                     placeholder="Enter service name"
                                                     value={tosFormState.name}
                                                     onChange={(e) => handleInputChange('name', e.target.value)}
@@ -710,9 +641,8 @@ const Developer: React.FC = () => {
                                                 Description *
                                             </label>
                                             <textarea
-                                                className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white h-32 ${
-                                                    formErrors.description ? 'border-red-500' : 'border-gray-600'
-                                                }`}
+                                                className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white h-32 ${formErrors.description ? 'border-red-500' : 'border-gray-600'
+                                                    }`}
                                                 placeholder="Describe your service capabilities"
                                                 value={tosFormState.description}
                                                 onChange={(e) => handleInputChange('description', e.target.value)}
@@ -735,11 +665,10 @@ const Developer: React.FC = () => {
                                                                 : [...tosFormState.labels, label];
                                                             handleInputChange('labels', newLabels);
                                                         }}
-                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                                            tosFormState.labels.includes(label)
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${tosFormState.labels.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {label}
                                                     </button>
@@ -764,11 +693,10 @@ const Developer: React.FC = () => {
                                                                 vm_types: newTypes
                                                             }));
                                                         }}
-                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                                            tosFormState.vm_types.includes(label)
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${tosFormState.vm_types.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {label}
                                                     </button>
@@ -790,11 +718,10 @@ const Developer: React.FC = () => {
                                                 />
                                                 <button
                                                     onClick={() => tosFileInputRef.current?.click()}
-                                                    className={`px-4 py-2 rounded-lg flex items-center ${
-                                                        formErrors.docker_compose 
+                                                    className={`px-4 py-2 rounded-lg flex items-center ${formErrors.docker_compose
                                                             ? 'bg-red-500/20 text-red-500 border border-red-500'
                                                             : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <Upload className="h-4 w-4 mr-2" />
                                                     Upload docker-compose.yaml
@@ -814,7 +741,7 @@ const Developer: React.FC = () => {
                                             </label>
                                             <div className="flex items-center space-x-4">
                                                 <img
-                                                    src={tosFormState.logo}
+                                                    src={tosFormState.logo || DEFAULT_TOS_LOGO}
                                                     alt="Service Logo"
                                                     className="w-20 h-20 rounded-lg object-cover bg-gray-700/50"
                                                 />
@@ -916,7 +843,7 @@ const Developer: React.FC = () => {
                                                     <option value="100">100 GB</option>
                                                 </select>
                                             </div>
-                                            
+
                                         </div>
                                     </div>
                                 </div>
@@ -955,7 +882,7 @@ const Developer: React.FC = () => {
                                             </label>
                                             <div className="flex items-center space-x-4">
                                                 <img
-                                                    src={tosFormState.creator.logo}
+                                                    src={tosFormState.creator.logo || DEFAULT_CREATOR_LOGO}
                                                     alt="Creator Logo"
                                                     className="w-16 h-16 rounded-lg"
                                                 />
@@ -1031,11 +958,10 @@ const Developer: React.FC = () => {
                         <div className="flex space-x-4 border-b border-gray-700">
                             <button
                                 onClick={() => setOperatorSubMenu('my-operator')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    operatorSubMenu === 'my-operator'
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${operatorSubMenu === 'my-operator'
                                         ? 'text-morphic-primary'
                                         : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                    }`}
                             >
                                 My Operator
                                 {operatorSubMenu === 'my-operator' && (
@@ -1044,11 +970,10 @@ const Developer: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setOperatorSubMenu('new-operator')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-                                    operatorSubMenu === 'new-operator'
+                                className={`px-4 py-2 text-sm font-medium transition-colors relative ${operatorSubMenu === 'new-operator'
                                         ? 'text-morphic-primary'
                                         : 'text-gray-400 hover:text-gray-300'
-                                }`}
+                                    }`}
                             >
                                 New Operator
                                 {operatorSubMenu === 'new-operator' && (
@@ -1072,9 +997,8 @@ const Developer: React.FC = () => {
                                             </label>
                                             <input
                                                 type="text"
-                                                className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
-                                                    operatorFormErrors.name ? 'border-red-500' : 'border-gray-600'
-                                                }`}
+                                                className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${operatorFormErrors.name ? 'border-red-500' : 'border-gray-600'
+                                                    }`}
                                                 placeholder="Enter operator name"
                                                 value={operatorFormState.name}
                                                 onChange={(e) => handleOperatorInputChange('name', e.target.value)}
@@ -1218,11 +1142,10 @@ const Developer: React.FC = () => {
                                                                 : [...operatorFormState.labels, label];
                                                             handleOperatorInputChange('labels', labels);
                                                         }}
-                                                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                                            operatorFormState.labels.includes(label)
+                                                        className={`px-3 py-1 rounded-full text-sm font-medium ${operatorFormState.labels.includes(label)
                                                                 ? 'bg-morphic-primary text-white'
                                                                 : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {label}
                                                     </button>
@@ -1241,9 +1164,8 @@ const Developer: React.FC = () => {
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${
-                                                        operatorFormErrors.domain ? 'border-red-500' : 'border-gray-600'
-                                                    }`}
+                                                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-2 text-white ${operatorFormErrors.domain ? 'border-red-500' : 'border-gray-600'
+                                                        }`}
                                                     placeholder="e.g., operator.example.com"
                                                     value={operatorFormState.domain}
                                                     onChange={(e) => handleOperatorInputChange('domain', e.target.value)}
@@ -1316,7 +1238,7 @@ const Developer: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* 标签页内容 */}
+                        {/* Agent pages */}
                         {agentSubMenu === 'my-agent' ? (
                             renderMyAgents()
                         ) : (
@@ -1337,11 +1259,10 @@ const Developer: React.FC = () => {
                                             />
                                             <button
                                                 onClick={() => agentFileInputRef.current?.click()}
-                                                className={`px-4 py-2 rounded-lg flex items-center ${
-                                                    agentFormErrors.docker_compose 
+                                                className={`px-4 py-2 rounded-lg flex items-center ${agentFormErrors.docker_compose
                                                         ? 'bg-red-500/20 text-red-500 border border-red-500'
                                                         : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
-                                                }`}
+                                                    }`}
                                             >
                                                 <Upload className="h-4 w-4 mr-2" />
                                                 Upload docker-compose.yaml
@@ -1388,25 +1309,24 @@ const Developer: React.FC = () => {
                                                 />
                                                 <button
                                                     onClick={() => agentReadmeFileInputRef.current?.click()}
-                                                    className={`px-4 py-2 rounded-lg flex items-center ${
-                                                        agentFormErrors.readme 
+                                                    className={`px-4 py-2 rounded-lg flex items-center ${agentFormErrors.readme
                                                             ? 'bg-red-500/20 text-red-500 border border-red-500'
                                                             : 'bg-morphic-primary/20 text-morphic-primary hover:bg-morphic-primary/30'
-                                                    }`}
+                                                        }`}
                                                 >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                Upload README.md
+                                                    <Upload className="h-4 w-4 mr-2" />
+                                                    Upload README.md
                                                 </button>
                                                 <span className="text-gray-400">
                                                     {agentReadmeFile ? agentReadmeFile.name : 'No file selected'}
                                                 </span>
-                                            </div>      
+                                            </div>
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Visibility
                                                 </label>
-                                                <select 
+                                                <select
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     value={agentFormState.visibility}
                                                     onChange={(e) => handleAgentInputChange('visibility', e.target.value)}
@@ -1421,7 +1341,7 @@ const Developer: React.FC = () => {
 
                                 </div>
 
-                                {/* Operator Specification */}
+                                {/* Resource Specification */}
                                 <div className="bg-gray-800/50 rounded-xl p-6">
                                     <h2 className="text-xl font-semibold text-white mb-4">Resource Specification</h2>
                                     <div className="space-y-6">
@@ -1430,7 +1350,7 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Memory Requirement
                                                 </label>
-                                                <select 
+                                                <select
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     value={agentFormState.memory_requirement}
                                                     onChange={(e) => handleAgentInputChange('memory_requirement', e.target.value)}
@@ -1445,7 +1365,7 @@ const Developer: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Storage Requirement
                                                 </label>
-                                                <select 
+                                                <select
                                                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                                                     value={agentFormState.storage_requirement}
                                                     onChange={(e) => handleAgentInputChange('storage_requirement', e.target.value)}
@@ -1554,8 +1474,6 @@ const Developer: React.FC = () => {
             return;
         }
 
-
-
         try {
             // 从operators中找到完整的operator对象
             const operator = allOperators.find(op => op.id === selectedOperator);
@@ -1566,11 +1484,11 @@ const Developer: React.FC = () => {
             // 准备 docker-compose 数据
             const docker_compose = agentFile ? await agentFile.text() : '';
             const readme = agentReadmeFile ? await agentReadmeFile.text() : '';
-            
+
 
             // 准备agent部署数据
             const agentData: Agent = {
-                id: agentFormState.id, 
+                id: agentFormState.id,
                 owner: window.ethereum?.selectedAddress || '',
                 name: agentFormState.name,
                 description: agentFormState.description,
@@ -1578,22 +1496,18 @@ const Developer: React.FC = () => {
                 visibility: agentFormState.visibility,
                 model_type: agentFormState.model_type,
                 logo: '/images/agent-default-logo.png',
-                labels: [],
+                labels: ['Xbot'],
                 users: 0,
                 rating: 0,
-                status: AgentStatus.Offline,
+                status: AgentStatus.Online,
                 memory_requirement: agentFormState.memory_requirement,
                 storage_requirement: agentFormState.storage_requirement,
                 dao_contract: agentFormState.dao_contract || undefined,
                 docker_compose: docker_compose,
             };
 
-            if (import.meta.env.VITE_MOCK === 'true') {
-                addAgent(agentData);
-                console.log('Agent deployed successfully:');
-            }
-    
-            // 调用deployAgent接口
+
+            // call deploy api
             const response = await deployAgent(
                 agentData,
                 operator.domain,
@@ -1603,17 +1517,17 @@ const Developer: React.FC = () => {
 
             if (response) {
                 console.log('Agent deployed successfully:', response);
-                
+
                 // 显示成功提示
                 alert('Agent deployed successfully!');
-                
+
                 // refresh agent list
                 useOffChainStore.getState().initializeStore(allOperators, myOperators);
                 setAgentSubMenu('my-agent');
             } else {
                 alert('Failed to deploy agent!');
             }
-            
+
         } catch (error: any) {
             console.error('failed to deploy agent:', error);
             alert(`failed to deploy: ${error?.message || 'unknown error'}`);
@@ -1808,9 +1722,9 @@ const Developer: React.FC = () => {
             if (tosSubMenu === 'new-tos' && MOCK_MORPHIC_AI_TOS) {
                 if (event.ctrlKey && event.key === 'v') {
                     event.preventDefault();
-                    
+
                     setTosFormState({
-                        id: '',
+                        id: generateRandomHex(32),
                         name: MOCK_MORPHIC_AI_TOS.name || '',
                         logo: MOCK_MORPHIC_AI_TOS.logo || DEFAULT_TOS_LOGO,
                         website: MOCK_MORPHIC_AI_TOS.website || '',
@@ -1847,7 +1761,7 @@ const Developer: React.FC = () => {
             if (operatorSubMenu === 'new-operator' && MOCK_MORPHIC_OPERATOR) {
                 if (event.ctrlKey && event.key === 'v') {
                     event.preventDefault();
-                    
+
                     setOperatorFormState({
                         ...MOCK_MORPHIC_OPERATOR,
                         // Override some fields to make them unique
@@ -1856,7 +1770,7 @@ const Developer: React.FC = () => {
                         labels: MOCK_MORPHIC_OPERATOR.labels || [],
                         description: MOCK_MORPHIC_OPERATOR.description || '',
                         owner: {
-                            address: MOCK_MORPHIC_OPERATOR.owner?.address || '',  // Will be overridden by the transantion sender
+                            address: window.ethereum?.selectedAddress || '',  // Will be overridden by the transantion sender
                             name: MOCK_MORPHIC_OPERATOR.owner?.name || '',
                             logo: MOCK_MORPHIC_OPERATOR.owner?.logo || DEFAULT_OPERATOR_OWNER_LOGO
                         },
@@ -1891,7 +1805,7 @@ const Developer: React.FC = () => {
                         description: MOCK_MORPHIC_AGENT.description || '',
                         capabilities: MOCK_MORPHIC_AGENT.capabilities || [],
                     });
-                    
+
                     // 显示提示信息
                     const notification = document.createElement('div');
                     notification.className = 'fixed top-4 right-4 bg-morphic-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out';

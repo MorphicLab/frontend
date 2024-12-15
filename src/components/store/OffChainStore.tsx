@@ -1,53 +1,59 @@
 import { create } from 'zustand';
-import { getAgentListByOwner } from '../../request/operator';
+import { getAgentListByOperator } from '../../request/operator';
 import { getQuoteList } from '../../request/quote';
 import { Operator, Agent, Vm } from '../../data/define';
+import { MOCK_AGENTS } from '../../data/mockData';
+import { getMorphicAiOperators } from '../../tool/morphic';
 
 // 定义 OffChainStore 状态接口
 interface OffChainStore {
     allAgents: Agent[];
     myAgents: Agent[];
     quotes: Vm[];
-    fetchAgents: (allOperators: Operator[]) => Promise<void>;
-    fetchMyAgents: (myOperators: Operator[]) => Promise<void>;
+    addAgent: (newAgent: Agent) => void;
+    fetchAgents: (morphiAiOperator: Operator) => Promise<void>;
     fetchQuotes: () => Promise<void>;
 
-    initializeStore: (allOperators: Operator[], myOperators: Operator[]) => Promise<void>;
+    initializeStore: (morphicAiOperators: Operator[], myMorphicAiOperators: Operator[]) => Promise<void>;
 }
 
-
+const isMock = import.meta.env.VITE_DATA_MOCK === 'true';
 
 // 创建 OffChainStore
 export const useOffChainStore = create<OffChainStore>((set) => ({
     allAgents: [],
-    fetchAgents: async (allOperators: Operator[]) => {
-        try {
-            const allAgents = [];
-            for (const operator of allOperators) {
-                const ags = await getAgentListByOwner(operator.domain, operator.port);
-                allAgents.push(...ags);
-            }
-            set({ allAgents });
-            
-        } catch (error) {
-            console.error('failed to get agent list:', error);
-        }
-    },
     myAgents: [],
-    fetchMyAgents: async (myOperators: Operator[]) => {
+    quotes: [],
+
+
+    fetchAgents: async (morphiAiOperator: Operator) => {
         try {
-            const myAgents = [];
-            for (const operator of myOperators) {
-                const ags = await getAgentListByOwner(operator.domain, operator.port);
-                myAgents.push(...ags);
+            let allAgents: Agent[] = [];
+
+            const fetchedAgents: Agent[] = [];
+            const ags = await getAgentListByOperator(morphiAiOperator.domain, morphiAiOperator.port);
+            fetchedAgents.push(...ags);
+
+            if (isMock) {
+                allAgents = [...MOCK_AGENTS, ...fetchedAgents];
             }
-            set({ myAgents });
+
+            const myAgents = allAgents.filter(agent => agent.owner === morphiAiOperator.owner.address);
+            
+            set({ allAgents, myAgents });
             
         } catch (error) {
             console.error('failed to get agent list:', error);
         }
     },
-    quotes: [],
+
+    addAgent: (newAgent: Agent) => {
+        if (isMock) {
+            MOCK_AGENTS.push(newAgent);
+        }
+    },
+    
+    
     fetchQuotes: async () => {
         try {
             const quotes = await getQuoteList();
@@ -58,8 +64,11 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
         }
     },
 
-    initializeStore: async (allOperators: Operator[], myOperators: Operator[]) => {
-        await useOffChainStore.getState().fetchMyAgents(myOperators);
+    initializeStore: async (morphicAiOperators: Operator[], myMorphicAiOperators: Operator[]) => {
+        // TODO: should allow to fetch agents from any operator in the future
+        if (myMorphicAiOperators.length > 0) {
+            await useOffChainStore.getState().fetchAgents(myMorphicAiOperators[0]);
+        }
         await useOffChainStore.getState().fetchQuotes();
     },
 }));

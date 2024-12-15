@@ -1,6 +1,18 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
+  /**
+   * Home page component.
+   * 
+   * This component renders the home page, with a background image, 
+   * a Morphic logo, a title, a description, and two buttons 
+   * to navigate to the TOS services page or the documentation page.
+   * 
+   * The component uses Framer Motion to animate the elements.
+   * The animation is a fade-in and a slide-up from the bottom.
+   * 
+   * @returns The home page component.
+   */
 const Home = () => {
   const navigate = useNavigate();
 

@@ -23,7 +23,7 @@ import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';
 import { generateVmsForToss } from '../data/mockDataGenerator';
-import { VmStatus } from '../data/define';
+import { Vm, VmStatus } from '../data/define';
 
 ChartJS.register(
     CategoryScale,
@@ -122,6 +122,7 @@ const TosDetail: React.FC = () => {
     const allQuotes = useOffChainStore(state => state.quotes);    
     const { setOperators, setVms } = useOffChainStore();
     const addVm = useBlockchainStore(state => state.addVm);
+    const registerVm = useBlockchainStore(state => state.registerVm);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -151,9 +152,10 @@ const TosDetail: React.FC = () => {
 
     // 获取我的运营商（使用 window.ethereum.selectedAddress）
     const myOperators = useMemo(() => {
-        if (!window.ethereum?.selectedAddress) return [];
+        const selectedAddress = window.ethereum?.selectedAddress.toLowerCase();
+        if (!selectedAddress) return [];
         return allOperators.filter(op => 
-            op.owner.address.toLowerCase() === window.ethereum.selectedAddress.toLowerCase()
+            op.owner.address.toLowerCase() === selectedAddress
         );
     }, [allOperators]);
 
@@ -164,13 +166,10 @@ const TosDetail: React.FC = () => {
         }
     }, [id, generateTosChartData]);
 
-    const handleRegisterOperators = async () => {
+    const handleRegisterVmToTos = async () => {
         if (!tos || !selectedOperators.length) return;
         
         try {
-            // Get contract instance
-            const contract = await createContractInstance();
-
             // Register each selected operator to the TOS
             for (const operatorId of selectedOperators) {
                 // Generate a proper bytes20 ID using Web Crypto API
@@ -178,24 +177,21 @@ const TosDetail: React.FC = () => {
                 crypto.getRandomValues(randomBytes);
 
                 // Generate a real VM and register it here
-                const vm = { 
+                const newVm: Vm = { 
                     id: hexlify(randomBytes),
-                    vm_type: 'TDX',
+                    type: 'TDX',
                     tos_id: tos.id,
                     operator_id: operatorId,
                     status: VmStatus.Active,   // should be set by the contract in th future
                     code_hash: tos.code_hash   // should be obtained from report
-                    // TODO: add cert here
                 };
-
-                try {
-                    await contract.register_vm_to_tos(tos.id, vm, {gasLimit: 3000000});
-                    console.log(`Registered vm ${vm.id} with operator ${operatorId} to TOS ${tos.id}`);
-                    alert('Operator with a new CVM registered successfully');
-                } catch (error) {
-                    console.error(`Failed to register operator ${operatorId}:`, error);
-                    // Optionally, you might want to break the loop or handle the error differently
+                
+                if (import.meta.env.VITE_ON_CHAIN_API_MOCK === 'true') {
+                    addVm(newVm);
+                } else {
+                    await registerVm(newVm);
                 }
+                
             }
 
             
@@ -798,7 +794,7 @@ const TosDetail: React.FC = () => {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleRegisterOperators}
+                                    onClick={handleRegisterVmToTos}
                                     disabled={selectedOperators.length === 0}
                                     className="px-6 py-2 bg-morphic-primary text-white rounded-lg hover:bg-morphic-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >

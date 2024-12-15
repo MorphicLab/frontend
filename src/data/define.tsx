@@ -145,7 +145,7 @@ export interface Vm {
     quote?: QuoteString;
 
     code_hash?: string;       // app-id of dstack event_log
-    roots_hash: string;
+    roots_hash?: string;
     cert?: string;
     ca_cert_hash?: string;   // ca-cert-hash of dstack event_log
     pubkey?: string;

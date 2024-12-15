@@ -1,5 +1,6 @@
-import { Agent, AgentStatus, VmQuote } from '../data/define';
+import { Agent, AgentStatus } from '../data/define';
 import { MOCK_MORPHIC_AGENT } from '../data/mockData.ts';
+import { useOffChainStore } from '../components/store/offChainStore.tsx';
 
 const AGENT_PREFIX = 'agent-';
 
@@ -18,8 +19,10 @@ function formatDockerCompose(name :string, content: string): string {
 
 // 部署agent到operator的接口
 export async function deployAgent(agent: Agent, operatorDomain: string, operatorPort: number, docker_compose: string): Promise<boolean> {
-    if (import.meta.env.VITE_OFF_CHAIN_API_MOCK == true) {
-        return true; // for test
+    if (import.meta.env.VITE_OFF_CHAIN_API_MOCK === 'true') {
+        const { addAgent } = useOffChainStore.getState();
+        addAgent(agent);
+        return true;    // for test
     }
 
     try {
@@ -55,18 +58,18 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
 
 
 // 根据用户获取agent列表的接口
-export async function getAgentListByOwner(operatorDomain: string, operatorPort: number): Promise<Agent[]> {
-    console.log("req operator getAgentListByOwner", operatorDomain, operatorPort);
-    if (import.meta.env.VITE_OFF_CHAIN_API_MOCK == 'true') {
+export async function getAgentListByOperator(operatorDomain: string, operatorPort: number): Promise<Agent[]> {
+    console.log("req operator getAgentListByOperator", operatorDomain, operatorPort);
+    if (import.meta.env.VITE_OFF_CHAIN_API_MOCK === 'true') {
         return [
             {
                 id: '1',
                 owner: window.ethereum?.selectedAddress || '',
-                name: 'Mock Agent 1',
+                name: 'Chat Agent',
                 description: 'This is a mock agent for testing purposes.',
                 readme: '',
                 logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztncnxOUnTY_sw5t0_sFSYVJyXYXuPD6Ztg&s',
-                labels: ['mock', 'test'],
+                labels: ['Chat'],
                 users: 0,
                 rating: 0,
                 status: AgentStatus.Offline,
@@ -74,7 +77,7 @@ export async function getAgentListByOwner(operatorDomain: string, operatorPort: 
                 memory_requirement: '2GB',
                 storage_requirement: '200GB',
                 dao_contract: '0xMockDAOContractAddress',
-                visibility: 'public',
+                visibility: 'private',
                 docker_compose: '',
             }
         ];

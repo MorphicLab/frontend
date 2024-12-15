@@ -265,6 +265,6 @@ export const MOCK_MORPHIC_AGENT: Agent = {
 };
 
 
-if (import.meta.env.VITE_MOCK === 'true') {
+if (import.meta.env.VITE_DATA_MOCK === 'true') {
     console.log("Mock data enabled");
 }

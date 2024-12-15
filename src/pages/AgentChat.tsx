@@ -5,14 +5,10 @@ import {
   Image as ImageIcon, 
   File, 
   Mic,
-  Plus,
-  Bot,
   Users,
   Star,
   Cpu,
   Shield,
-  CheckCircle,
-  Info,
   Network
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -22,7 +18,7 @@ import { AgentVerificationFlow } from '../components/verification/AgentVerificat
 import { useBlockchainStore } from '../components/store/chainStore';
 import { MOCK_MORPHIC_AI_TOS } from '../data/mockData';
 
-const isMock = import.meta.env.VITE_MOCK === 'true';
+const isMock = import.meta.env.VITE_DATA_MOCK === 'true';
 
 
 interface Message {

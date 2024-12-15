@@ -14,11 +14,7 @@ const TosServices: React.FC = () => {
         useBlockchainStore.getState().initializeStore();
     }, []);
 
-    const allTOS = useBlockchainStore(state => state.toss);
-    const allOperators = useBlockchainStore(state => state.operators);
-    const ethPrice = useBlockchainStore(state => state.ethPrice);
-    const addTOS = useBlockchainStore(state => state.addTOS);
-
+    const {toss: allTOS, operators: allOperators, ethPrice: ethPrice, addTos: addTOS} = useBlockchainStore.getState();
 
     // Handle Ctrl+V shortcut
     useEffect(() => {
