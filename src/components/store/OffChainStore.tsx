@@ -31,11 +31,12 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
             let allAgents: Agent[] = [];
 
             const fetchedAgents: Agent[] = [];
-            const ags = await getAgentListByOperator(morphiAiOperator.domain, morphiAiOperator.port);
+            const ags = await getAgentListByOperator(morphiAiOperator.domain);
             fetchedAgents.push(...ags);
-
             if (isMock) {
                 allAgents = [...MOCK_AGENTS, ...fetchedAgents];
+            } else {
+                allAgents = fetchedAgents;
             }
 
             const myAgents = allAgents.filter(agent => agent.owner === morphiAiOperator.owner.address);

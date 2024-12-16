@@ -1511,7 +1511,6 @@ const Developer: React.FC = () => {
             const response = await deployAgent(
                 agentData,
                 operator.domain,
-                operator.port,
                 docker_compose || '',
             );
 

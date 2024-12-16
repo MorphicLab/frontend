@@ -3,6 +3,7 @@ import { MOCK_MORPHIC_AGENT } from '../data/mockData.ts';
 import { useOffChainStore } from '../components/store/offChainStore.tsx';
 
 const AGENT_PREFIX = 'agent-';
+const VM_MANAGEMENT_CONSOLE_PORT = 33001;
 
 // 处理dockerCompose格式的函数
 function formatDockerCompose(name :string, content: string): string {
@@ -18,7 +19,7 @@ function formatDockerCompose(name :string, content: string): string {
 
 
 // 部署agent到operator的接口
-export async function deployAgent(agent: Agent, operatorDomain: string, operatorPort: number, docker_compose: string): Promise<boolean> {
+export async function deployAgent(agent: Agent, operatorDomain: string, docker_compose: string): Promise<boolean> {
     if (import.meta.env.VITE_OFF_CHAIN_API_MOCK === 'true') {
         const { addAgent } = useOffChainStore.getState();
         addAgent(agent);
@@ -26,7 +27,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
     }
 
     try {
-        const response = await fetch(`/prpc/Teepod.CreateVm?json`, {
+        const response = await fetch(`http://${operatorDomain}:${VM_MANAGEMENT_CONSOLE_PORT}/prpc/Teepod.CreateVm?json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -58,8 +59,7 @@ export async function deployAgent(agent: Agent, operatorDomain: string, operator
 
 
 // 根据用户获取agent列表的接口
-export async function getAgentListByOperator(operatorDomain: string, operatorPort: number): Promise<Agent[]> {
-    console.log("req operator getAgentListByOperator", operatorDomain, operatorPort);
+export async function getAgentListByOperator(operatorDomain: string): Promise<Agent[]> {
     if (import.meta.env.VITE_OFF_CHAIN_API_MOCK === 'true') {
         return [
             {
@@ -86,7 +86,7 @@ export async function getAgentListByOperator(operatorDomain: string, operatorPor
         const headers = {
             'Content-Type': 'application/json',
         };
-        const response = await fetch(`/prpc/Teepod.Status?json`, {
+        const response = await fetch(`http://${operatorDomain}:${VM_MANAGEMENT_CONSOLE_PORT}/prpc/Teepod.Status?json`, {
             method: 'GET',
             headers
         });
@@ -115,7 +115,6 @@ export async function getAgentListByOperator(operatorDomain: string, operatorPor
                 dao_contract: MOCK_MORPHIC_AGENT.dao_contract,
                 visibility: MOCK_MORPHIC_AGENT.visibility,
             }));
-        
         return agents;
 
     } catch (error) {

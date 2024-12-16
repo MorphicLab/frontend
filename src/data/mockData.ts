@@ -93,7 +93,7 @@ export const MOCK_MORPHIC_OPERATOR: Operator = {
     },
     location: "US West",
     domain: "66.220.6.113",
-    port: 33001,
+    port: 33010,
     vm_ids: {},
     num_stakers: 1000,
     reputation: 90,

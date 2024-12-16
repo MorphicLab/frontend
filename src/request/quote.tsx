@@ -8,7 +8,8 @@ export async function getQuoteList(): Promise<Vm[]> {
         const headers = {
             'Content-Type': 'application/json',
         };
-        const response = await fetch(`/agents/07b6bf73-fe56-0327-ad9a-9be8fa688dc3/quote`, {
+        // TODO ：get ip and port from agent
+        const response = await fetch(`http://66.220.6.113:33010/agents/07b6bf73-fe56-0327-ad9a-9be8fa688dc3/quote`, {
             method: 'GET',
             headers
         });
