@@ -100,7 +100,7 @@ export async function getAgentListByOperator(operatorDomain: string): Promise<Ag
             .map((vm: { id: string; instance_id: string; name: string; status: string; configuration: { memory: number; disk_size: number } }) => ({
                 id: vm.id,
                 instance_id: vm.instance_id,
-                owner: MOCK_MORPHIC_AGENT.owner,
+                owner: window.ethereum?.selectedAddress || '',
                 name: vm.name.replace('agent-', ''),
                 description: MOCK_MORPHIC_AGENT.description,
                 readme: '',

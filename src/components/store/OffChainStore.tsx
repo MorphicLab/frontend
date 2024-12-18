@@ -39,7 +39,7 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
                 allAgents = fetchedAgents;
             }
 
-            const myAgents = allAgents.filter(agent => agent.owner === morphiAiOperator.owner.address);
+            const myAgents = allAgents.filter(agent => agent.owner.toLowerCase() === morphiAiOperator.owner.address.toLowerCase());
             
             set({ allAgents, myAgents });
             
