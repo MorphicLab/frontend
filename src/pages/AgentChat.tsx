@@ -53,10 +53,7 @@ const AgentChat = () => {
   useEffect(() => {
     // request agentid for app api
     if (!chatbotAgentId) {
-      let docker_port = 3000; // TODO: parse from docker compose file
-      agent.operator_port = 33010; // TODO: get from agent
-      fetch(`http://${agent.instance_id}-${docker_port}.app.kvin.wang:${agent.operator_port}/agents`)
-      // fetch(`/agents`)
+      fetch(`http://${agent.operator_domain}:${agent.operator_port}/agents`)
         .then(response => response.json())
         .then(data => {
           const randomIndex = Math.floor(Math.random() * data.agents.length);
@@ -95,7 +92,6 @@ const AgentChat = () => {
     setMessages([...messages, newMessage]);
     setInputMessage('');
 
-    agent.operator_domain = '66.220.6.113'; // TODO: get from agent
     // request app api
     fetch(`http://${agent.operator_domain}:${agent.operator_port}/${chatbotAgentId}/message`, {
       method: 'POST',

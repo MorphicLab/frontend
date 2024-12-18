@@ -12,7 +12,7 @@ interface OffChainStore {
     quotes: Vm[];
     addAgent: (newAgent: Agent) => void;
     fetchAgents: (morphiAiOperator: Operator) => Promise<void>;
-    fetchQuotes: () => Promise<void>;
+    fetchQuotes: (morphiAiOperator: Operator) => Promise<void>;
 
     initializeStore: (morphicAiOperators: Operator[], myMorphicAiOperators: Operator[]) => Promise<void>;
 }
@@ -55,9 +55,9 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
     },
     
     
-    fetchQuotes: async () => {
+    fetchQuotes: async (morphiAiOperator: Operator) => {
         try {
-            const quotes = await getQuoteList();
+            const quotes = await getQuoteList(morphiAiOperator.domain, morphiAiOperator.port);
             set({ quotes });
             
         } catch (error) {
@@ -69,7 +69,7 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
         // TODO: should allow to fetch agents from any operator in the future
         if (myMorphicAiOperators.length > 0) {
             await useOffChainStore.getState().fetchAgents(myMorphicAiOperators[0]);
+            await useOffChainStore.getState().fetchQuotes(myMorphicAiOperators[0]);
         }
-        await useOffChainStore.getState().fetchQuotes();
     },
 }));
