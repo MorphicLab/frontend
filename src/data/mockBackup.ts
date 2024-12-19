@@ -306,7 +306,7 @@ export const MOCK_TOS: TOS[] = [
 
 
 
-export const MOCK_MORPHIC_AI_TOS: TOS = {
+export const MOCK_DEMO_TOS: TOS = {
     id: '',
     name: 'Morphic AI',
     logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',

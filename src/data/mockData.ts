@@ -16,44 +16,42 @@ export type { TosStatus, TOS, Operator, Agent, Vm };
 export { tosLabels, operatorLabels, agentLabels };
 import { generateMockOperators, generateVmsForToss, generateRandomHex } from './mockDataGenerator';
 
-// Mock 数据
-export const MOCK_TOS: TOS[] = [
-    {
-        id: '0xb2596b680d2cd51df0a493701b9e9ae6',
-        name: 'Morphic KMS',
-        logo: '/images/kms-logo.ico',
-        dao: '',
-        website: '/morphic-kms',
-        description: 'A decentralized key management service powered by trustless computation...',
-        vm_types: ['TDX', 'SEV', 'Nitro'],
-        creator: {
-            address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
-            name: 'Morphic Labs',
-            logo: '/images/morphic-logo-sm.png'
-        },
-        operator_minimum: 50,
-        vcpus: 1,
-        vmemory: 1,
-        disk: 1,
-        version: '1.0',
-        code: '',
-        labels: ['Compute'],
-        num_stakers: 1023,
-        likes: 512,
-        status: TosStatus.Active,
-        vm_ids: {},
-        code_hash: "5b38e33a6487958b72c3c12a938eaa5e3fd4510c51aeeab58c7d5ecee41d7c436489d6c8e4f92f160b7cad34207b00c1",
-        address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
-    },
-    // ... 可以添加更多 TOS 数据
-];
 
 export const MOCK_MORPHIC_AI_TOS: TOS = {
-    id: '0xa493701b9e9ae6b259d2cd51df6b6800',
+    id: '0xb2596b680d2cd51df0a493701b9e9ae6',
     name: 'Morphic AI',
     logo: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop',
+    dao: '',
     website: '/morphic-ai',
     description: 'A decentralized AI service platform powered by trustless computation...',
+    vm_types: ['TDX', 'SEV', 'Nitro'],
+    creator: {
+        address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
+        name: 'Morphic Labs',
+        logo: '/images/morphic-logo-sm.png'
+    },
+    operator_minimum: 30,
+    vcpus: 1,
+    vmemory: 1,
+    disk: 1,
+    version: '0.2',
+    code: '',
+    labels: ['Compute'],
+    num_stakers: 1023,
+    likes: 512,
+    status: TosStatus.Active,
+    vm_ids: {},
+    code_hash: "5b38e33a6487958b72c3c12a938eaa5e3fd4510c51aeeab58c7d5ecee41d7c436489d6c8e4f92f160b7cad34207b00c1",
+    address: '0x86d50d5630B4cF539739dF2C5dAcb4c659F2488D',
+}
+
+
+export const MOCK_DEMO_TOS: TOS = {
+    id: '0xa493701b9e9ae6b259d2cd51df6b6800',
+    name: 'Demo App',
+    logo: '/images/kms-logo.ico',
+    website: '/morphic-ai',
+    description: 'A demo TOS for showcasing the registration of new TOS and operators ...',
     vm_types: ['TDX', 'SEV', 'Nitro'],
     creator: {
         address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
@@ -74,6 +72,12 @@ export const MOCK_MORPHIC_AI_TOS: TOS = {
     code_hash: "c68518a0ebb42136c12b2275164f8c72f25fa9a34392228687ed6e9caeb9c0f1dbd895e9cf475121c029dc47e70e91fd",
     address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
 }
+
+// Mock 数据
+export const MOCK_TOS: TOS[] = [
+    MOCK_MORPHIC_AI_TOS,
+    // ... 可以添加更多 TOS 数据
+];
 
 export const MOCK_OPERATORS = generateMockOperators(61);
 

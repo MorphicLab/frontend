@@ -5,7 +5,7 @@ import { TOS, Operator, Vm, VmStatus } from '../../data/define';
 import { TosStatus } from '../../data/define';
 import { DEFAULT_RESTAKE_ETH_AMOUNT } from '../../data/constant';
 import { mockQuote } from '../../tool/quote';
-import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs, MOCK_MORPHIC_AI_VM, MOCK_MORPHIC_AI_TOS } from '../../data/mockData';
+import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs, MOCK_MORPHIC_AI_VM, MOCK_DEMO_TOS } from '../../data/mockData';
 
 const isMock = import.meta.env.VITE_DATA_MOCK === 'true';
 
@@ -120,7 +120,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                         dao: tos.dao || ethers.ZeroAddress,
                         status: Number(tos.status) === 0 ? TosStatus.Waiting : TosStatus.Active,
                         restaked: Number(tos.restaked) || 0,
-                        address: (tos.name === 'Morphic AI' && isMock) ? MOCK_MORPHIC_AI_TOS.address : tos.addr,
+                        address: isMock ? MOCK_DEMO_TOS.address : tos.addr,
                     });
                 }
             } catch (error) {

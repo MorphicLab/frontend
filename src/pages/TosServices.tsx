@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageBackground from '../components/PageBackground';
-import { tosLabels, MOCK_MORPHIC_AI_TOS } from '../data/mockData';
+import { tosLabels, MOCK_DEMO_TOS } from '../data/mockData';
 import { TOSCard } from '../components/cards/TOSCard';
 import { SearchAndFilter, useSearchAndFilter } from '../components/common/SearchAndFilter';
 import { useBlockchainStore } from '../components/store/chainStore';
@@ -22,7 +22,7 @@ const TosServices: React.FC = () => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
                 const hasMorphicAI = allTOS.some(tos => tos.name === 'Morphic AI');
                 if (!hasMorphicAI) {
-                    addTOS(MOCK_MORPHIC_AI_TOS);
+                    addTOS(MOCK_DEMO_TOS);
                 }
             }
         };

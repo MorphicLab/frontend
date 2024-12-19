@@ -22,7 +22,7 @@ import {
     tosLabels,
     operatorLabels,
     agentLabels,
-    MOCK_MORPHIC_AI_TOS,
+    MOCK_DEMO_TOS,
     MOCK_MORPHIC_OPERATOR,
     MOCK_MORPHIC_AGENT
 } from '../data/mockData';
@@ -1496,7 +1496,7 @@ const Developer: React.FC = () => {
                 visibility: agentFormState.visibility,
                 model_type: agentFormState.model_type,
                 logo: '/images/agent-default-logo.png',
-                labels: ['Xbot'],
+                labels: ['Chat','Xbot'],
                 users: 0,
                 rating: 0,
                 status: AgentStatus.Online,
@@ -1718,31 +1718,31 @@ const Developer: React.FC = () => {
     // 添加键盘事件处理
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (tosSubMenu === 'new-tos' && MOCK_MORPHIC_AI_TOS) {
+            if (tosSubMenu === 'new-tos' && MOCK_DEMO_TOS) {
                 if (event.ctrlKey && event.key === 'v') {
                     event.preventDefault();
 
                     setTosFormState({
                         id: generateRandomHex(32),
-                        name: MOCK_MORPHIC_AI_TOS.name || '',
-                        logo: MOCK_MORPHIC_AI_TOS.logo || DEFAULT_TOS_LOGO,
-                        website: MOCK_MORPHIC_AI_TOS.website || '',
-                        description: MOCK_MORPHIC_AI_TOS.description || '',
-                        vm_types: MOCK_MORPHIC_AI_TOS.vm_types || [],
+                        name: MOCK_DEMO_TOS.name || '',
+                        logo: MOCK_DEMO_TOS.logo || DEFAULT_TOS_LOGO,
+                        website: MOCK_DEMO_TOS.website || '',
+                        description: MOCK_DEMO_TOS.description || '',
+                        vm_types: MOCK_DEMO_TOS.vm_types || [],
                         creator: {
-                            address: MOCK_MORPHIC_AI_TOS.creator?.address || '',
-                            name: MOCK_MORPHIC_AI_TOS.creator?.name || '',
-                            logo: MOCK_MORPHIC_AI_TOS.creator?.logo || DEFAULT_CREATOR_LOGO
+                            address: MOCK_DEMO_TOS.creator?.address || '',
+                            name: MOCK_DEMO_TOS.creator?.name || '',
+                            logo: MOCK_DEMO_TOS.creator?.logo || DEFAULT_CREATOR_LOGO
                         },
-                        operator_minimum: MOCK_MORPHIC_AI_TOS.operator_minimum || 1,
-                        vcpus: MOCK_MORPHIC_AI_TOS.vcpus || 1,
-                        vmemory: MOCK_MORPHIC_AI_TOS.vmemory || 1,
-                        disk: MOCK_MORPHIC_AI_TOS.disk || 10,
-                        version: MOCK_MORPHIC_AI_TOS.version || '',
+                        operator_minimum: MOCK_DEMO_TOS.operator_minimum || 1,
+                        vcpus: MOCK_DEMO_TOS.vcpus || 1,
+                        vmemory: MOCK_DEMO_TOS.vmemory || 1,
+                        disk: MOCK_DEMO_TOS.disk || 10,
+                        version: MOCK_DEMO_TOS.version || '',
                         code: '',
-                        labels: MOCK_MORPHIC_AI_TOS.labels || [],
-                        dao: MOCK_MORPHIC_AI_TOS.dao || '',
-                        status: MOCK_MORPHIC_AI_TOS.status,
+                        labels: MOCK_DEMO_TOS.labels || [],
+                        dao: MOCK_DEMO_TOS.dao || '',
+                        status: MOCK_DEMO_TOS.status,
                     });
 
                     // 显示提示信息

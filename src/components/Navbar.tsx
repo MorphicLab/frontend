@@ -31,7 +31,7 @@ const Navbar = () => {
 
   const productMenu = [
     { name: 'Morphic AI', href: '/morphic-ai' },
-    { name: 'Morphic KMS', href: '/morphic-kms' }
+    // { name: 'Morphic KMS', href: '/morphic-kms' }
   ];
 
   // 获取 ENS 信息

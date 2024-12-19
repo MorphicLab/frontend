@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Info, Cpu } from 'lucide-react';
 import { TOS, Agent, Operator, Vm } from '../../data/define';
 import { useBlockchainStore } from '../store/chainStore';
-import { MOCK_MORPHIC_AI_TOS, MOCK_OPERATORS } from '../../data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { getMorphicAiTos, getMorphicAiOperators, getMorphicAiVms } from '../../tool/morphic';
 
