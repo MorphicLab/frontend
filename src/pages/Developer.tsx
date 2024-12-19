@@ -244,7 +244,8 @@ const Developer: React.FC = () => {
             await registerTos(newTos, dockerComposeBytes);
         }
         
-
+        // refresh tos list
+        useBlockchainStore.getState().initializeStore();
         setTosSubMenu('my-tos');
     };
 
@@ -299,6 +300,9 @@ const Developer: React.FC = () => {
         } else {
             await registerOperator(operatorFormState);
         }
+
+        // refresh operator list
+        useBlockchainStore.getState().initializeStore();
 
         // Navigate to my-operator page
         setOperatorSubMenu('my-operator');
@@ -512,7 +516,7 @@ const Developer: React.FC = () => {
                         </div>
 
                         {/* Staking Details */}
-                        <div className="bg-gray-800/50 rounded-xl p-6">
+                        {/* <div className="bg-gray-800/50 rounded-xl p-6">
                             <h3 className="text-lg font-semibold text-white mb-4">Staking Details</h3>
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
@@ -542,7 +546,7 @@ const Developer: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 );
 
@@ -1322,7 +1326,7 @@ const Developer: React.FC = () => {
                                                 </span>
                                             </div>
 
-                                            <div>
+                                            {/* <div>
                                                 <label className="block text-sm font-medium text-gray-400 mb-2">
                                                     Visibility
                                                 </label>
@@ -1334,7 +1338,34 @@ const Developer: React.FC = () => {
                                                     <option value={'private'}>Private</option>
                                                     <option value={'public'}>Public</option>
                                                 </select>
+                                            </div> */}
+
+                                            <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">
+                                                Agent Labels
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {agentLabels.map(label => (
+                                                    <button
+                                                        key={label}
+                                                        onClick={() => {
+                                                            const newLabels = agentFormState.labels.includes(label)
+                                                                ? agentFormState.labels.filter(l => l !== label)
+                                                                : [...agentFormState.labels, label];
+                                                            handleInputChange('labels', newLabels);
+                                                        }}
+                                                        className={`px-3 py-1 rounded-full text-sm transition-colors ${agentFormState.labels.includes(label)
+                                                                ? 'bg-morphic-primary text-white'
+                                                                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                                            }`}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                ))}
                                             </div>
+                                            </div>
+
+
                                         </div>
 
                                     </div>
@@ -1355,10 +1386,10 @@ const Developer: React.FC = () => {
                                                     value={agentFormState.memory_requirement}
                                                     onChange={(e) => handleAgentInputChange('memory_requirement', e.target.value)}
                                                 >
+                                                    <option value={'128M'}>128M</option>
+                                                    <option value={'256M'}>256M</option>
+                                                    <option value={'512M'}>512M</option>
                                                     <option value={'1G'}>1G</option>
-                                                    <option value={'2G'}>2G</option>
-                                                    <option value={'4G'}>4G</option>
-                                                    <option value={'8G'}>8G</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -1370,9 +1401,9 @@ const Developer: React.FC = () => {
                                                     value={agentFormState.storage_requirement}
                                                     onChange={(e) => handleAgentInputChange('storage_requirement', e.target.value)}
                                                 >
-                                                    <option value={'10G'}>10G</option>
-                                                    <option value={'20G'}>20G</option>
-                                                    <option value={'50G'}>50G</option>
+                                                    <option value={'1G'}>1G</option>
+                                                    <option value={'2G'}>2G</option>
+                                                    <option value={'5G'}>5G</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1513,6 +1544,7 @@ const Developer: React.FC = () => {
                 operator.domain,
                 docker_compose || '',
             );
+
 
             if (response) {
                 console.log('Agent deployed successfully:', response);
@@ -1764,7 +1796,8 @@ const Developer: React.FC = () => {
                     setOperatorFormState({
                         ...MOCK_MORPHIC_OPERATOR,
                         // Override some fields to make them unique
-                        name: `${MOCK_MORPHIC_OPERATOR.name} ${Math.floor(Math.random() * 1000)}`,
+                        // name: `${MOCK_MORPHIC_OPERATOR.name} ${Math.floor(Math.random() * 1000)}`,
+                        name: `${MOCK_MORPHIC_OPERATOR.name} ${451}`,
                         logo: MOCK_MORPHIC_OPERATOR.logo || DEFAULT_OPERATOR_LOGO,
                         labels: MOCK_MORPHIC_OPERATOR.labels || [],
                         description: MOCK_MORPHIC_OPERATOR.description || '',

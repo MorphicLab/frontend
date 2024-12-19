@@ -96,7 +96,7 @@ export const MOCK_MORPHIC_OPERATOR: Operator = {
         logo: "/images/morphic-logo-sm.png"
     },
     location: "US West",
-    domain: "66.220.6.113",
+    domain: "dev.morphic-test01.io", // 66.220.6.113
     port: 33010,
     vm_ids: {},
     num_stakers: 1000,

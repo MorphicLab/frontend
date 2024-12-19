@@ -7,7 +7,8 @@ export async function getQuoteList(operatorDomain: string, operatorPort: number)
     try {
         let agentId = '';
         // TODO : get ip and port from agent
-        const response = await fetch(`http://${operatorDomain}:${operatorPort}/agents`);
+        const response = await fetch(`http://http://66.220.6.113:33010/agents`);
+        // const response = await fetch(`http://${operatorDomain}:${operatorPort}/agents`);
         if (!response.ok) {
             const error = await response.text();
             throw new Error(error);
@@ -16,7 +17,8 @@ export async function getQuoteList(operatorDomain: string, operatorPort: number)
         const randomIndex = Math.floor(Math.random() * jsonAgent.agents.length);
         agentId = jsonAgent.agents[randomIndex].id;
 
-        const responseQuote = await fetch(`http://${operatorDomain}:${operatorPort}/agents/${agentId}/quote`);
+        const responseQuote = await fetch(`http://66.220.6.113:33010/agents/07b6bf73-fe56-0327-ad9a-9be8fa688dc3/quote`);
+        // const responseQuote = await fetch(`http://${operatorDomain}:${operatorPort}/agents/${agentId}/quote`);
         if (!responseQuote.ok) {
             const error = await responseQuote.text();
             throw new Error(error);

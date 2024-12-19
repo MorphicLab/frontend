@@ -23,7 +23,7 @@ import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';
 import { generateVmsForToss } from '../data/mockDataGenerator';
-import { Vm, VmStatus } from '../data/define';
+import { TosStatus, Vm, VmStatus } from '../data/define';
 
 ChartJS.register(
     CategoryScale,
@@ -313,14 +313,17 @@ const TosDetail: React.FC = () => {
                                             <h1 className="text-3xl font-bold text-white">
                                                 {tos.name}
                                             </h1>
-                                            <button
-                                                onClick={() => setShowVerification(true)}
-                                                className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
-                                                text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
-                                            >
-                                                <Shield className="h-4 w-4" />
-                                                <span>Verify</span>
-                                            </button>
+                                            <div className="flex items-center space-x-2">
+                                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                                    tos.status === TosStatus.Active 
+                                                    ? 'bg-green-500/20 text-green-500'
+                                                    : tos.status === TosStatus.Waiting
+                                                    ? 'bg-yellow-500/20 text-yellow-500'
+                                                    : 'bg-gray-500/20 text-gray-500'
+                                                }`}>
+                                                    {TosStatus[tos.status].toLowerCase()}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="flex items-center text-gray-400 mt-2">
                                             <span className="font-mono">{tos.id.slice(0, 6)}...{tos.id.slice(-4)}</span>
@@ -328,6 +331,14 @@ const TosDetail: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+                                <button
+                                    onClick={() => setShowVerification(true)}
+                                    className="flex items-center space-x-1 px-3 py-1 bg-morphic-primary/10 
+                                    text-morphic-primary rounded-full text-sm hover:bg-morphic-primary/20 transition-colors"
+                                >
+                                    <Shield className="h-4 w-4" />
+                                    <span>Verify</span>
+                                </button>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -395,9 +406,8 @@ const TosDetail: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-white font-mono text-sm mt-1">
-                                        {tos.address || 'Address not available'} <span className="text-gray-400 text-sm ml-1"> (The TOS account shared by shards) </span>
+                                        {tosOperators.length < tos.operator_minimum ? 'N/A' : tos.address || 'Address not available'} <span className="text-gray-400 text-sm ml-1"> (The TOS account shared by shards) </span>
                                     </div>
-                                    
                                 </div>
 
                                 {/* Finality */}
@@ -412,7 +422,7 @@ const TosDetail: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-white font-mono text-sm mt-1 flex items-center">
-                                        <span className="mr-2">TEE</span>
+                                        <span className="mr-2" style={{ color: tosOperators.length < tos.operator_minimum ? '#6B7280' : '' }}>TEE</span>
                                         <span className="flex items-center space-x-2">
                                             {Array.from(new Set(tosVms.map(vm => vm.type))).map(label => (
                                                 <span
@@ -439,7 +449,7 @@ const TosDetail: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-white font-mono text-sm mt-1 flex items-center">
-                                        <span className="mr-2">TEE</span>
+                                        <span className="mr-2" style={{ color: tosOperators.length < tos.operator_minimum ? '#6B7280' : '' }}>TEE</span>
                                         <span className="flex items-center space-x-2">
                                             {Array.from(new Set(tosVms.map(vm => vm.type))).map(label => (
                                                 <span
@@ -457,10 +467,9 @@ const TosDetail: React.FC = () => {
                         </motion.div>
 
                         {/* Stake Area */}
-                        <div className="bg-gray-800 rounded-xl p-6">
+                        {/* <div className="bg-gray-800 rounded-xl p-6">
                             <h2 className="text-xl font-semibold text-white mb-4">Stake</h2>
                             <div className="space-y-3">
-                                {/* ETH */}
                                 <div className="bg-gray-700/50 rounded-lg px-4 py-3 hover:bg-gray-700 transition-colors">
                                     <div className="flex items-center">
                                         <span className="text-gray-400 text-sm w-16">ETH</span>
@@ -470,8 +479,6 @@ const TosDetail: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* USDT */}
                                 <div className="bg-gray-700/50 rounded-lg px-4 py-3 hover:bg-gray-700 transition-colors">
                                     <div className="flex items-center">
                                         <span className="text-gray-400 text-sm w-16">USDT</span>
@@ -482,7 +489,7 @@ const TosDetail: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Virtual Machines */}
                         <motion.div

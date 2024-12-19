@@ -44,6 +44,27 @@ function generateMockOperators(count: number): Operator[] {
         const address = `0x${Math.random().toString(16).slice(2)}B4cF539739dF2C5dAcb4c659F2488E2c340d5820`.slice(0, 42);
         const port = Math.floor(Math.random() * 65535) + 1;
 
+        if (i == 10) {         // TODO: remove this block
+            operators.push({
+                id: `0x${Math.random().toString(16).slice(2)}B4cF539739dF2C5dAcb4c659F2488E2c340d5820`.slice(0, 42),
+                name: `Morphic Op 451`,
+                logo: `/images/morphic-logo-sm.png`,
+                labels: ['TDX'],
+                owner: {
+                    name: ``,
+                    logo: `/images/morphic-logo-sm.png`,
+                    address: `0x${Math.random().toString(16).slice(2)}B4cF539739dF2C5dAcb4c659F2488E2c340d5820`.slice(0, 42)
+                },
+                location: ['USA', 'Europe', 'Asia'][Math.floor(Math.random() * 3)],
+                domain: '',
+                port: 0,
+                vm_ids: {},
+                description: 'Specialized in ai',
+                num_stakers: 0,
+                reputation: 0
+            });
+        }
+
         operators.push({
             id: address,
             name: `${provider.name} Op ${i + 1}`,

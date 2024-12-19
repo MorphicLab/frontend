@@ -27,7 +27,8 @@ export async function deployAgent(agent: Agent, operatorDomain: string, docker_c
     }
 
     try {
-        const response = await fetch(`http://${operatorDomain}:${VM_MANAGEMENT_CONSOLE_PORT}/prpc/Teepod.CreateVm?json`, {
+        const response = await fetch(`http://66.220.6.113:33001/prpc/Teepod.CreateVm?json`, {
+        // const response = await fetch(`http://${operatorDomain}:${VM_MANAGEMENT_CONSOLE_PORT}/prpc/Teepod.CreateVm?json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -86,7 +87,8 @@ export async function getAgentListByOperator(operatorDomain: string): Promise<Ag
         const headers = {
             'Content-Type': 'application/json',
         };
-        const response = await fetch(`http://${operatorDomain}:${VM_MANAGEMENT_CONSOLE_PORT}/prpc/Teepod.Status?json`, {
+        const response = await fetch(`http://66.220.6.113:33001/prpc/Teepod.Status?json`, {
+        // const response = await fetch(`http://${operatorDomain}:${VM_MANAGEMENT_CONSOLE_PORT}/prpc/Teepod.Status?json`, {
             method: 'GET',
             headers
         });

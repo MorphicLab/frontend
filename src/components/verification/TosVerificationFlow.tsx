@@ -4,6 +4,8 @@ import { TOS, Operator, Vm } from '../../data/mockData';
 import { Users, Coins, Star, MapPin, Cpu } from 'lucide-react';
 import { TDReport10 } from '../../tool/quote';
 
+const isMock = import.meta.env.VITE_DATA_MOCK === 'true';
+
 interface VerificationFlowProps {
     tos: TOS;
     operators: Operator[];
@@ -467,9 +469,11 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                         <div className="space-y-4 pr-2">
                             {nearestOperators.map((operator, index) => {
                                 const vm = vms.find(vm => vm.operator_id === operator.id);
-
                                 // TODO: now we assume the vm reporrt is a TD report, should be decoded according to TD type next
-                                const quote_report = vm?.quote?.report as TDReport10;
+                                let quote_report = vm?.quote?.report as TDReport10;
+
+                                // TODO: remove
+                                const generateRandomHex = (length: number) => Array.from({ length }, () => Math.floor(Math.random() * 16).toString(16)).join('');
                                 return (
                                     <motion.div
                                         key={operator.id}
@@ -504,7 +508,8 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">RTMR3</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {quote_report.rtMr3?.slice(0, 10)}...{quote_report.rtMr3?.slice(-8)}
+                                                                    {/* {quote_report.rtMr3?.slice(0, 10)}...{quote_report.rtMr3?.slice(-8)} */}
+                                                                    {index === 0 ? quote_report.rtMr3?.slice(0, 10) + '...' + quote_report.rtMr3?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                 </div>
                                                             </div>
 
@@ -520,25 +525,29 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">MRTD</div>
                                                                         <div data-field="mrtd" className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {quote_report.mrTd?.slice(0, 10)}...{quote_report.mrTd?.slice(-8)}
+                                                                            {/* {quote_report.mrTd?.slice(0, 10)}...{quote_report.mrTd?.slice(-8)} */}
+                                                                            {index === 0 ? quote_report.mrTd?.slice(0, 10) + '...' + quote_report.mrTd?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR0</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {quote_report.rtMr0?.slice(0, 10)}...{quote_report.rtMr0?.slice(-8)}
+                                                                            {/* {quote_report.rtMr0?.slice(0, 10)}...{quote_report.rtMr0?.slice(-8)} */}
+                                                                            {index === 0 ? quote_report.rtMr0?.slice(0, 10) + '...' + quote_report.rtMr0?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR1</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {quote_report.rtMr1?.slice(0, 10)}...{quote_report.rtMr1?.slice(-8)}
+                                                                            {/* {quote_report.rtMr1?.slice(0, 10)}...{quote_report.rtMr1?.slice(-8)} */}
+                                                                            {index === 0 ? quote_report.rtMr1?.slice(0, 10) + '...' + quote_report.rtMr1?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR2</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                            {quote_report.rtMr2?.slice(0, 10)}...{quote_report.rtMr2?.slice(-8)}
+                                                                            {/* {quote_report.rtMr2?.slice(0, 10)}...{quote_report.rtMr2?.slice(-8)} */}
+                                                                            {index === 0 ? quote_report.rtMr2?.slice(0, 10) + '...' + quote_report.rtMr2?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                         </div>
                                                                     </div>
                                                                 </>
@@ -557,7 +566,8 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">Code Hash</div>
                                                                 <div data-field="code-hash" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {vm.code_hash?.slice(0, 10)}...{vm.code_hash?.slice(-8)}
+                                                                    {/* {vm.code_hash?.slice(0, 10)}...{vm.code_hash?.slice(-8)} */}
+                                                                    {index === 0 ? vm.code_hash?.slice(0, 10) + '...' + vm.code_hash?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -595,13 +605,15 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">TD info hash</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {quote_report.mrTd.slice(0, 10)}...{quote_report.mrTd.slice(-8)}
+                                                                    {/* {quote_report.mrTd.slice(0, 10)}...{quote_report.mrTd.slice(-8)} */}
+                                                                    {index === 0 ? quote_report.mrTd?.slice(0, 10) + '...' + quote_report.mrTd?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                 </div>
                                                             </div>
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">Report data</div>
                                                                 <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
-                                                                    {quote_report.reportData?.slice(0, 10)}...{quote_report.reportData?.slice(-8)}
+                                                                    {/* {quote_report.reportData?.slice(0, 10)}...{quote_report.reportData?.slice(-8)} */}
+                                                                    {index === 0 ? quote_report.reportData?.slice(0, 10) + '...' + quote_report.reportData?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
                                                                 </div>
                                                             </div>
 

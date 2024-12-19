@@ -93,7 +93,8 @@ const AgentChat = () => {
     setInputMessage('');
 
     // request app api
-    fetch(`http://${agent.operator_domain}:${agent.operator_port}/${chatbotAgentId}/message`, {
+    fetch(`http://66.220.6.113:33010/07b6bf73-fe56-0327-ad9a-9be8fa688dc3/message`, {
+    // fetch(`http://${agent.operator_domain}:${agent.operator_port}/${chatbotAgentId}/message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -112,6 +113,7 @@ const AgentChat = () => {
     })
     .then(data => {
         data.payload.forEach((item: { text: string }, index: number) => {
+          if (index > 0) return; // TODO: remove
           const agentResponse: Message = {
             id: (Date.now() + index).toString(),
             type: 'agent',
