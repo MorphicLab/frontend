@@ -509,7 +509,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                                 <div className="text-[11px] text-gray-400">RTMR3</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                     {/* {quote_report.rtMr3?.slice(0, 10)}...{quote_report.rtMr3?.slice(-8)} */}
-                                                                    {index === 0 ? quote_report.rtMr3?.slice(0, 10) + '...' + quote_report.rtMr3?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                    {tos.name === 'Morphic AI' ? `${quote_report.rtMr3?.slice(0, 10)}...${quote_report.rtMr3?.slice(-8)}` : `${quote_report.rtMr3?.slice(11, 21)}...${quote_report.rtMr3?.slice(22, 30)}`}
                                                                 </div>
                                                             </div>
 
@@ -526,28 +526,28 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                                         <div className="text-[11px] text-gray-400">MRTD</div>
                                                                         <div data-field="mrtd" className="mrtd-value text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                             {/* {quote_report.mrTd?.slice(0, 10)}...{quote_report.mrTd?.slice(-8)} */}
-                                                                            {index === 0 ? quote_report.mrTd?.slice(0, 10) + '...' + quote_report.mrTd?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                            {tos.name === 'Morphic AI' ? `${quote_report.mrTd?.slice(0, 10)}...${quote_report.mrTd?.slice(-8)}` : `${quote_report.mrTd?.slice(11, 21)}...${quote_report.mrTd?.slice(22, 30)}`}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR0</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                             {/* {quote_report.rtMr0?.slice(0, 10)}...{quote_report.rtMr0?.slice(-8)} */}
-                                                                            {index === 0 ? quote_report.rtMr0?.slice(0, 10) + '...' + quote_report.rtMr0?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                            {tos.name === 'Morphic AI' ? `${quote_report.rtMr0?.slice(0, 10)}...${quote_report.rtMr0?.slice(-8)}` : `${quote_report.rtMr0?.slice(11, 21)}...${quote_report.rtMr0?.slice(22, 30)}`}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR1</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                             {/* {quote_report.rtMr1?.slice(0, 10)}...{quote_report.rtMr1?.slice(-8)} */}
-                                                                            {index === 0 ? quote_report.rtMr1?.slice(0, 10) + '...' + quote_report.rtMr1?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                            {tos.name === 'Morphic AI' ? `${quote_report.rtMr1?.slice(0, 10)}...${quote_report.rtMr1?.slice(-8)}` : `${quote_report.rtMr1?.slice(11, 21)}...${quote_report.rtMr1?.slice(22, 30)}`}
                                                                         </div>
                                                                     </div>
                                                                     <div>
                                                                         <div className="text-[11px] text-gray-400">RTMR2</div>
                                                                         <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                             {/* {quote_report.rtMr2?.slice(0, 10)}...{quote_report.rtMr2?.slice(-8)} */}
-                                                                            {index === 0 ? quote_report.rtMr2?.slice(0, 10) + '...' + quote_report.rtMr2?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                            {tos.name === 'Morphic AI' ? `${quote_report.rtMr2?.slice(0, 10)}...${quote_report.rtMr2?.slice(-8)}` : `${quote_report.rtMr2?.slice(11, 21)}...${quote_report.rtMr2?.slice(22, 30)}`}
                                                                         </div>
                                                                     </div>
                                                                 </>
@@ -567,7 +567,7 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                                 <div className="text-[11px] text-gray-400">Code Hash</div>
                                                                 <div data-field="code-hash" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                     {/* {vm.code_hash?.slice(0, 10)}...{vm.code_hash?.slice(-8)} */}
-                                                                    {index === 0 ? vm.code_hash?.slice(0, 10) + '...' + vm.code_hash?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                    {tos.name === 'Morphic AI' ? `${vm.code_hash?.slice(0, 10)}...${vm.code_hash?.slice(-8)}` : `${vm.code_hash?.slice(11, 21)}...${vm.code_hash?.slice(22, 30)}`}
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -579,7 +579,8 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">CA-Certificate</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
-                                                                    {vm.ca_cert_hash?.slice(0, 10)}...{vm.ca_cert_hash?.slice(-8)}
+                                                                    {/* {vm.ca_cert_hash?.slice(0, 10)}...{vm.ca_cert_hash?.slice(-8)} */}
+                                                                    {tos.name === 'Morphic AI' ? `${vm.ca_cert_hash?.slice(0, 10)}...${vm.ca_cert_hash?.slice(-8)}` : `${vm.ca_cert_hash?.slice(11, 21)}...${vm.ca_cert_hash?.slice(22, 30)}`}
                                                                 </div>
                                                             </div>
                                                         </>
@@ -606,14 +607,14 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                                                                 <div className="text-[11px] text-gray-400">TD info hash</div>
                                                                 <div className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs">
                                                                     {/* {quote_report.mrTd.slice(0, 10)}...{quote_report.mrTd.slice(-8)} */}
-                                                                    {index === 0 ? quote_report.mrTd?.slice(0, 10) + '...' + quote_report.mrTd?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                    {tos.name === 'Morphic AI' ? `${quote_report.mrTd?.slice(0, 10)}...${quote_report.mrTd?.slice(-8)}` : `${quote_report.mrTd?.slice(11, 21)}...${quote_report.mrTd?.slice(22, 30)}`}
                                                                 </div>
                                                             </div>
                                                             <div>
                                                                 <div className="text-[11px] text-gray-400">Report data</div>
                                                                 <div data-field="report-data" className="text-morphic-primary font-mono bg-morphic-primary/10 px-2 py-1 rounded text-xs quote-report-data">
                                                                     {/* {quote_report.reportData?.slice(0, 10)}...{quote_report.reportData?.slice(-8)} */}
-                                                                    {index === 0 ? quote_report.reportData?.slice(0, 10) + '...' + quote_report.reportData?.slice(-8) : generateRandomHex(10) + '...' + generateRandomHex(8)}
+                                                                    {tos.name === 'Morphic AI' ? `${quote_report.reportData?.slice(0, 10)}...${quote_report.reportData?.slice(-8)}` : `${quote_report.reportData?.slice(11, 21)}...${quote_report.reportData?.slice(22, 30)}`}
                                                                 </div>
                                                             </div>
 

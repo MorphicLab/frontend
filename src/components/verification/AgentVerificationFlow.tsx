@@ -184,6 +184,8 @@ export const AgentVerificationFlow: React.FC<AgentVerificationFlowProps> = ({
         }
     `;
 
+    agent.code_hash = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''); // TODO: remove
+
     return (
         <div
             className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50"
