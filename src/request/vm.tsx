@@ -33,6 +33,14 @@ const VM_ABI = [
     "function get_vm_by_index(uint256 index) view returns (tuple(bytes20 id, string vm_type, bytes16 tos_id, address operator_id, uint8 status, string code_hash))"
 ];
 
+const TIMEOUT = 500; // 1秒超时
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = TIMEOUT): Promise<T> {
+    const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Operation timed out')), timeoutMs);
+    });
+    return Promise.race([promise, timeout]);
+}
 
 // Create contract instance
 export async function createContractInstance() {
@@ -41,9 +49,9 @@ export async function createContractInstance() {
     }
 
     // Request user to connect MetaMask
-    const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-    });
+    const accounts = await withTimeout(
+        window.ethereum.request({ method: 'eth_requestAccounts' })
+    );
 
     if (!accounts || accounts.length === 0) {
         throw new Error('Failed to get wallet account');
@@ -51,17 +59,18 @@ export async function createContractInstance() {
 
     // Create provider and signer using ethers v6
     const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    const signer = await withTimeout(provider.getSigner());
 
     // Verify contract address
     if (!VM_CONTRACT_ADDRESS) {
         throw new Error('Contract address not configured');
     }
 
-    // Create and return contract instance
-    return new ethers.Contract(
-        VM_CONTRACT_ADDRESS,
-        VM_ABI,
-        signer
-    );
+    // Create contract instance with timeout
+    const contract = await withTimeout(Promise.resolve(new ethers.Contract(VM_CONTRACT_ADDRESS, VM_ABI, signer)));
+
+    // Verify contract is accessible
+    await withTimeout(contract.runner?.provider?.getCode(VM_CONTRACT_ADDRESS) || Promise.reject('No provider'));
+
+    return contract;
 }

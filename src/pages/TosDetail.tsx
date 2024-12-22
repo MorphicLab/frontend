@@ -18,7 +18,7 @@ import { MOCK_TOS, MOCK_OPERATORS, MOCK_VMs } from '../data/mockData';
 import { ThinOperatorCard } from '../components/cards/ThinOperatorCard';
 import { VerificationFlow } from '../components/verification/TosVerificationFlow';
 import { useBlockchainStore } from '../components/store/chainStore';
-import { useOffChainStore } from '../components/store/offChainStore';
+import { useOffChainStore } from '../components/store/OffChainStore';
 import { hexlify } from 'ethers';
 import { createContractInstance } from '../request/vm';
 import { ThinVmCard } from '../components/cards/ThinVmCard';

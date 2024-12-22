@@ -1,6 +1,6 @@
 import { Agent, AgentStatus } from '../data/define';
 import { MOCK_MORPHIC_AGENT } from '../data/mockData.ts';
-import { useOffChainStore } from '../components/store/offChainStore.tsx';
+import { useOffChainStore } from '../components/store/OffChainStore.tsx';
 
 const AGENT_PREFIX = 'agent-';
 const VM_MANAGEMENT_CONSOLE_PORT = 33001;

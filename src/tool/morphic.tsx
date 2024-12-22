@@ -1,13 +1,8 @@
 import { TOS, Operator } from "../data/define";
-import { MOCK_MORPHIC_AI_TOS } from "../data/mockData";
+
 
 const getMorphicAiTos = (toss: TOS[]): TOS => {
-    let morphicai_tos: TOS;
-    if (!toss || toss.filter(tos => tos.name === 'Morphic AI').length === 0) {
-        morphicai_tos = MOCK_MORPHIC_AI_TOS;
-    } else {
-        morphicai_tos = toss.filter(tos => tos.name === 'Morphic AI')[0];
-    }
+    const morphicai_tos = toss.filter(tos => tos.name === 'Morphic AI')[0];
     return morphicai_tos;
 }
 

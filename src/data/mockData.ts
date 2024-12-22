@@ -50,7 +50,7 @@ export const MOCK_DEMO_TOS: TOS = {
     id: '0xa493701b9e9ae6b259d2cd51df6b6800',
     name: 'Demo App',
     logo: '/images/kms-logo.ico',
-    website: '/morphic-ai',
+    website: '/morphic-demo',
     description: 'A demo TOS for showcasing the registration of new TOS and operators ...',
     vm_types: ['TDX', 'SEV', 'Nitro'],
     creator: {
@@ -83,6 +83,7 @@ export const MOCK_OPERATORS = generateMockOperators(61);
 
 const { vms } = generateVmsForToss(MOCK_TOS, MOCK_OPERATORS);
 export const MOCK_VMs = vms;
+
 
 
 export const MOCK_MORPHIC_OPERATOR: Operator = {

@@ -33,7 +33,7 @@ import { TOS, Operator, Agent, Vm, TosStatus, VmStatus, AgentStatus } from '../d
 import { createContractInstance } from '../request/vm'; // Import the createContractInstance function
 import { deployAgent } from '../request/operator';
 import { useBlockchainStore } from '../components/store/chainStore';
-import { useOffChainStore } from '../components/store/offChainStore';
+import { useOffChainStore } from '../components/store/OffChainStore';
 import { DEFAULT_TOS_LOGO, DEFAULT_CREATOR_LOGO, DEFAULT_OPERATOR_LOGO, DEFAULT_OPERATOR_OWNER_LOGO, DEFAULT_AGENT_LOGO } from '../data/constant';
 import { MOCK_AGENTS } from '../data/mockBackup';
 import { getMorphicAiTos, getMorphicAiOperators } from '../tool/morphic';
@@ -74,7 +74,7 @@ const Developer: React.FC = () => {
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-        useOffChainStore.getState().initializeStore(morphicaiOperators, myMorphicAiOperators);
+        useOffChainStore.getState().initializeStore(morphicaiOperators);
     }, []);
 
 
@@ -1553,7 +1553,7 @@ const Developer: React.FC = () => {
                 alert('Agent deployed successfully!');
 
                 // refresh agent list
-                useOffChainStore.getState().initializeStore(allOperators, myOperators);
+                useOffChainStore.getState().initializeStore(allOperators);
                 setAgentSubMenu('my-agent');
             } else {
                 alert('Failed to deploy agent!');

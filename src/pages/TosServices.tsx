@@ -20,8 +20,8 @@ const TosServices: React.FC = () => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
-                const hasMorphicAI = allTOS.some(tos => tos.name === 'Morphic AI');
-                if (!hasMorphicAI) {
+                const hasDemoTos = allTOS.some(tos => tos.name === 'Morphic AI');
+                if (!hasDemoTos) {
                     addTOS(MOCK_DEMO_TOS);
                 }
             }
@@ -30,6 +30,8 @@ const TosServices: React.FC = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [allTOS, addTOS]);
+
+    console.log('allTOS', allTOS);
 
     // 计算总质押价值（美元）
     const totalStaked = allTOS.reduce((total, tos) => total + ((tos.restaked || 0) * ethPrice), 0);

@@ -3,7 +3,6 @@ import { getAgentListByOperator } from '../../request/operator';
 import { getQuoteList } from '../../request/quote';
 import { Operator, Agent, Vm } from '../../data/define';
 import { MOCK_AGENTS } from '../../data/mockData';
-import { getMorphicAiOperators } from '../../tool/morphic';
 
 // 定义 OffChainStore 状态接口
 interface OffChainStore {
@@ -14,12 +13,12 @@ interface OffChainStore {
     fetchAgents: (morphiAiOperator: Operator) => Promise<void>;
     fetchQuotes: (morphiAiOperator: Operator) => Promise<void>;
 
-    initializeStore: (morphicAiOperators: Operator[], myMorphicAiOperators: Operator[]) => Promise<void>;
+    initializeStore: (morphicAiOperators: Operator[]) => Promise<void>;
 }
 
 const isMock = import.meta.env.VITE_DATA_MOCK === 'true';
 
-// 创建 OffChainStore
+// Create OffChainStore
 export const useOffChainStore = create<OffChainStore>((set) => ({
     allAgents: [],
     myAgents: [],
@@ -61,15 +60,16 @@ export const useOffChainStore = create<OffChainStore>((set) => ({
             set({ quotes });
             
         } catch (error) {
-            console.error('failed to get quote list:', error);
+            console.warn('failed to get quote list:', error);
         }
     },
 
-    initializeStore: async (morphicAiOperators: Operator[], myMorphicAiOperators: Operator[]) => {
-        // TODO: should allow to fetch agents from any operator in the future
-        if (myMorphicAiOperators.length > 0) {
-            await useOffChainStore.getState().fetchAgents(myMorphicAiOperators[0]);
-            await useOffChainStore.getState().fetchQuotes(myMorphicAiOperators[0]);
+    initializeStore: async (morphicAiOperators: Operator[]) => {
+        if (morphicAiOperators.length > 0) {
+            await useOffChainStore.getState().fetchAgents(morphicAiOperators[0]);
+            await useOffChainStore.getState().fetchQuotes(morphicAiOperators[0]);
+        } else {
+            console.warn('No Morphic AI operators found');
         }
     },
 }));

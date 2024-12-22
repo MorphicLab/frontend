@@ -11,8 +11,7 @@ import { SearchAndFilter, useSearchAndFilter } from '../components/common/Search
 import { AgentCard } from '../components/cards/AgentCard';
 import { useBlockchainStore } from '../components/store/chainStore';
 import { useEffect } from 'react';
-import { useOffChainStore } from '../components/store/offChainStore';
-import { useMemo } from 'react';
+import { useOffChainStore } from '../components/store/OffChainStore';
 import { getMorphicAiTos, getMorphicAiOperators } from '../tool/morphic';
 
 const Product = () => {
@@ -20,24 +19,19 @@ const Product = () => {
 
     useEffect(() => {
         useBlockchainStore.getState().initializeStore();
-        useOffChainStore.getState().initializeStore(morphicaiOperators, myMorphicaiOperators);
+        useOffChainStore.getState().initializeStore(morphicaiOperators);
     }, []);
 
     const { toss: allToss, operators: allOperators} = useBlockchainStore.getState();
+    console.log('allToss:', allToss);
+    console.log('allOperators:', allOperators);
 
     const morphicaiTos = getMorphicAiTos(allToss);
     const morphicaiOperators = getMorphicAiOperators(morphicaiTos, allOperators);
-
-    const myMorphicaiOperators = useMemo(() => {
-        const selectedAddress = window.ethereum?.selectedAddress.toLowerCase();
-        if (!selectedAddress) return [];
-        return morphicaiOperators.filter(op =>
-            op.owner.address.toLowerCase() === selectedAddress
-        );
-    }, [morphicaiOperators]);
+    console.log('morphicaiTos:', morphicaiTos);
+    console.log('morphicaiOperators:', morphicaiOperators);
 
     const allAgents = useOffChainStore(state => state.allAgents);
-
 
     const features = [
         {

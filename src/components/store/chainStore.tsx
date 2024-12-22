@@ -181,6 +181,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
         const fetchedVms: Vm[] = [];
 
         if (import.meta.env.VITE_ON_CHAIN_API_MOCK === 'false') {
+
             try {
                 const contract = await createContractInstance();
                 const totalVms = await contract.total_vms();
@@ -385,7 +386,7 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
                 newOperator.logo || DEFAULT_OPERATOR_LOGO,
                 newOperator.labels,
                 newOperator.description,
-                contract?.runner?.address, // Use connected wallet as owner
+                contract?.runner?.address || ethers.ZeroAddress, // Use connected wallet as owner
                 newOperator.owner.name || '',
                 newOperator.owner.logo || DEFAULT_OPERATOR_OWNER_LOGO,
                 newOperator.location || '',
@@ -490,9 +491,12 @@ export const useBlockchainStore = create<BlockchainStore>((set, get) => ({
 
     initializeStore: async () => {
         try {
-            await get().fetchEthPrice();  // 先获取 ETH 价格
+            await get().fetchEthPrice();  // fetch ETH price first
+            console.log('fetching toss');
             await get().fetchTOSs();
+            console.log('fetching operators');
             await get().fetchOperators();
+            console.log('fetching vms');
             await get().fetchVms();
         } catch (error) {
             console.error('Failed to initialize store:', error);
