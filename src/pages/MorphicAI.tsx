@@ -11,7 +11,7 @@ import { SearchAndFilter, useSearchAndFilter } from '../components/common/Search
 import { AgentCard } from '../components/cards/AgentCard';
 import { useBlockchainStore } from '../components/store/chainStore';
 import { useEffect } from 'react';
-import { useOffChainStore } from '../components/store/OffChainStore';
+import { useOffChainStore } from '../components/store/offChainStore';
 import { getMorphicAiTos, getMorphicAiOperators } from '../tool/morphic';
 
 const Product = () => {

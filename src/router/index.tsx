@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import TosServices from '../pages/TosServices';
@@ -12,6 +12,7 @@ import AgentDetail from '../pages/AgentDetail';
 import MorphicKMS from '../pages/MorphicKMS';
 import OperatorDetail from '../pages/OperatorDetail';
 import VmDetail from '../pages/VmDetail';
+import features from '../config/features';
 
 const router = createBrowserRouter([
   {
@@ -25,20 +26,22 @@ const router = createBrowserRouter([
         path: '/home',
         element: <Home />
       },
-      {
-        path: '/tos-services',
-        element: <TosServices />
-      },
-      {
-        path: '/tos-services/:id',
-        element: <TosDetail />
-      },
-      {
-        path: '/tos-operators',
-        element: <TosOperators />
-      },
-      {
-        path: '/developer',
+      // Conditionally render routes based on feature flag
+      ...(features.SHOW_ALL_PAGES ? [
+        {
+          path: '/tos-services',
+          element: <TosServices />
+        },
+        {
+          path: '/tos-services/:id',
+          element: <TosDetail />
+        },
+        {
+          path: '/tos-operators',
+          element: <TosOperators />
+        },
+        {
+          path: '/developer',
         element: <Developer />
       },
       {
@@ -69,6 +72,13 @@ const router = createBrowserRouter([
         path: '/vm/:id',
         element: <VmDetail />
       }
+      ] : [
+        // Redirect all other routes to home when feature flag is off
+        {
+          path: '*',
+          element: <Navigate to="/" replace />
+        }
+      ])
     ]
   }
 ]);
