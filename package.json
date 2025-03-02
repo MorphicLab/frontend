@@ -13,11 +13,13 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
+    "@emailjs/browser": "^4.4.1",
     "@types/react-transition-group": "^4.4.10",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.22.2",
     "axios": "^1.7.9",
     "chart.js": "^4.4.1",
+    "emailjs-com": "^3.2.0",
     "ethers": "^6",
     "framer-motion": "^11.0.8",
     "lucide-react": "^0.344.0",
@@ -27,8 +29,11 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.2",
     "react-tooltip": "^5.28.0",
+    "react-tsparticles": "^2.12.2",
     "scale-ts": "^1.6.1",
     "styled-components": "^6.1.13",
+    "tsparticles": "^3.8.1",
+    "tsparticles-slim": "^2.12.0",
     "zustand": "^5.0.1"
   },
   "devDependencies": {

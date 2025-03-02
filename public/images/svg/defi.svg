@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- DeFi elements: coins, charts, and financial symbols -->
+  <g fill="none" stroke="#46dce1" stroke-width="1.2">
+    <!-- Stylized coin stack -->
+    <ellipse cx="40" cy="85" rx="15" ry="5" fill="#46dce110" />
+    <ellipse cx="40" cy="80" rx="15" ry="5" fill="#46dce110" />
+    <ellipse cx="40" cy="75" rx="15" ry="5" fill="#46dce110" />
+    <ellipse cx="40" cy="70" rx="15" ry="5" fill="#46dce110" />
+    
+    <!-- Dollar symbol -->
+    <path d="M40,55 L40,90" stroke-width="1" />
+    <path d="M35,60 C35,55 45,55 45,60 C45,65 35,65 35,70 C35,75 45,75 45,70" stroke-width="1" />
+    
+    <!-- Chart -->
+    <rect x="65" y="60" width="40" height="30" fill="#46dce108" rx="2" ry="2" />
+    <polyline points="70,85 75,75 80,80 85,65 90,70 95,60 100,65" stroke-width="1" />
+    
+    <!-- Nodes and connections -->
+    <circle cx="30" cy="30" r="8" fill="#46dce110" />
+    <circle cx="60" cy="30" r="8" fill="#46dce110" />
+    <circle cx="90" cy="30" r="8" fill="#46dce110" />
+    
+    <line x1="38" y1="30" x2="52" y2="30" />
+    <line x1="68" y1="30" x2="82" y2="30" />
+    <line x1="30" y1="38" x2="40" y2="65" />
+    <line x1="90" y1="38" x2="85" y2="60" />
+    
+    <!-- Pulse animations -->
+    <circle cx="45" cy="30" r="2" fill="#46dce1">
+      <animate attributeName="cx" values="38;52" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+    </circle>
+    
+    <circle cx="75" cy="30" r="2" fill="#46dce1">
+      <animate attributeName="cx" values="68;82" dur="1.8s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" />
+    </circle>
+    
+    <circle cx="35" cy="50" r="2" fill="#46dce1">
+      <animate attributeName="cx" values="30;40" dur="2.5s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="38;65" dur="2.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+    
+    <circle cx="87" cy="50" r="2" fill="#46dce1">
+      <animate attributeName="cx" values="90;85" dur="2.2s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="38;60" dur="2.2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Price ticker -->
+    <text x="70" y="75" font-family="monospace" font-size="6" fill="#46dce1">
+      <tspan>ETH: 3.2K</tspan>
+    </text>
+  </g>
+</svg>
