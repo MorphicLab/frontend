@@ -21,9 +21,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ showAllPages }) => {
     // Force showAllPages to be a boolean value
-    const showPages = showAllPages === true;
     console.log('showAllPages prop value:', showAllPages);
-    console.log('showPages value:', showPages);
     const [tosMenuOpen, setTosMenuOpen] = useState(false);
     const [productMenuOpen, setProductMenuOpen] = useState(false);
     const [account, setAccount] = useState<string | null>(null);
@@ -112,11 +110,13 @@ const Navbar: React.FC<NavbarProps> = ({ showAllPages }) => {
             }
         };
 
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-        return () => {
-            window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        };
-    }, []);
+        if (showAllPages) {
+            window.ethereum.on('accountsChanged', handleAccountsChanged);
+            return () => {
+                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            };
+        }
+    }, [showAllPages]);
 
     // Check if wallet is already connected
     useEffect(() => {
@@ -135,8 +135,11 @@ const Navbar: React.FC<NavbarProps> = ({ showAllPages }) => {
             }
         };
 
-        checkWalletConnection();
-    }, []);
+        // Only auto-connect wallet when SHOW_ALL_PAGES feature is enabled
+        if (showAllPages) {
+            checkWalletConnection();
+        }
+    }, [showAllPages]);
 
     return (
         <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-md">
@@ -162,7 +165,7 @@ const Navbar: React.FC<NavbarProps> = ({ showAllPages }) => {
                             <div className="flex items-center space-x-8">
 
 
-                                {showPages && (
+                                {showAllPages && (
                                     <>
                                         <Link to="/" className="text-gray-300 hover:text-white transition-colors">
                                             Home
@@ -238,7 +241,7 @@ const Navbar: React.FC<NavbarProps> = ({ showAllPages }) => {
 
                         {/* Wallet Button/Account Info - fixed width */}
                         <div className="w-48 flex justify-end">
-                            {showPages && (
+                            {showAllPages && (
                                 <>
                                     {account ? (
                                         <div className="relative" onMouseEnter={() => setAccountMenuOpen(true)} onMouseLeave={() => setAccountMenuOpen(false)}>
@@ -273,7 +276,7 @@ const Navbar: React.FC<NavbarProps> = ({ showAllPages }) => {
                                                         variants={menuVariants}
                                                         className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 py-1"
                                                     >
-                                                        {showPages && (
+                                                        {showAllPages && (
                                                             <>
                                                                 <button
                                                                     onClick={() => navigate('/developer')}
